@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookOpen,
   Calendar,
   CheckSquare,
   Users,
@@ -15,20 +14,21 @@ import {
   Menu,
   X,
   LogIn,
-  GraduationCap,
   Info,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/", label: "Home", icon: GraduationCap },
+  { href: "/", label: "Home" },
   { href: "/schedule", label: "Schedule", icon: Calendar },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/students", label: "Students", icon: Users },
-  { href: "/achievements", label: "Achievements", icon: Trophy },
-  { href: "/announcements", label: "Announcements", icon: Megaphone },
-  { href: "/gallery", label: "Gallery", icon: ImageIcon },
-  { href: "/resources", label: "Resources", icon: FolderOpen },
+  { href: "/achievements", label: "Honors", icon: Trophy },
+  { href: "/announcements", label: "News", icon: Megaphone },
+  { href: "/gallery", label: "Memories", icon: ImageIcon },
+  { href: "/resources", label: "Vault", icon: FolderOpen },
   { href: "/about", label: "About", icon: Info },
 ];
 
@@ -42,7 +42,7 @@ export function PublicNav({ className }: PublicNavProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 16);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -54,40 +54,42 @@ export function PublicNav({ className }: PublicNavProps) {
   }
 
   return (
-    <>
-      <header
-        className={cn(
-          "sticky top-0 z-40 transition-all duration-200",
-          scrolled
-            ? "bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm"
-            : "bg-white border-b border-slate-200",
-          className
-        )}
-      >
+    <header className={cn("fixed top-3 sm:top-5 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none", className)}>
+      <div className="max-w-6xl mx-auto flex flex-col items-center">
+        {/* Floating Pill Navbar */}
         <nav
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16"
+          className={cn(
+            "w-full pointer-events-auto rounded-full transition-all duration-300",
+            "bg-[#081326]/85 backdrop-blur-2xl border border-cyan-500/25",
+            "px-4 sm:px-6 py-2.5 flex items-center justify-between",
+            "shadow-[0_8px_32px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.1)]",
+            scrolled ? "border-cyan-400/40 shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(6,182,212,0.2)]" : ""
+          )}
           aria-label="Main navigation"
         >
-          {/* Logo */}
+          {/* Brand Logo & Identity */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 font-bold text-xl text-slate-900 flex-shrink-0 group"
+            className="flex items-center gap-2.5 font-bold text-white group flex-shrink-0"
           >
-            <div className="w-8 h-8 rounded-lg gradient-brand flex items-center justify-center shadow-sm group-hover:shadow-brand transition-shadow">
-              <BookOpen className="w-4.5 h-4.5 text-white" size={18} />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 p-[1px] shadow-[0_0_12px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.8)] transition-all">
+              <div className="w-full h-full rounded-full bg-[#060b17] flex items-center justify-center">
+                <Layers className="w-4 h-4 text-cyan-400" />
+              </div>
             </div>
-            <span
-              className="text-gradient font-display hidden sm:block"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800 }}
-            >
-              ClassHub
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold tracking-tight text-sm sm:text-base font-display text-white">
+                SI<span className="text-cyan-400">26</span>
+              </span>
+              <span className="hidden lg:inline text-[11px] font-medium tracking-wider text-cyan-300/70 border-l border-cyan-500/20 pl-2 uppercase font-mono">
+                Systems & Data
+              </span>
+            </div>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-0.5 overflow-x-auto">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar">
             {navLinks.map((link) => {
-              const Icon = link.icon;
               const isActive =
                 link.href === "/"
                   ? pathname === "/"
@@ -97,83 +99,87 @@ export function PublicNav({ className }: PublicNavProps) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+                    "relative px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 whitespace-nowrap",
                     isActive
-                      ? "text-brand-600 bg-brand-50"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      ? "text-cyan-300 bg-cyan-500/15 shadow-[0_0_12px_rgba(6,182,212,0.3)] border border-cyan-400/40"
+                      : "text-slate-300 hover:text-white hover:bg-white/5"
                   )}
                   aria-current={isActive ? "page" : undefined}
                 >
-                  <Icon size={14} />
                   {link.label}
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-0.5 bg-cyan-400 rounded-full shadow-[0_0_6px_#38bdf8]" />
+                  )}
                 </Link>
               );
             })}
           </div>
 
-          {/* Desktop Admin Link */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Right Action: Admin Login CTA */}
+          <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="btn btn-primary btn-sm"
+              className={cn(
+                "hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide",
+                "bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-white",
+                "border border-cyan-300/40 shadow-[0_0_15px_rgba(6,182,212,0.35)]",
+                "hover:shadow-[0_0_25px_rgba(6,182,212,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+              )}
             >
-              <LogIn size={14} />
-              Admin
+              <LogIn size={13} />
+              <span>Admin Portal</span>
             </Link>
-          </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden btn btn-ghost btn-icon"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+            {/* Mobile Hamburger Toggle */}
+            <button
+              className="md:hidden p-2 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-white/5 transition-colors focus:outline-none"
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+            >
+              {mobileOpen ? <X size={20} className="text-cyan-400" /> : <Menu size={20} />}
+            </button>
+          </div>
         </nav>
-      </header>
 
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm"
-          onClick={() => setMobileOpen(false)}
-        >
-          <div
-            className="absolute top-16 left-0 right-0 bg-white border-b border-slate-200 shadow-xl p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="grid grid-cols-2 gap-1 mb-4">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                const isActive =
-                  link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                      isActive
-                        ? "text-brand-600 bg-brand-50"
-                        : "text-slate-700 hover:bg-slate-100"
-                    )}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    <Icon size={15} />
-                    {link.label}
-                  </Link>
-                );
-              })}
+        {/* Mobile Dropdown Panel */}
+        {mobileOpen && (
+          <div className="w-full mt-2 pointer-events-auto animate-in fade-in slide-in-from-top-3 duration-200">
+            <div className="rounded-2xl bg-[#081326]/95 border border-cyan-500/30 backdrop-blur-2xl p-4 shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(6,182,212,0.2)]">
+              <div className="grid grid-cols-2 gap-1.5 mb-3">
+                {navLinks.map((link) => {
+                  const Icon = link.icon || Sparkles;
+                  const isActive =
+                    link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all",
+                        isActive
+                          ? "text-cyan-300 bg-cyan-500/20 border border-cyan-400/40"
+                          : "text-slate-300 hover:text-white hover:bg-white/5"
+                      )}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      <Icon size={14} className={isActive ? "text-cyan-400" : "text-slate-400"} />
+                      <span>{link.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+              <Link
+                href="/login"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+              >
+                <LogIn size={14} />
+                <span>Login to Admin Portal</span>
+              </Link>
             </div>
-            <Link href="/login" className="btn btn-primary w-full">
-              <LogIn size={15} />
-              Login as Admin
-            </Link>
           </div>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </header>
   );
 }

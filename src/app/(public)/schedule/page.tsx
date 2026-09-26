@@ -80,34 +80,51 @@ export default async function SchedulePage() {
   const activeDays = DAYS_ORDER.filter((d) => byDay[d].length > 0);
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 py-10 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center">
-              <Calendar className="text-white" size={20} />
+    <div className="cosmic-canvas min-h-screen text-slate-100 pb-20">
+      {/* Header Banner */}
+      <div className="relative py-14 px-4 border-b border-cyan-500/20 bg-[#060f22]/70 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-xs font-semibold text-cyan-300 mb-4 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Academic Semester &bull; Live Timetable</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-cyan-glow flex-shrink-0">
+              <Calendar size={22} />
             </div>
             <div>
-              <h1 className="page-title">Class Schedule</h1>
-              <p className="text-slate-500 text-sm mt-0.5">
-                Full semester schedule — {schedules.length} session{schedules.length !== 1 ? "s" : ""} across {activeDays.length} days
+              <h1
+                className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Class Schedule
+              </h1>
+              <p className="text-slate-400 text-sm sm:text-base mt-1">
+                Full semester schedule &mdash; {schedules.length} session{schedules.length !== 1 ? "s" : ""} across {activeDays.length} days
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         {/* Subject Legend */}
         {subjects.length > 0 && (
-          <div className="card p-4">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Subjects this semester</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="cyber-card p-5 rounded-2xl bg-[#0a1a2f]/60 border border-cyan-500/20 backdrop-blur-xl">
+            <p className="text-xs font-semibold text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              Subjects This Semester
+            </p>
+            <div className="flex flex-wrap gap-2.5">
               {subjects.map((sub: any, i: number) => (
-                <div key={sub.id} className="flex items-center gap-1.5">
-                  <div className={cn("w-3 h-3 rounded-full bg-gradient-to-r", SUBJECT_COLORS[i % SUBJECT_COLORS.length])} />
-                  <span className="text-xs font-medium text-slate-700">{sub.code} — {sub.name}</span>
+                <div
+                  key={sub.id}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#061021]/80 border border-cyan-500/15 text-xs text-slate-300"
+                >
+                  <div className={cn("w-2.5 h-2.5 rounded-full bg-gradient-to-r flex-shrink-0", SUBJECT_COLORS[i % SUBJECT_COLORS.length])} />
+                  <span className="font-semibold text-cyan-300">{sub.code}</span>
+                  <span className="text-slate-400">&mdash;</span>
+                  <span className="text-slate-300 truncate max-w-[200px]">{sub.name}</span>
                 </div>
               ))}
             </div>
@@ -116,81 +133,96 @@ export default async function SchedulePage() {
 
         {/* Day-by-day grid */}
         {schedules.length === 0 ? (
-          <div className="card p-16 text-center">
-            <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-slate-600 font-semibold">No schedule yet</h3>
-            <p className="text-slate-400 text-sm mt-1">The schedule will appear here once it&apos;s set up.</p>
+          <div className="cyber-card p-16 text-center rounded-2xl bg-[#0a1a2f]/60 border border-cyan-500/20">
+            <Calendar className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+            <h3 className="text-slate-200 font-semibold text-lg">No schedule yet</h3>
+            <p className="text-slate-400 text-sm mt-1">The timetable will appear here once configured.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-10">
             {DAYS_ORDER.map((day) => {
               const daySessions = byDay[day];
               if (daySessions.length === 0) return null;
               const isToday = day === todayDay;
               return (
-                <div key={day} id={day.toLowerCase()}>
+                <div key={day} id={day.toLowerCase()} className="space-y-4">
                   {/* Day header */}
-                  <div className={cn("flex items-center gap-3 mb-3")}>
+                  <div className="flex items-center gap-4">
                     <div
                       className={cn(
-                        "flex items-center justify-center w-14 h-14 rounded-2xl font-bold text-sm flex-shrink-0",
+                        "flex items-center justify-center w-14 h-14 rounded-2xl font-bold text-sm flex-shrink-0 transition-all",
                         isToday
-                          ? "gradient-brand text-white shadow-brand"
-                          : "bg-white border-2 border-slate-200 text-slate-500"
+                          ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-cyan-glow border border-cyan-300/40"
+                          : "bg-[#0a1a2f]/80 border border-cyan-500/20 text-slate-300"
                       )}
                     >
                       {DAY_SHORT[day]}
                     </div>
                     <div>
-                      <h2 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                      <h2 className="font-bold text-xl text-white flex items-center gap-3">
                         {DAY_FULL[day]}
                         {isToday && (
-                          <span className="badge badge-blue text-xs">Today</span>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 animate-pulse">
+                            Today
+                          </span>
                         )}
                       </h2>
-                      <p className="text-sm text-slate-500">
-                        {daySessions.length} session{daySessions.length !== 1 ? "s" : ""}
+                      <p className="text-sm text-slate-400">
+                        {daySessions.length} academic session{daySessions.length !== 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
 
                   {/* Sessions */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ml-0 sm:ml-17">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {daySessions.map((sch: any) => {
                       const gradient = subjectColorMap[sch.subjectId] || SUBJECT_COLORS[0];
                       return (
-                        <div key={sch.id} className={cn("card p-5 card-interactive border-l-4", isToday ? "border-l-brand-500" : "border-l-slate-200")}>
-                          <div className="flex items-start gap-3">
-                            <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 text-white", gradient)}>
-                              <BookOpen size={16} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="badge badge-blue">{sch.subject?.code}</span>
+                        <div
+                          key={sch.id}
+                          className={cn(
+                            "cyber-card p-5 rounded-2xl bg-[#0a1a2f]/70 border transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1",
+                            isToday
+                              ? "border-cyan-400/40 shadow-sm shadow-cyan-500/10"
+                              : "border-cyan-500/20 hover:border-cyan-400/40"
+                          )}
+                        >
+                          <div>
+                            <div className="flex items-start gap-3.5 mb-3">
+                              <div className={cn("w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 text-white shadow-xs", gradient)}>
+                                <BookOpen size={18} />
                               </div>
-                              <p className="font-semibold text-slate-900 mt-1 leading-snug line-clamp-2">
-                                {sch.subject?.name}
-                              </p>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-500/30">
+                                    {sch.subject?.code}
+                                  </span>
+                                </div>
+                                <p className="font-bold text-slate-100 text-base leading-snug line-clamp-2 group-hover:text-cyan-300 transition-colors">
+                                  {sch.subject?.name}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                          <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Clock size={13} className="text-slate-400 flex-shrink-0" />
-                              <span className="font-medium">{sch.startTime} – {sch.endTime}</span>
+
+                          <div className="mt-4 pt-3.5 border-t border-cyan-500/15 space-y-2">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
+                              <Clock size={14} className="text-cyan-400 flex-shrink-0" />
+                              <span className="font-mono text-cyan-200">{sch.startTime} &ndash; {sch.endTime}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <BookOpen size={13} className="text-slate-400 flex-shrink-0" />
-                              <span className="truncate">{sch.room}</span>
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400">
+                              <BookOpen size={14} className="text-slate-500 flex-shrink-0" />
+                              <span className="truncate text-slate-300">{sch.room}</span>
                             </div>
                             {sch.lecturerName && (
-                              <div className="flex items-center gap-2 text-sm text-slate-500">
-                                <span className="w-3.5 h-3.5 rounded-full bg-slate-200 flex-shrink-0" />
-                                <span className="truncate">{sch.lecturerName}</span>
+                              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400">
+                                <span className="w-2 h-2 rounded-full bg-cyan-400/60 flex-shrink-0" />
+                                <span className="truncate text-slate-300">{sch.lecturerName}</span>
                               </div>
                             )}
                             {sch.notes && (
-                              <div className="flex items-start gap-2 text-xs text-slate-400 mt-1">
-                                <Info size={11} className="flex-shrink-0 mt-0.5" />
+                              <div className="flex items-start gap-2 text-xs text-slate-400 mt-1 bg-[#061021]/60 p-2 rounded-lg border border-cyan-500/10">
+                                <Info size={12} className="text-cyan-400 flex-shrink-0 mt-0.5" />
                                 <span className="line-clamp-2">{sch.notes}</span>
                               </div>
                             )}

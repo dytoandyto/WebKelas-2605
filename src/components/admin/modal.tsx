@@ -50,28 +50,28 @@ export function Modal({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div
-          className={`relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full ${maxWidthClasses[maxWidth]} animate-in zoom-in-95 duration-200 border border-slate-100`}
+          className={`relative transform overflow-hidden rounded-2xl bg-[#081326] text-left shadow-2xl transition-all sm:my-8 w-full ${maxWidthClasses[maxWidth]} animate-in zoom-in-95 duration-200 border border-cyan-500/30 text-slate-100 shadow-cyan-glow`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
+          <div className="flex items-start justify-between border-b border-cyan-500/20 px-6 py-5 bg-[#060e1d]">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+              <h3 className="text-lg font-extrabold text-white">{title}</h3>
               {description && (
-                <p className="mt-1 text-xs text-slate-500">{description}</p>
+                <p className="mt-1 text-xs text-slate-400">{description}</p>
               )}
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="btn btn-ghost btn-icon text-slate-400 hover:text-slate-600 rounded-lg p-1 -mr-2"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-cyan-950/50 transition-colors -mr-2"
               aria-label="Close modal"
             >
               <X size={18} />
@@ -79,7 +79,7 @@ export function Modal({
           </div>
 
           {/* Body */}
-          <div className="px-6 py-5 max-h-[calc(85vh-120px)] overflow-y-auto">
+          <div className="px-6 py-5 max-h-[calc(85vh-120px)] overflow-y-auto bg-[#081326]">
             {children}
           </div>
         </div>

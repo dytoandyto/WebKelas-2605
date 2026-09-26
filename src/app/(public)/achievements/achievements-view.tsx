@@ -55,45 +55,45 @@ const CATEGORY_STYLES: Record<
 > = {
   COMPETITION: {
     badge: "badge-amber",
-    border: "hover:border-amber-300",
+    border: "hover:border-amber-400/50",
     glow: "bg-amber-500/10",
-    iconBg: "bg-amber-50 border-amber-200 text-amber-600",
+    iconBg: "bg-amber-950/60 border-amber-500/30 text-amber-400",
   },
   VOLUNTEER: {
     badge: "badge-teal",
-    border: "hover:border-teal-300",
+    border: "hover:border-teal-400/50",
     glow: "bg-teal-500/10",
-    iconBg: "bg-teal-50 border-teal-200 text-teal-600",
+    iconBg: "bg-teal-950/60 border-teal-500/30 text-teal-400",
   },
   ORGANIZATION: {
     badge: "badge-purple",
-    border: "hover:border-purple-300",
+    border: "hover:border-purple-400/50",
     glow: "bg-purple-500/10",
-    iconBg: "bg-purple-50 border-purple-200 text-purple-600",
+    iconBg: "bg-purple-950/60 border-purple-500/30 text-purple-400",
   },
   ACADEMIC: {
     badge: "badge-blue",
-    border: "hover:border-cyan-300",
+    border: "hover:border-cyan-400/50",
     glow: "bg-cyan-500/10",
-    iconBg: "bg-cyan-50 border-cyan-200 text-cyan-600",
+    iconBg: "bg-cyan-950/60 border-cyan-500/30 text-cyan-400",
   },
   CREATIVE: {
     badge: "badge-green",
-    border: "hover:border-emerald-300",
+    border: "hover:border-emerald-400/50",
     glow: "bg-emerald-500/10",
-    iconBg: "bg-emerald-50 border-emerald-200 text-emerald-600",
+    iconBg: "bg-emerald-950/60 border-emerald-500/30 text-emerald-400",
   },
   TECHNOLOGY: {
     badge: "badge-blue",
-    border: "hover:border-blue-300",
+    border: "hover:border-blue-400/50",
     glow: "bg-blue-500/10",
-    iconBg: "bg-blue-50 border-blue-200 text-blue-600",
+    iconBg: "bg-blue-950/60 border-blue-500/30 text-blue-400",
   },
   OTHER: {
     badge: "badge-gray",
-    border: "hover:border-slate-300",
+    border: "hover:border-slate-500/50",
     glow: "bg-slate-500/10",
-    iconBg: "bg-slate-50 border-slate-200 text-slate-600",
+    iconBg: "bg-[#061021] border-cyan-500/20 text-slate-300",
   },
 };
 
@@ -120,16 +120,16 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
   return (
     <div className="space-y-8">
       {/* Search & Category Pills */}
-      <div className="card p-5 border border-slate-200/80 shadow-xs space-y-4">
+      <div className="cyber-card p-5 rounded-2xl bg-[#0a1a2f]/70 border border-cyan-500/20 backdrop-blur-xl space-y-4">
         {/* Search */}
         <div className="relative max-w-md">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
           <input
             type="text"
             placeholder="Search by achievement, awarder, or student name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10 w-full"
+            className="w-full bg-[#061021]/90 border border-cyan-500/25 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
           />
         </div>
 
@@ -140,8 +140,8 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
             className={cn(
               "px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all",
               selectedCategory === "ALL"
-                ? "bg-slate-900 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-cyan-glow border border-cyan-300/40"
+                : "bg-[#061021] text-slate-300 hover:text-white hover:border-cyan-400/40 border border-cyan-500/15"
             )}
           >
             All Categories ({initialAchievements.length})
@@ -156,8 +156,8 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
                 className={cn(
                   "px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all",
                   selectedCategory === cat
-                    ? "bg-cyan-600 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-cyan-glow border border-cyan-300/40"
+                    : "bg-[#061021] text-slate-300 hover:text-white hover:border-cyan-400/40 border border-cyan-500/15"
                 )}
               >
                 {CATEGORY_LABELS[cat]} ({count})
@@ -169,12 +169,12 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
 
       {/* Achievements Cards */}
       {filtered.length === 0 ? (
-        <div className="card p-12 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4 text-amber-600">
+        <div className="cyber-card p-12 text-center rounded-2xl bg-[#0a1a2f]/60 border border-cyan-500/20">
+          <div className="w-14 h-14 rounded-2xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400">
             <Trophy size={26} />
           </div>
-          <h3 className="font-bold text-slate-900 text-lg mb-1">No achievements found</h3>
-          <p className="text-slate-500 text-sm max-w-md mx-auto">
+          <h3 className="font-bold text-white text-lg mb-1">No achievements found</h3>
+          <p className="text-slate-400 text-sm max-w-md mx-auto">
             {searchQuery
               ? `No honors match "${searchQuery}". Try a different keyword.`
               : "No awards found in this category."}
@@ -188,13 +188,13 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
               <div
                 key={ach.id}
                 className={cn(
-                  "card overflow-hidden flex flex-col justify-between border border-slate-200/80 transition-all hover:shadow-lg bg-white",
+                  "cyber-card rounded-2xl overflow-hidden flex flex-col justify-between border border-cyan-500/20 bg-[#0a1a2f]/75 hover:shadow-cyan-glow transition-all duration-300 hover:-translate-y-1",
                   style.border
                 )}
               >
                 {/* Optional Top Image */}
                 {ach.imageUrl && (
-                  <div className="h-44 w-full bg-slate-100 overflow-hidden relative">
+                  <div className="h-44 w-full bg-[#061021] overflow-hidden relative">
                     <img
                       src={ach.imageUrl}
                       alt={ach.title}
@@ -226,38 +226,38 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-slate-400 font-medium">
+                    <span className="text-xs text-slate-400 font-mono">
                       {formatDate(ach.achievementDate)}
                     </span>
                   </div>
 
                   {/* Title & Description */}
-                  <h3 className="font-extrabold text-slate-900 text-base leading-snug mb-2 line-clamp-2">
+                  <h3 className="font-extrabold text-white text-base leading-snug mb-2 line-clamp-2">
                     {ach.title}
                   </h3>
 
                   {ach.organization && (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium mb-3">
-                      <Building size={13} className="text-slate-400 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-cyan-300 font-medium mb-3">
+                      <Building size={13} className="text-cyan-400 flex-shrink-0" />
                       <span className="truncate">{ach.organization}</span>
                       {ach.location && (
                         <>
-                          <span className="text-slate-300">&bull;</span>
-                          <span className="text-slate-500 truncate">{ach.location}</span>
+                          <span className="text-slate-500">&bull;</span>
+                          <span className="text-slate-400 truncate">{ach.location}</span>
                         </>
                       )}
                     </div>
                   )}
 
                   {ach.description && (
-                    <p className="text-slate-600 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                    <p className="text-slate-300 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
                       {ach.description}
                     </p>
                   )}
 
                   {/* Students Tagged Section */}
                   {ach.students && ach.students.length > 0 && (
-                    <div className="mt-auto pt-3 border-t border-slate-100">
+                    <div className="mt-auto pt-3 border-t border-cyan-500/15">
                       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
                         Awarded to:
                       </p>
@@ -269,9 +269,9 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
                             <Link
                               key={stu.id}
                               href={`/students/${stu.id}`}
-                              className="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-cyan-50 border border-slate-200/80 hover:border-cyan-300 rounded-full px-2.5 py-1 text-xs text-slate-700 hover:text-cyan-800 transition-colors"
+                              className="inline-flex items-center gap-1.5 bg-[#061021] hover:bg-cyan-950/80 border border-cyan-500/20 hover:border-cyan-400/50 rounded-full px-2.5 py-1 text-xs text-slate-300 hover:text-white transition-colors"
                             >
-                              <div className="w-4 h-4 rounded-full bg-cyan-600 text-white flex items-center justify-center font-bold text-[9px]">
+                              <div className="w-4 h-4 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center font-extrabold text-[9px]">
                                 {stu.name.charAt(0)}
                               </div>
                               <span className="font-medium truncate max-w-[130px]">{stu.name}</span>

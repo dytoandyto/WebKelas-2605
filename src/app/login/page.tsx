@@ -30,52 +30,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Background blobs */}
+    <div className="min-h-screen cosmic-canvas cyber-grid flex items-center justify-center px-4 py-12 relative overflow-hidden text-slate-100">
+      {/* Background ambient glows */}
       <div
-        className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-10 pointer-events-none"
-        style={{ background: "radial-gradient(circle, #818cf8, transparent)" }}
+        className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20 pointer-events-none"
+        style={{ background: "radial-gradient(circle, #06b6d4, transparent)" }}
       />
       <div
-        className="absolute bottom-0 right-1/4 w-72 h-72 rounded-full opacity-10 pointer-events-none"
-        style={{ background: "radial-gradient(circle, #a78bfa, transparent)" }}
+        className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-20 pointer-events-none"
+        style={{ background: "radial-gradient(circle, #2563eb, transparent)" }}
       />
 
-      <div className="w-full max-w-sm relative z-10">
+      <div className="w-full max-w-md relative z-10">
         {/* Card */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/60">
+        <div className="cyber-card rounded-3xl bg-[#081326]/90 backdrop-blur-2xl p-8 sm:p-10 border border-cyan-500/30 shadow-cyan-glow">
           {/* Logo */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 rounded-2xl gradient-brand flex items-center justify-center shadow-brand mb-4">
+          <div className="flex flex-col items-center mb-8 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-cyan-glow mb-4 border border-cyan-300/40">
               <BookOpen className="text-white" size={26} />
             </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-[11px] font-semibold text-cyan-300 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span>Information Systems 26</span>
+            </div>
             <h1
-              className="text-2xl font-extrabold text-slate-900 tracking-tight"
+              className="text-2xl font-black text-white tracking-tight"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              ClassHub
+              Control Terminal
             </h1>
-            <p className="text-slate-500 text-sm mt-1">Sign in to the admin panel</p>
+            <p className="text-slate-400 text-xs sm:text-sm mt-1">Authenticate credentials to access admin node</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             {/* Error */}
             {error && (
-              <div className="alert alert-error" role="alert">
-                <AlertCircle size={16} className="flex-shrink-0" />
+              <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2" role="alert">
+                <AlertCircle size={16} className="flex-shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Email */}
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email address
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-xs font-semibold text-cyan-300 uppercase tracking-wider">
+                Operator Email
               </label>
               <input
                 id="email"
                 type="email"
-                className="form-input"
+                className="w-full bg-[#061021]/90 border border-cyan-500/25 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
                 placeholder="admin@classhub.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -86,15 +90,15 @@ export default function LoginPage() {
             </div>
 
             {/* Password */}
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                Password
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-xs font-semibold text-cyan-300 uppercase tracking-wider">
+                Access Key
               </label>
               <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  className="form-input pr-10"
+                  className="w-full bg-[#061021]/90 border border-cyan-500/25 rounded-xl px-4 py-2.5 pr-10 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -103,7 +107,7 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-300 transition-colors"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
@@ -115,7 +119,7 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="btn btn-primary w-full btn-lg mt-2"
+              className="w-full py-3 mt-4 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 shadow-cyan-glow flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50"
               disabled={isPending}
               aria-busy={isPending}
             >
@@ -129,29 +133,32 @@ export default function LoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                     />
                   </svg>
-                  Signing in…
+                  <span>Authenticating…</span>
                 </>
               ) : (
                 <>
                   <LogIn size={16} />
-                  Sign In
+                  <span>Authenticate Session</span>
                 </>
               )}
             </button>
           </form>
 
           {/* Demo credentials */}
-          <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-            <p className="text-xs font-semibold text-slate-600 mb-2">Demo Credentials</p>
-            <div className="space-y-1 text-xs text-slate-500 font-mono">
-              <p>admin@classhub.edu / AdminClassHub2026!</p>
-              <p>classadmin@classhub.edu / ClassAdmin2026!</p>
+          <div className="mt-6 p-4 bg-[#061021]/80 rounded-2xl border border-cyan-500/20">
+            <p className="text-[11px] font-semibold text-cyan-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              Demo Credentials
+            </p>
+            <div className="space-y-1 text-xs text-slate-300 font-mono">
+              <p className="truncate">admin@classhub.edu / AdminClassHub2026!</p>
+              <p className="truncate">classadmin@classhub.edu / ClassAdmin2026!</p>
             </div>
           </div>
 
-          <p className="text-center text-sm text-slate-400 mt-4">
-            <Link href="/" className="text-brand-600 hover:text-brand-700 font-medium">
-              ← Back to ClassHub
+          <p className="text-center text-sm text-slate-400 mt-5">
+            <Link href="/" className="text-cyan-400 hover:text-white font-semibold transition-colors">
+              &larr; Return to Public Portal
             </Link>
           </p>
         </div>

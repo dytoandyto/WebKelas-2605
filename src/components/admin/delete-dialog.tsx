@@ -32,13 +32,13 @@ export function DeleteDialog({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="sm">
-      <div className="flex flex-col items-center text-center py-2">
-        <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+      <div className="flex flex-col items-center text-center py-2 text-slate-200">
+        <div className="w-12 h-12 rounded-2xl bg-rose-950/60 border border-rose-500/30 text-rose-400 flex items-center justify-center mb-4 shadow-sm">
           <AlertTriangle size={24} />
         </div>
-        <p className="text-sm text-slate-600 mb-2">{description}</p>
+        <p className="text-sm text-slate-300 mb-2">{description}</p>
         {itemTitle && (
-          <p className="text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 mb-6 w-full truncate">
+          <p className="text-xs font-mono font-bold text-white bg-[#061021] border border-cyan-500/20 rounded-xl py-2 px-3 mb-6 w-full truncate">
             &ldquo;{itemTitle}&rdquo;
           </p>
         )}
@@ -47,7 +47,7 @@ export function DeleteDialog({
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="btn btn-secondary flex-1 text-sm py-2.5"
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#061021] border border-cyan-500/25 text-slate-300 hover:text-white hover:border-cyan-400 transition-colors"
           >
             Cancel
           </button>
@@ -55,15 +55,15 @@ export function DeleteDialog({
             type="button"
             onClick={handleConfirm}
             disabled={isPending}
-            className="btn btn-danger flex-1 text-sm py-2.5 flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:brightness-110 shadow-md transition-all flex items-center justify-center gap-2"
           >
             {isPending ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                Deleting...
+                <span>Deleting...</span>
               </>
             ) : (
-              "Delete"
+              "Confirm Delete"
             )}
           </button>
         </div>
