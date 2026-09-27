@@ -2,6 +2,8 @@ import { z } from "zod";
 import {
   UserRole,
   DayOfWeek,
+  TaskType,
+  MaterialType,
   TaskPriority,
   TaskStatus,
   AchievementCategory,
@@ -76,11 +78,16 @@ export const subjectSchema = z.object({
   code: z
     .string()
     .trim()
-    .min(2, "Subject code is required (e.g. CS101)")
+    .min(2, "Subject code is required (e.g. BBK1AAB4)")
     .toUpperCase(),
   name: z.string().trim().min(2, "Subject name is required"),
+  englishName: z.string().trim().max(200).optional().nullable(),
   description: z.string().trim().max(1000).optional().nullable(),
+  sks: z.coerce.number().int().min(1).max(10).optional().default(3),
   lecturerName: z.string().trim().max(200).optional().nullable(),
+  semester: z.string().trim().max(100).optional().nullable().default("Semester Ganjil 2026/2027"),
+  academicYear: z.string().trim().max(50).optional().nullable().default("2026/2027"),
+  color: z.string().trim().max(100).optional().nullable(),
 });
 export type SubjectInput = z.infer<typeof subjectSchema>;
 
@@ -97,8 +104,11 @@ export const scheduleSchema = z
     endTime: z
       .string()
       .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "End time must be HH:MM format (e.g. 10:30)"),
-    room: z.string().trim().min(1, "Room/location is required (e.g. Lab 402 or Online)"),
+    room: z.string().trim().min(1, "Room/location is required (e.g. RLC.KJ.05.001)"),
     lecturerName: z.string().trim().optional().nullable(),
+    className: z.string().trim().max(100).optional().nullable().default("JS1SI-26-REG-05"),
+    semester: z.string().trim().max(100).optional().nullable().default("Semester Ganjil 2026/2027"),
+    academicYear: z.string().trim().max(50).optional().nullable().default("2026/2027"),
     notes: z.string().trim().max(500).optional().nullable(),
   })
   .refine(
@@ -114,16 +124,53 @@ export type ScheduleInput = z.infer<typeof scheduleSchema>;
 
 // 6. Task Schemas
 export const taskSchema = z.object({
-  subjectId: z.string().min(1, "Please select a subject"),
+  subjectId: z.string().optional().nullable(),
   title: z.string().trim().min(3, "Task title must be at least 3 characters"),
   description: z.string().trim().max(3000).optional().nullable(),
+  taskType: z.nativeEnum(TaskType).default(TaskType.INDIVIDUAL),
   deadline: z.string().min(1, "Deadline date and time is required"),
+  estimatedTime: z.string().trim().max(100).optional().nullable(),
   priority: z.nativeEnum(TaskPriority).default(TaskPriority.MEDIUM),
   status: z.nativeEnum(TaskStatus).default(TaskStatus.UPCOMING),
+  groupName: z.string().trim().max(200).optional().nullable(),
+  groupMembers: z.string().trim().max(1000).optional().nullable(),
+  attachmentUrl: optionalUrl,
+  submissionUrl: optionalUrl,
+  referenceUrl: optionalUrl,
+  notes: z.string().trim().max(1000).optional().nullable(),
 });
 export type TaskInput = z.infer<typeof taskSchema>;
 
-// 7. Achievement Schemas
+// 7. Material Schemas
+export const materialSchema = z.object({
+  title: z.string().trim().min(3, "Material title is required"),
+  description: z.string().trim().max(2000).optional().nullable(),
+  subjectId: z.string().optional().nullable(),
+  type: z.nativeEnum(MaterialType).default(MaterialType.PDF),
+  fileUrl: optionalUrl,
+  externalUrl: optionalUrl,
+  fileName: z.string().trim().max(255).optional().nullable(),
+  fileSize: z.string().trim().max(50).optional().nullable(),
+  tags: z.string().trim().max(255).optional().nullable(),
+});
+export type MaterialInput = z.infer<typeof materialSchema>;
+
+// 8. Daily Note Schemas
+export const dailyNoteSchema = z.object({
+  date: z.string().min(1, "Date is required"),
+  title: z.string().trim().min(3, "Title must be at least 3 characters"),
+  summary: z.string().trim().max(1000).optional().nullable(),
+  content: z.string().trim().min(5, "Content must have at least 5 characters"),
+  importantPoints: z.string().trim().max(2000).optional().nullable(),
+  nextSteps: z.string().trim().max(2000).optional().nullable(),
+  subjectId: z.string().optional().nullable(),
+  tags: z.string().trim().max(255).optional().nullable(),
+  materialIds: z.array(z.string()).default([]),
+  taskIds: z.array(z.string()).default([]),
+});
+export type DailyNoteInput = z.infer<typeof dailyNoteSchema>;
+
+// 9. Achievement Schemas
 export const achievementSchema = z.object({
   title: z.string().trim().min(3, "Achievement title is required"),
   description: z.string().trim().max(2000).optional().nullable(),
@@ -139,7 +186,7 @@ export const achievementSchema = z.object({
 });
 export type AchievementInput = z.infer<typeof achievementSchema>;
 
-// 8. Announcement Schemas
+// 10. Announcement Schemas
 export const announcementSchema = z.object({
   title: z.string().trim().min(3, "Announcement title is required"),
   content: z.string().trim().min(10, "Content must be at least 10 characters"),
@@ -149,7 +196,7 @@ export const announcementSchema = z.object({
 });
 export type AnnouncementInput = z.infer<typeof announcementSchema>;
 
-// 9. Gallery Schemas
+// 11. Gallery Schemas
 export const gallerySchema = z.object({
   title: z.string().trim().min(2, "Photo title is required"),
   description: z.string().trim().max(1000).optional().nullable(),
@@ -158,7 +205,7 @@ export const gallerySchema = z.object({
 });
 export type GalleryInput = z.infer<typeof gallerySchema>;
 
-// 10. Resource Schemas
+// 12. Resource Schemas
 export const resourceSchema = z.object({
   title: z.string().trim().min(2, "Resource title is required"),
   description: z.string().trim().max(1000).optional().nullable(),
@@ -172,7 +219,7 @@ export const resourceSchema = z.object({
 });
 export type ResourceInput = z.infer<typeof resourceSchema>;
 
-// 11. Class Event Schema
+// 13. Class Event Schema
 export const classEventSchema = z.object({
   title: z.string().trim().min(2, "Event title is required").max(200),
   description: z.string().trim().max(2000).optional(),
@@ -186,12 +233,19 @@ export const classEventSchema = z.object({
 });
 export type ClassEventInput = z.infer<typeof classEventSchema>;
 
-// 12. Settings Schema
+// 14. Settings Schema
 export const settingsSchema = z.object({
   className: z.string().trim().min(2, "Class name is required"),
-  institutionName: z.string().trim().max(200).optional(),
+  classShortName: z.string().trim().max(50).optional().default("SI • 26-05"),
+  classCode: z.string().trim().max(50).optional().default("JS1SI-26-REG-05"),
+  institutionName: z.string().trim().max(200).optional().default("Telkom University Jakarta"),
+  campusName: z.string().trim().max(200).optional().default("Telkom University Jakarta"),
+  studyProgram: z.string().trim().max(200).optional().default("S1 Sistem Informasi"),
+  academicYear: z.string().trim().min(4, "Academic year is required (e.g. 2026/2027)").default("2026/2027"),
+  semester: z.string().trim().max(100).optional().default("Semester Ganjil 2026/2027"),
+  waliDosen: z.string().trim().max(200).optional().default("Muhammad Ardiansyah"),
+  classHeadline: z.string().trim().max(200).optional().default("LEARN. BUILD. GROW. TOGETHER."),
   classDescription: z.string().trim().max(1000).optional(),
-  academicYear: z.string().trim().min(4, "Academic year is required (e.g. 2026/2027)"),
   contactEmail: z.string().trim().email("Must be a valid email").optional().or(z.literal("")),
   logoUrl: optionalUrl,
   heroImageUrl: optionalUrl,

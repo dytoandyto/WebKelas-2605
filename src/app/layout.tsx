@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SearchDialog } from "@/components/search-dialog";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,29 +18,33 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Information Systems 26",
-    default: "Information Systems 26 — Build. Learn. Create.",
+    template: "%s | JS1SI-26-REG-05",
+    default: "JS1SI-26-REG-05 | S1 Sistem Informasi Telkom University Jakarta",
   },
   description:
-    "Official academic platform and digital hub for Information Systems 26 — schedules, tasks, coursework, cohort directory, achievements, and resources.",
+    "Academic class hub for S1 Sistem Informasi Telkom University Jakarta class JS1SI-26-REG-05 — schedules, coursework, learning materials, daily journal, cohort directory, and achievements.",
   keywords: [
-    "information systems",
-    "systems 26",
-    "academic portal",
-    "class hub",
-    "cohort",
-    "schedule",
-    "tasks",
-    "informatics",
+    "Telkom University Jakarta",
+    "S1 Sistem Informasi",
+    "JS1SI-26-REG-05",
+    "SI 26-05",
+    "Academic Class Hub",
+    "Class Schedule",
+    "Class Journal",
+    "Coursework",
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${plusJakarta.variable} dark`}>
-      <body className="min-h-screen flex flex-col antialiased bg-[#060b17] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
-        {children}
+    <html lang="id" suppressHydrationWarning className={`${inter.variable} ${plusJakarta.variable}`}>
+      <body className="min-h-screen flex flex-col antialiased bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          {children}
+          <SearchDialog />
+        </ThemeProvider>
       </body>
     </html>
   );
 }
+

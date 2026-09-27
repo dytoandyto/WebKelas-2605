@@ -12,9 +12,13 @@ import {
   initialSubjects,
   initialTasks,
   initialUsers,
+  initialMaterials,
+  initialDailyNotes,
 } from "./initial-data";
 import {
   DayOfWeek,
+  TaskType,
+  MaterialType,
   TaskPriority,
   TaskStatus,
   AchievementCategory,
@@ -67,18 +71,24 @@ export async function getHomeData() {
       achievementsCount,
       subjectsCount,
       tasksCount,
+      materialsCount,
+      dailyNotesCount,
       upcomingTasksRaw,
       todaySchedulesRaw,
       latestAnnouncements,
       latestAchievementsRaw,
       featuredStudentsRaw,
       galleryPreview,
+      latestMaterialsRaw,
+      latestDailyNotesRaw,
       settingsRaw,
     ] = await Promise.all([
       prisma.student.count(),
       prisma.achievement.count(),
       prisma.subject.count(),
       prisma.task.count({ where: { status: { not: TaskStatus.COMPLETED } } }),
+      prisma.material.count(),
+      prisma.dailyNote.count(),
       prisma.task.findMany({
         where: { status: { not: TaskStatus.COMPLETED } },
         orderBy: { deadline: "asc" },
@@ -110,6 +120,16 @@ export async function getHomeData() {
         orderBy: { eventDate: "desc" },
         take: 6,
       }),
+      prisma.material.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 4,
+        include: { subject: true },
+      }),
+      prisma.dailyNote.findMany({
+        orderBy: { date: "desc" },
+        take: 3,
+        include: { subject: true, author: { select: { id: true, name: true } } },
+      }),
       prisma.setting.findMany(),
     ]);
 
@@ -129,6 +149,8 @@ export async function getHomeData() {
         achievementsCount,
         subjectsCount,
         tasksCount,
+        materialsCount,
+        dailyNotesCount,
       },
       upcomingTasks,
       todaySchedules: todaySchedulesRaw,
@@ -137,6 +159,8 @@ export async function getHomeData() {
       latestAchievements: latestAchievementsRaw,
       featuredStudents: featuredStudentsRaw,
       galleryPreview,
+      latestMaterials: latestMaterialsRaw,
+      latestDailyNotes: latestDailyNotesRaw,
       settings: { ...initialSettings, ...settings },
     };
   } catch {
@@ -153,6 +177,8 @@ export async function getHomeData() {
         achievementsCount: initialAchievements.length,
         subjectsCount: initialSubjects.length,
         tasksCount: initialTasks.filter((t) => t.status !== TaskStatus.COMPLETED).length,
+        materialsCount: initialMaterials.length,
+        dailyNotesCount: initialDailyNotes.length,
       },
       upcomingTasks,
       todaySchedules: initialSchedules.filter((s) => s.dayOfWeek === todayDayOfWeek),
@@ -161,6 +187,8 @@ export async function getHomeData() {
       latestAchievements: initialAchievements.slice(0, 3),
       featuredStudents: initialStudents.slice(0, 4),
       galleryPreview: initialGallery.slice(0, 6),
+      latestMaterials: initialMaterials.slice(0, 4),
+      latestDailyNotes: initialDailyNotes.slice(0, 3),
       settings: initialSettings,
     };
   }
@@ -258,6 +286,44 @@ export async function getTasksData(filters?: {
 
     return { tasks, subjects: initialSubjects };
   }
+}
+
+// 3b. Task Detail Page Data
+export async function getTaskById(id: string) {
+  try {
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: {
+        subject: true,
+        creator: { select: { id: true, name: true, role: true } },
+        dailyNotes: {
+          include: {
+            dailyNote: {
+              select: { id: true, title: true, date: true, summary: true },
+            },
+          },
+        },
+      },
+    });
+    if (task) {
+      return {
+        ...task,
+        computedStatus: computeDynamicTaskStatus(task),
+      };
+    }
+  } catch {
+    // fallback
+  }
+
+  const initial = initialTasks.find((t) => t.id === id);
+  if (initial) {
+    return {
+      ...initial,
+      computedStatus: computeDynamicTaskStatus(initial),
+      dailyNotes: [],
+    };
+  }
+  return null;
 }
 
 // 4. Students Page Data
@@ -509,6 +575,17 @@ export async function getSettings() {
 
 // 12. Admin Dashboard Overview Data
 export async function getAdminOverviewData() {
+  const dayOfWeekMap: Record<number, DayOfWeek> = {
+    0: DayOfWeek.SUNDAY,
+    1: DayOfWeek.MONDAY,
+    2: DayOfWeek.TUESDAY,
+    3: DayOfWeek.WEDNESDAY,
+    4: DayOfWeek.THURSDAY,
+    5: DayOfWeek.FRIDAY,
+    6: DayOfWeek.SATURDAY,
+  };
+  const todayDayOfWeek = dayOfWeekMap[new Date().getDay()];
+
   try {
     const [
       studentsCount,
@@ -519,10 +596,16 @@ export async function getAdminOverviewData() {
       galleryCount,
       eventsCount,
       usersCount,
+      materialsCount,
+      dailyNotesCount,
       upcomingDeadlinesRaw,
       recentAchievements,
       recentAnnouncements,
       recentActivities,
+      todaySchedulesRaw,
+      recentMaterialsRaw,
+      recentDailyNotesRaw,
+      settingsRaw,
     ] = await Promise.all([
       prisma.student.count(),
       prisma.subject.count(),
@@ -532,6 +615,8 @@ export async function getAdminOverviewData() {
       prisma.gallery.count(),
       prisma.classEvent.count(),
       prisma.user.count(),
+      prisma.material.count(),
+      prisma.dailyNote.count(),
       prisma.task.findMany({
         where: { status: { not: TaskStatus.COMPLETED } },
         orderBy: { deadline: "asc" },
@@ -552,7 +637,28 @@ export async function getAdminOverviewData() {
         take: 6,
         include: { user: { select: { name: true, role: true } } },
       }),
+      prisma.schedule.findMany({
+        where: { dayOfWeek: todayDayOfWeek },
+        orderBy: { startTime: "asc" },
+        include: { subject: true },
+      }),
+      prisma.material.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        include: { subject: true },
+      }),
+      prisma.dailyNote.findMany({
+        orderBy: { date: "desc" },
+        take: 3,
+        include: { subject: true, author: { select: { id: true, name: true } } },
+      }),
+      prisma.setting.findMany(),
     ]);
+
+    const settings = settingsRaw.reduce((acc, curr) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {} as Record<string, string>);
 
     const upcomingDeadlines = upcomingDeadlinesRaw.map((t) => ({
       ...t,
@@ -569,11 +675,17 @@ export async function getAdminOverviewData() {
         galleryCount,
         eventsCount,
         usersCount,
+        materialsCount,
+        dailyNotesCount,
       },
       upcomingDeadlines,
       recentAchievements,
       recentAnnouncements,
       recentActivities,
+      todaySchedules: todaySchedulesRaw,
+      recentMaterials: recentMaterialsRaw,
+      recentDailyNotes: recentDailyNotesRaw,
+      settings,
     };
   } catch {
     const upcomingDeadlines = initialTasks
@@ -591,35 +703,54 @@ export async function getAdminOverviewData() {
         galleryCount: initialGallery.length,
         eventsCount: initialClassEvents.length,
         usersCount: initialUsers.length,
+        materialsCount: 0,
+        dailyNotesCount: 0,
       },
       upcomingDeadlines,
       recentAchievements: initialAchievements.slice(0, 4),
       recentAnnouncements: initialAnnouncements.slice(0, 4),
       recentActivities: initialActivityLogs,
+      todaySchedules: [],
+      recentMaterials: [],
+      recentDailyNotes: [],
+      settings: {},
     };
   }
 }
 
-// 13. Subjects Data (Admin / Management)
+// 13. Subjects Data (Admin / Management & Subjects Hub)
 export async function getSubjectsData() {
   try {
     const subjects = await prisma.subject.findMany({
       orderBy: { code: "asc" },
       include: {
         _count: {
-          select: { schedules: true, tasks: true },
+          select: { schedules: true, tasks: true, materials: true, dailyNotes: true },
         },
+        schedules: { orderBy: { dayOfWeek: "asc" } },
+        tasks: {
+          where: { status: { not: TaskStatus.COMPLETED } },
+          orderBy: { deadline: "asc" },
+        },
+        materials: { orderBy: { createdAt: "desc" } },
+        dailyNotes: { orderBy: { date: "desc" } },
       },
     });
     return { subjects };
   } catch {
     return {
-      subjects: initialSubjects.map((s) => ({
-        ...s,
+      subjects: initialSubjects.map((sub) => ({
+        ...sub,
         _count: {
-          schedules: initialSchedules.filter((sch) => sch.subjectId === s.id).length,
-          tasks: initialTasks.filter((t) => t.subjectId === s.id).length,
+          schedules: initialSchedules.filter((sch) => sch.subjectId === sub.id).length,
+          tasks: initialTasks.filter((t) => t.subjectId === sub.id).length,
+          materials: initialMaterials.filter((m) => m.subjectId === sub.id).length,
+          dailyNotes: initialDailyNotes.filter((n) => n.subjectId === sub.id).length,
         },
+        schedules: initialSchedules.filter((s) => s.subjectId === sub.id),
+        tasks: initialTasks.filter((t) => t.subjectId === sub.id),
+        materials: initialMaterials.filter((m) => m.subjectId === sub.id),
+        dailyNotes: initialDailyNotes.filter((n) => n.subjectId === sub.id),
       })),
     };
   }
@@ -692,3 +823,365 @@ export async function getActivityLogsData() {
     };
   }
 }
+
+// 17. Materials Data (Public & Admin)
+export async function getMaterialsData(filters?: {
+  subjectId?: string;
+  type?: MaterialType;
+  search?: string;
+}) {
+  try {
+    const where: any = {};
+    if (filters?.subjectId) where.subjectId = filters.subjectId;
+    if (filters?.type) where.type = filters.type;
+    if (filters?.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { description: { contains: filters.search, mode: "insensitive" } },
+        { tags: { contains: filters.search, mode: "insensitive" } },
+        { subject: { name: { contains: filters.search, mode: "insensitive" } } },
+      ];
+    }
+
+    const [materials, subjects] = await Promise.all([
+      prisma.material.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: {
+          subject: true,
+          uploader: { select: { id: true, name: true, role: true } },
+        },
+      }),
+      prisma.subject.findMany({ orderBy: { code: "asc" } }),
+    ]);
+
+    return { materials, subjects };
+  } catch {
+    let materials = initialMaterials;
+    if (filters?.subjectId) materials = materials.filter((m) => m.subjectId === filters.subjectId);
+    if (filters?.type) materials = materials.filter((m) => m.type === filters.type);
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      materials = materials.filter(
+        (m) =>
+          m.title.toLowerCase().includes(q) ||
+          (m.description && m.description.toLowerCase().includes(q)) ||
+          (m.tags && m.tags.toLowerCase().includes(q))
+      );
+    }
+    return { materials, subjects: initialSubjects };
+  }
+}
+
+// 18. Material Detail by ID
+export async function getMaterialById(id: string) {
+  try {
+    const material = await prisma.material.findUnique({
+      where: { id },
+      include: {
+        subject: {
+          include: {
+            tasks: { take: 3, orderBy: { deadline: "asc" } },
+            dailyNotes: { take: 3, orderBy: { date: "desc" } },
+          },
+        },
+        uploader: { select: { id: true, name: true, role: true } },
+      },
+    });
+
+    if (material) {
+      const relatedMaterials = await prisma.material.findMany({
+        where: {
+          subjectId: material.subjectId,
+          NOT: { id: material.id },
+        },
+        take: 3,
+        include: { subject: true },
+      });
+      return { material, relatedMaterials };
+    }
+
+    const initial = initialMaterials.find((m) => m.id === id);
+    if (initial) {
+      const relatedMaterials = initialMaterials.filter(
+        (m) => m.subjectId === initial.subjectId && m.id !== id
+      );
+      return { material: initial, relatedMaterials };
+    }
+
+    return null;
+  } catch {
+    const initial = initialMaterials.find((m) => m.id === id);
+    if (initial) {
+      const relatedMaterials = initialMaterials.filter(
+        (m) => m.subjectId === initial.subjectId && m.id !== id
+      );
+      return { material: initial, relatedMaterials };
+    }
+    return null;
+  }
+}
+
+// 19. Daily Notes Data (Public & Admin)
+export async function getDailyNotesData(filters?: {
+  subjectId?: string;
+  search?: string;
+  tag?: string;
+}) {
+  try {
+    const where: any = {};
+    if (filters?.subjectId) where.subjectId = filters.subjectId;
+    if (filters?.tag) where.tags = { contains: filters.tag, mode: "insensitive" };
+    if (filters?.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { summary: { contains: filters.search, mode: "insensitive" } },
+        { content: { contains: filters.search, mode: "insensitive" } },
+        { importantPoints: { contains: filters.search, mode: "insensitive" } },
+        { subject: { name: { contains: filters.search, mode: "insensitive" } } },
+      ];
+    }
+
+    const [dailyNotes, subjects] = await Promise.all([
+      prisma.dailyNote.findMany({
+        where,
+        orderBy: { date: "desc" },
+        include: {
+          subject: true,
+          author: { select: { id: true, name: true, role: true } },
+          materials: { include: { material: true } },
+          tasks: { include: { task: true } },
+        },
+      }),
+      prisma.subject.findMany({ orderBy: { code: "asc" } }),
+    ]);
+
+    return { dailyNotes, subjects };
+  } catch {
+    let dailyNotes = initialDailyNotes;
+    if (filters?.subjectId) dailyNotes = dailyNotes.filter((n) => n.subjectId === filters.subjectId);
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      dailyNotes = dailyNotes.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          (n.summary && n.summary.toLowerCase().includes(q)) ||
+          n.content.toLowerCase().includes(q)
+      );
+    }
+    return { dailyNotes, subjects: initialSubjects };
+  }
+}
+
+// 20. Daily Note Detail by ID
+export async function getDailyNoteById(id: string) {
+  try {
+    const note = await prisma.dailyNote.findUnique({
+      where: { id },
+      include: {
+        subject: {
+          include: {
+            schedules: true,
+          },
+        },
+        author: { select: { id: true, name: true, role: true } },
+        materials: { include: { material: true } },
+        tasks: { include: { task: true } },
+      },
+    });
+
+    if (note) {
+      const [prevNote, nextNote] = await Promise.all([
+        prisma.dailyNote.findFirst({
+          where: { date: { lt: note.date } },
+          orderBy: { date: "desc" },
+          select: { id: true, title: true, date: true },
+        }),
+        prisma.dailyNote.findFirst({
+          where: { date: { gt: note.date } },
+          orderBy: { date: "asc" },
+          select: { id: true, title: true, date: true },
+        }),
+      ]);
+
+      return { note, prevNote, nextNote };
+    }
+
+    const initial = initialDailyNotes.find((n) => n.id === id);
+    if (initial) {
+      return { note: initial, prevNote: null, nextNote: null };
+    }
+    return null;
+  } catch {
+    const initial = initialDailyNotes.find((n) => n.id === id);
+    if (initial) {
+      return { note: initial, prevNote: null, nextNote: null };
+    }
+    return null;
+  }
+}
+
+// 22. Subject Detail by Code (e.g. BBK1AAB4)
+export async function getSubjectByCode(code: string) {
+  try {
+    const subject = await prisma.subject.findFirst({
+      where: { code: { equals: code, mode: "insensitive" } },
+      include: {
+        schedules: { orderBy: { dayOfWeek: "asc" } },
+        tasks: {
+          orderBy: { deadline: "asc" },
+        },
+        materials: {
+          orderBy: { createdAt: "desc" },
+          include: { uploader: { select: { id: true, name: true } } },
+        },
+        dailyNotes: {
+          orderBy: { date: "desc" },
+          include: { author: { select: { id: true, name: true } } },
+        },
+      },
+    });
+
+    if (subject) return subject;
+
+    const initial = initialSubjects.find(
+      (s) => s.code.toLowerCase() === code.toLowerCase()
+    );
+    if (initial) {
+      return {
+        ...initial,
+        schedules: initialSchedules.filter((s) => s.subjectId === initial.id),
+        tasks: initialTasks.filter((t) => t.subjectId === initial.id),
+        materials: initialMaterials.filter((m) => m.subjectId === initial.id),
+        dailyNotes: initialDailyNotes.filter((n) => n.subjectId === initial.id),
+      };
+    }
+    return null;
+  } catch {
+    const initial = initialSubjects.find(
+      (s) => s.code.toLowerCase() === code.toLowerCase()
+    );
+    if (initial) {
+      return {
+        ...initial,
+        schedules: initialSchedules.filter((s) => s.subjectId === initial.id),
+        tasks: initialTasks.filter((t) => t.subjectId === initial.id),
+        materials: initialMaterials.filter((m) => m.subjectId === initial.id),
+        dailyNotes: initialDailyNotes.filter((n) => n.subjectId === initial.id),
+      };
+    }
+    return null;
+  }
+}
+
+// 23. Global Search Data (Tasks, Subjects, Materials, Daily Notes, Students, Achievements)
+export async function getGlobalSearchData(query: string) {
+  if (!query || query.trim().length < 2) {
+    return {
+      tasks: [],
+      subjects: [],
+      materials: [],
+      dailyNotes: [],
+      students: [],
+      achievements: [],
+    };
+  }
+
+  const q = query.trim();
+
+  try {
+    const [tasks, subjects, materials, dailyNotes, students, achievements] = await Promise.all([
+      prisma.task.findMany({
+        where: {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+        include: { subject: { select: { id: true, code: true, name: true } } },
+      }),
+      prisma.subject.findMany({
+        where: {
+          OR: [
+            { code: { contains: q, mode: "insensitive" } },
+            { name: { contains: q, mode: "insensitive" } },
+            { englishName: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+      }),
+      prisma.material.findMany({
+        where: {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+            { tags: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+        include: { subject: { select: { id: true, code: true, name: true } } },
+      }),
+      prisma.dailyNote.findMany({
+        where: {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { summary: { contains: q, mode: "insensitive" } },
+            { content: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+        include: { subject: { select: { id: true, code: true, name: true } } },
+      }),
+      prisma.student.findMany({
+        where: {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { studentNumber: { contains: q, mode: "insensitive" } },
+            { major: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+      }),
+      prisma.achievement.findMany({
+        where: {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+      }),
+    ]);
+
+    return { tasks, subjects, materials, dailyNotes, students, achievements };
+  } catch {
+    const qLower = q.toLowerCase();
+    return {
+      tasks: initialTasks
+        .filter((t) => t.title.toLowerCase().includes(qLower))
+        .slice(0, 5),
+      subjects: initialSubjects
+        .filter(
+          (s) =>
+            s.code.toLowerCase().includes(qLower) ||
+            s.name.toLowerCase().includes(qLower) ||
+            (s.englishName && s.englishName.toLowerCase().includes(qLower))
+        )
+        .slice(0, 5),
+      materials: initialMaterials
+        .filter((m) => m.title.toLowerCase().includes(qLower))
+        .slice(0, 5),
+      dailyNotes: initialDailyNotes
+        .filter((n) => n.title.toLowerCase().includes(qLower))
+        .slice(0, 5),
+      students: initialStudents
+        .filter((s) => s.name.toLowerCase().includes(qLower))
+        .slice(0, 5),
+      achievements: initialAchievements
+        .filter((a) => a.title.toLowerCase().includes(qLower))
+        .slice(0, 5),
+    };
+  }
+}
+

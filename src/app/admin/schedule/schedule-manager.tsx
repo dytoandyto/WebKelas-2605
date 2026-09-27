@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, User, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, User, Loader2, AlertTriangle } from "lucide-react";
 import { Modal } from "@/components/admin/modal";
 import { DeleteDialog } from "@/components/admin/delete-dialog";
 import {
@@ -20,18 +20,25 @@ interface ScheduleItem {
   endTime: string;
   room: string;
   lecturerName?: string | null;
+  className?: string | null;
+  semester?: string | null;
+  academicYear?: string | null;
   notes?: string | null;
   subject?: {
     id: string;
     code: string;
     name: string;
-  };
+    sks?: number | null;
+    color?: string | null;
+  } | null;
 }
 
 interface SubjectItem {
   id: string;
   code: string;
   name: string;
+  lecturerName?: string | null;
+  sks?: number | null;
 }
 
 interface ScheduleManagerProps {
@@ -50,13 +57,13 @@ const DAYS: DayOfWeek[] = [
 ];
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
-  MONDAY: "Monday",
-  TUESDAY: "Tuesday",
-  WEDNESDAY: "Wednesday",
-  THURSDAY: "Thursday",
-  FRIDAY: "Friday",
-  SATURDAY: "Saturday",
-  SUNDAY: "Sunday",
+  MONDAY: "Senin",
+  TUESDAY: "Selasa",
+  WEDNESDAY: "Rabu",
+  THURSDAY: "Kamis",
+  FRIDAY: "Jum'at",
+  SATURDAY: "Sabtu",
+  SUNDAY: "Minggu",
 };
 
 export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerProps) {
@@ -74,14 +81,20 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
     endTime: string;
     room: string;
     lecturerName: string;
+    className: string;
+    semester: string;
+    academicYear: string;
     notes: string;
   }>({
     subjectId: subjects[0]?.id || "",
     dayOfWeek: DayOfWeek.MONDAY,
-    startTime: "08:00",
-    endTime: "10:30",
-    room: "",
+    startTime: "07:30",
+    endTime: "11:30",
+    room: "RLC.KJ.05.001",
     lecturerName: "",
+    className: "JS1SI-26-REG-05",
+    semester: "Semester Ganjil 2026/2027",
+    academicYear: "2026/2027",
     notes: "",
   });
   const [formError, setFormError] = useState<string | null>(null);
@@ -90,15 +103,27 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingSchedule, setDeletingSchedule] = useState<ScheduleItem | null>(null);
 
+  // Conflict calculation
+  const conflictingSlots = schedules.filter((s) => {
+    if (editingSchedule && s.id === editingSchedule.id) return false;
+    if (s.dayOfWeek !== formData.dayOfWeek) return false;
+    // Check overlap: startA < endB && endA > startB
+    return formData.startTime < s.endTime && formData.endTime > s.startTime;
+  });
+
   function openCreateModal() {
     setEditingSchedule(null);
+    const firstSub = subjects[0];
     setFormData({
-      subjectId: subjects[0]?.id || "",
+      subjectId: firstSub?.id || "",
       dayOfWeek: DayOfWeek.MONDAY,
-      startTime: "08:00",
-      endTime: "10:30",
-      room: "",
-      lecturerName: "",
+      startTime: "07:30",
+      endTime: "11:30",
+      room: "RLC.KJ.05.001",
+      lecturerName: firstSub?.lecturerName || "",
+      className: "JS1SI-26-REG-05",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
       notes: "",
     });
     setFormError(null);
@@ -114,6 +139,9 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
       endTime: schedule.endTime,
       room: schedule.room,
       lecturerName: schedule.lecturerName || "",
+      className: schedule.className || "JS1SI-26-REG-05",
+      semester: schedule.semester || "Semester Ganjil 2026/2027",
+      academicYear: schedule.academicYear || "2026/2027",
       notes: schedule.notes || "",
     });
     setFormError(null);
@@ -148,7 +176,7 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
         if (!res.success) {
           setFormError(res.error || "Failed to update schedule.");
         } else {
-          const selectedSub = subjects.find((s) => s.id === formData.subjectId);
+          const selectedSub = subjects.find((s) => s.id === formData.subjectId) || null;
           setSchedules((prev) =>
             prev.map((s) =>
               s.id === editingSchedule.id
@@ -167,9 +195,9 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
         if (!res.success) {
           setFormError(res.error || "Failed to create schedule.");
         } else {
-          const selectedSub = subjects.find((s) => s.id === formData.subjectId);
+          const selectedSub = subjects.find((s) => s.id === formData.subjectId) || null;
           const newSchedule: ScheduleItem = {
-            id: res.data?.id || `temp-${Date.now()}`,
+            id: (res.data as any)?.id || `temp-${Date.now()}`,
             ...formData,
             subject: selectedSub,
           };
@@ -206,10 +234,10 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
               "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
               selectedDay === "ALL"
                 ? "bg-brand-600 text-white shadow-xs"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
             )}
           >
-            All Days ({schedules.length})
+            Semua Hari ({schedules.length})
           </button>
           {DAYS.map((day) => {
             const count = schedules.filter((s) => s.dayOfWeek === day).length;
@@ -222,10 +250,10 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
                   "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
                   selectedDay === day
                     ? "bg-brand-600 text-white shadow-xs"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
                 )}
               >
-                {DAY_LABELS[day].slice(0, 3)} {count > 0 && `(${count})`}
+                {DAY_LABELS[day]} {count > 0 && `(${count})`}
               </button>
             );
           })}
@@ -242,12 +270,12 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
       </div>
 
       {/* Schedules List / Table */}
-      <div className="card border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="card border border-border bg-card shadow-xs overflow-hidden">
         {filteredSchedules.length === 0 ? (
           <div className="p-12 text-center">
-            <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-600">No schedules found</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <Calendar className="w-10 h-10 text-text-muted mx-auto mb-3 opacity-40" />
+            <p className="text-sm font-semibold text-text-primary">No schedules found</p>
+            <p className="text-xs text-text-muted mt-1">
               {selectedDay === "ALL"
                 ? "Click 'Add Schedule' to create class slots."
                 : `No class schedule for ${DAY_LABELS[selectedDay as DayOfWeek] || selectedDay}.`}
@@ -255,61 +283,74 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+            <table className="w-full text-left text-sm text-text-secondary">
+              <thead className="bg-surface text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border">
                 <tr>
-                  <th className="py-3.5 px-6">Day & Time</th>
-                  <th className="py-3.5 px-6">Subject</th>
-                  <th className="py-3.5 px-6">Room / Location</th>
-                  <th className="py-3.5 px-6">Lecturer</th>
+                  <th className="py-3.5 px-6">Hari & Jam</th>
+                  <th className="py-3.5 px-6">Mata Kuliah</th>
+                  <th className="py-3.5 px-6">Ruangan & Kelas</th>
+                  <th className="py-3.5 px-6">Dosen Pengampu</th>
                   <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-border bg-card">
                 {filteredSchedules.map((schedule) => (
-                  <tr key={schedule.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={schedule.id} className="hover:bg-surface/50 transition-colors">
                     <td className="py-4 px-6">
-                      <div className="font-semibold text-slate-900">
+                      <div className="font-semibold text-text-primary">
                         {DAY_LABELS[schedule.dayOfWeek]}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
+                      <div className="flex items-center gap-1 text-xs text-text-muted mt-0.5 font-mono">
                         <Clock size={12} />
                         <span>
-                          {schedule.startTime} &ndash; {schedule.endTime}
+                          {schedule.startTime} &ndash; {schedule.endTime} WIB
                         </span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="font-semibold text-slate-900">
+                      <div className="font-semibold text-text-primary">
                         {schedule.subject?.name || "Unknown Subject"}
                       </div>
-                      <span className="badge badge-blue text-[11px] mt-0.5">
-                        {schedule.subject?.code}
-                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                          {schedule.subject?.code}
+                        </span>
+                        {schedule.subject?.sks && (
+                          <span className="text-[11px] text-text-muted">
+                            {schedule.subject.sks} SKS
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="flex items-center gap-1.5 text-slate-700">
-                        <MapPin size={14} className="text-slate-400 flex-shrink-0" />
-                        <span className="truncate">{schedule.room}</span>
+                      <div className="flex items-center gap-1.5 text-text-primary font-medium">
+                        <MapPin size={14} className="text-brand-500 shrink-0" />
+                        <span className="truncate font-mono">{schedule.room}</span>
                       </div>
+                      <p className="text-[11px] text-text-muted mt-0.5">
+                        {schedule.className || "JS1SI-26-REG-05"}
+                      </p>
                       {schedule.notes && (
-                        <p className="text-xs text-slate-400 mt-0.5 truncate max-w-xs">
+                        <p className="text-xs text-text-muted mt-0.5 truncate max-w-xs italic">
                           {schedule.notes}
                         </p>
                       )}
                     </td>
                     <td className="py-4 px-6">
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <User size={14} className="text-slate-400 flex-shrink-0" />
-                        <span>{schedule.lecturerName || "Not assigned"}</span>
+                      <div className="flex items-center gap-1.5 text-text-primary">
+                        <User size={14} className="text-text-muted shrink-0" />
+                        <span>{schedule.lecturerName || "Belum ditentukan"}</span>
                       </div>
+                      <p className="text-[11px] text-text-muted mt-0.5">
+                        {schedule.semester || "Semester Ganjil 2026/2027"}
+                      </p>
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
                           onClick={() => openEditModal(schedule)}
-                          className="btn btn-ghost btn-icon p-1.5 text-slate-500 hover:text-brand-600"
+                          className="p-1.5 rounded-lg text-text-muted hover:text-brand-500 hover:bg-surface transition-colors"
                           title="Edit"
                         >
                           <Edit2 size={15} />
@@ -317,7 +358,7 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
                         <button
                           type="button"
                           onClick={() => openDeleteDialog(schedule)}
-                          className="btn btn-ghost btn-icon p-1.5 text-slate-500 hover:text-red-600"
+                          className="p-1.5 rounded-lg text-text-muted hover:text-rose-500 hover:bg-surface transition-colors"
                           title="Delete"
                         >
                           <Trash2 size={15} />
@@ -337,108 +378,156 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={editingSchedule ? "Edit Schedule Slot" : "Add Schedule Slot"}
-        description="Set the weekly timing, room, and course assignment."
-        maxWidth="md"
+        description="Set weekly timing, classroom location, course metadata, and semester period."
+        maxWidth="lg"
       >
         <form onSubmit={handleFormSubmit} className="space-y-4">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-600 dark:text-red-400">
               {formError}
             </div>
           )}
 
-          <div>
-            <label className="form-label">Subject *</label>
-            <select
-              value={formData.subjectId}
-              onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
-              className="form-select text-sm w-full"
-              required
-            >
-              {subjects.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.code} - {sub.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {conflictingSlots.length > 0 && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-700 dark:text-amber-400 space-y-1">
+              <div className="flex items-center gap-1.5 font-semibold">
+                <AlertTriangle size={14} className="shrink-0" />
+                <span>Peringatan Konflik Jadwal:</span>
+              </div>
+              <ul className="list-disc list-inside text-[11px] space-y-0.5 pl-1">
+                {conflictingSlots.map((cs) => (
+                  <li key={cs.id}>
+                    Bentrok dengan {cs.subject?.name || cs.subject?.code} ({cs.startTime} - {cs.endTime} WIB) di {cs.room}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] text-text-muted mt-1">
+                * Anda tetap dapat menyimpan jadwal ini jika kelas paralel atau asistensi bersamaan.
+              </p>
+            </div>
+          )}
 
-          <div>
-            <label className="form-label">Day of the Week *</label>
-            <select
-              value={formData.dayOfWeek}
-              onChange={(e) =>
-                setFormData({ ...formData, dayOfWeek: e.target.value as DayOfWeek })
-              }
-              className="form-select text-sm w-full"
-              required
-            >
-              {DAYS.map((day) => (
-                <option key={day} value={day}>
-                  {DAY_LABELS[day]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="form-label">Start Time *</label>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Subject *</label>
+              <select
+                value={formData.subjectId}
+                onChange={(e) => {
+                  const subId = e.target.value;
+                  const found = subjects.find((s) => s.id === subId);
+                  setFormData({
+                    ...formData,
+                    subjectId: subId,
+                    lecturerName: found?.lecturerName || formData.lecturerName,
+                  });
+                }}
+                className="form-select text-sm w-full bg-surface border-border text-text-primary"
+                required
+              >
+                {subjects.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.code} - {sub.name} {sub.sks ? `(${sub.sks} SKS)` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Hari (Day of the Week) *</label>
+              <select
+                value={formData.dayOfWeek}
+                onChange={(e) =>
+                  setFormData({ ...formData, dayOfWeek: e.target.value as DayOfWeek })
+                }
+                className="form-select text-sm w-full bg-surface border-border text-text-primary"
+                required
+              >
+                {DAYS.map((day) => (
+                  <option key={day} value={day}>
+                    {DAY_LABELS[day]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Jam Mulai (WIB) *</label>
               <input
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="form-input text-sm w-full"
+                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
                 required
               />
             </div>
             <div>
-              <label className="form-label">End Time *</label>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Jam Selesai (WIB) *</label>
               <input
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="form-input text-sm w-full"
+                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+                required
+              />
+            </div>
+            <div>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Ruangan / Lokasi *</label>
+              <input
+                type="text"
+                placeholder="e.g. RLC.KJ.05.001"
+                value={formData.room}
+                onChange={(e) => setFormData({ ...formData, room: e.target.value })}
+                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
                 required
               />
             </div>
           </div>
 
-          <div>
-            <label className="form-label">Room / Location *</label>
-            <input
-              type="text"
-              placeholder="e.g. Lab 402, Building A or Online Zoom"
-              value={formData.room}
-              onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-              className="form-input text-sm w-full"
-              required
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Dosen Pengampu</label>
+              <input
+                type="text"
+                placeholder="e.g. Nama Dosen / Asisten"
+                value={formData.lecturerName}
+                onChange={(e) => setFormData({ ...formData, lecturerName: e.target.value })}
+                className="form-input text-sm w-full bg-surface border-border text-text-primary"
+              />
+            </div>
+            <div>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Kelas</label>
+              <input
+                type="text"
+                value={formData.className}
+                onChange={(e) => setFormData({ ...formData, className: e.target.value })}
+                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+              />
+            </div>
+            <div>
+              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Semester & Periode</label>
+              <input
+                type="text"
+                value={formData.semester}
+                onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+                className="form-input text-sm w-full bg-surface border-border text-text-primary"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="form-label">Lecturer Name (Optional)</label>
-            <input
-              type="text"
-              placeholder="e.g. Dr. Jane Doe"
-              value={formData.lecturerName}
-              onChange={(e) => setFormData({ ...formData, lecturerName: e.target.value })}
-              className="form-input text-sm w-full"
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Notes / Instructions (Optional)</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Catatan / Keterangan (Opsional)</label>
             <textarea
-              placeholder="e.g. Bring your laptop with Docker installed"
+              placeholder="e.g. Praktikum di Lab Pemrograman, bawa laptop terinstall IDE..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="form-textarea text-sm w-full"
+              className="form-textarea text-sm w-full bg-surface border-border text-text-primary"
               rows={2}
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
@@ -475,3 +564,4 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
     </div>
   );
 }
+

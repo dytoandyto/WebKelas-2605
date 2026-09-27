@@ -12,7 +12,7 @@ export default async function AdminTasksPage() {
   const { tasks, subjects } = await getTasksData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary">
       <AdminHeader
         title="Tasks & Assignments"
         description="Monitor homework deadlines, lab assessments, and milestone submissions."

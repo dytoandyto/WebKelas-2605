@@ -15,38 +15,59 @@ import {
   Activity,
   UserCheck,
   CalendarDays,
+  FileText,
+  FileCode,
+  GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import { getAdminOverviewData } from "@/lib/data";
+import { getSession } from "@/lib/auth/session";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { NextClassCard } from "@/components/admin/next-class-card";
 import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
-import { TaskStatus, TaskPriority } from "@prisma/client";
+import { TaskStatus, TaskPriority, TaskType } from "@prisma/client";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
-  description: "Overview and class activity management.",
+  title: "Academic Dashboard | JS1SI-26-REG-05",
+  description: "Academic class control hub and learning overview.",
 };
 
 const STATUS_BADGE: Record<TaskStatus, { label: string; className: string }> = {
-  UPCOMING: { label: "Upcoming", className: "badge-blue" },
-  DUE_SOON: { label: "Due Soon", className: "badge-amber" },
-  OVERDUE: { label: "Overdue", className: "badge-red" },
-  COMPLETED: { label: "Completed", className: "badge-green" },
+  TODO: { label: "To Do", className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" },
+  IN_PROGRESS: { label: "In Progress", className: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" },
+  UPCOMING: { label: "Upcoming", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
+  DUE_SOON: { label: "Due Soon", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" },
+  OVERDUE: { label: "Overdue", className: "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20" },
+  SUBMITTED: { label: "Submitted", className: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20" },
+  COMPLETED: { label: "Completed", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" },
 };
 
 const PRIORITY_BADGE: Record<TaskPriority, { label: string; className: string }> = {
-  LOW: { label: "Low", className: "badge-gray" },
-  MEDIUM: { label: "Medium", className: "badge-blue" },
-  HIGH: { label: "High", className: "badge-red" },
+  LOW: { label: "Low", className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" },
+  MEDIUM: { label: "Medium", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
+  HIGH: { label: "High", className: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" },
+  URGENT: { label: "Urgent", className: "bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30" },
 };
 
 export default async function AdminDashboardPage() {
+  const session = await getSession();
   const {
     stats,
     upcomingDeadlines,
     recentAchievements,
     recentAnnouncements,
     recentActivities,
+    todaySchedules,
+    recentMaterials,
+    recentDailyNotes,
+    settings,
   } = await getAdminOverviewData();
+
+  const st = (settings || {}) as Record<string, string>;
+  const classCode = st.classCode || "JS1SI-26-REG-05";
+  const semester = st.semester || "Semester Ganjil 2026/2027";
+  const institution = st.institutionName || "Telkom University Jakarta";
+  const waliDosen = st.waliDosen || "Muhammad Ardiansyah";
 
   const statCards = [
     {
@@ -54,80 +75,135 @@ export default async function AdminDashboardPage() {
       value: stats.studentsCount,
       href: "/admin/students",
       icon: Users,
-      bg: "bg-blue-950/60 text-blue-400 border-blue-500/30",
+      bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
     },
     {
       title: "Subjects",
       value: stats.subjectsCount,
-      href: "/admin/subjects",
+      href: "/admin/schedule",
       icon: BookOpen,
-      bg: "bg-indigo-950/60 text-indigo-400 border-indigo-500/30",
+      bg: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
     },
     {
       title: "Pending Tasks",
       value: stats.upcomingTasksCount,
       href: "/admin/tasks",
       icon: CheckSquare,
-      bg: "bg-amber-950/60 text-amber-400 border-amber-500/30",
+      bg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    },
+    {
+      title: "Materials",
+      value: (stats as any).materialsCount || 0,
+      href: "/admin/materials",
+      icon: FileCode,
+      bg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    },
+    {
+      title: "Daily Notes",
+      value: (stats as any).dailyNotesCount || 0,
+      href: "/admin/daily-notes",
+      icon: FileText,
+      bg: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
     },
     {
       title: "Achievements",
       value: stats.achievementsCount,
       href: "/admin/achievements",
       icon: Trophy,
-      bg: "bg-purple-950/60 text-purple-400 border-purple-500/30",
-    },
-    {
-      title: "Class Events",
-      value: stats.eventsCount,
-      href: "/admin/events",
-      icon: CalendarDays,
-      bg: "bg-cyan-950/60 text-cyan-400 border-cyan-500/30",
+      bg: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
     },
     {
       title: "Announcements",
       value: stats.announcementsCount,
       href: "/admin/announcements",
       icon: Megaphone,
-      bg: "bg-teal-950/60 text-teal-400 border-teal-500/30",
-    },
-    {
-      title: "Gallery Photos",
-      value: stats.galleryCount,
-      href: "/admin/gallery",
-      icon: ImageIcon,
-      bg: "bg-emerald-950/60 text-emerald-400 border-emerald-500/30",
+      bg: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#040813] text-slate-100 pb-16">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary pb-16">
       <AdminHeader
-        title="Command Node Overview"
-        description="Monitor assignments, schedules, student achievements, and class announcements in one place."
+        title="Academic Class Command Hub"
+        description={`${classCode} • ${semester} • ${institution}`}
       >
-        <Link
-          href="/admin/tasks"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 shadow-cyan-glow transition-all"
-        >
-          <Plus size={16} />
-          <span>New Task</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/daily-notes"
+            className="btn btn-secondary btn-sm flex items-center gap-1.5 shadow-xs"
+          >
+            <Plus size={14} />
+            <span>+ Add Note</span>
+          </Link>
+          <Link
+            href="/admin/tasks"
+            className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-xs"
+          >
+            <Plus size={14} />
+            <span>Create Task</span>
+          </Link>
+        </div>
       </AdminHeader>
 
       <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 space-y-8">
+        {/* Welcome Banner & Next Class Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <div className="lg:col-span-2 card p-6 border border-border bg-gradient-to-r from-card via-card to-brand-500/5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/25">
+                  {classCode}
+                </span>
+                <span className="text-xs font-semibold text-text-muted">
+                  {semester}
+                </span>
+              </div>
+              <h2 className="text-2xl font-black tracking-tight text-text-primary">
+                Selamat Datang, {session?.name || "Admin Kelas"}
+              </h2>
+              <p className="text-xs text-text-secondary mt-1.5 max-w-xl">
+                Wali Dosen: <span className="font-semibold text-text-primary">{waliDosen}</span> &bull; {institution}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-4 mt-4 border-t border-border text-xs text-text-muted">
+              <Link href="/schedule" target="_blank" className="hover:text-brand-500 transition-colors font-medium">
+                Public Schedule &rarr;
+              </Link>
+              <span>&bull;</span>
+              <Link href="/tasks" target="_blank" className="hover:text-brand-500 transition-colors font-medium">
+                Tasks Planner &rarr;
+              </Link>
+              <span>&bull;</span>
+              <Link href="/materials" target="_blank" className="hover:text-brand-500 transition-colors font-medium">
+                Materials Repository &rarr;
+              </Link>
+              <span>&bull;</span>
+              <Link href="/daily-notes" target="_blank" className="hover:text-brand-500 transition-colors font-medium">
+                Class Journal &rarr;
+              </Link>
+            </div>
+          </div>
+
+          <NextClassCard
+            schedules={todaySchedules as any}
+            classCode={classCode}
+            semester={semester}
+          />
+        </div>
+
         {/* Metric Cards Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
               <Link
                 key={card.title}
                 href={card.href}
-                className="cyber-card p-4 rounded-2xl bg-[#0a1a2f]/70 border border-cyan-500/20 hover:border-cyan-400/50 hover:shadow-cyan-glow flex flex-col justify-between group transition-all duration-300 hover:-translate-y-0.5"
+                className="card p-4 border border-border bg-card hover:border-brand-500/40 hover:shadow-sm flex flex-col justify-between group transition-all duration-200"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
                     {card.title}
                   </span>
                   <div className={cn("w-7 h-7 rounded-lg border flex items-center justify-center", card.bg)}>
@@ -135,10 +211,10 @@ export default async function AdminDashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-black text-white group-hover:text-cyan-300 font-mono transition-colors">
+                  <span className="text-2xl font-black text-text-primary group-hover:text-brand-500 font-mono transition-colors">
                     {card.value}
                   </span>
-                  <ArrowRight size={13} className="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight size={13} className="text-text-muted group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                 </div>
               </Link>
             );
@@ -147,27 +223,27 @@ export default async function AdminDashboardPage() {
 
         {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Left Column: Tasks & Announcements */}
+          {/* Main Left Column: Tasks, Materials, Notes */}
           <div className="lg:col-span-2 space-y-8">
             {/* Urgent Tasks & Deadlines */}
-            <div className="cyber-card rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 overflow-hidden">
-              <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between bg-[#061021]/80">
+            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2.5">
-                  <Clock size={18} className="text-amber-400" />
-                  <h2 className="text-base font-extrabold text-white">Upcoming Deadlines</h2>
+                  <Clock size={18} className="text-amber-500" />
+                  <h2 className="text-base font-bold text-text-primary">Upcoming Academic Deadlines</h2>
                 </div>
                 <Link
                   href="/admin/tasks"
-                  className="text-xs font-bold text-cyan-400 hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 transition-colors"
                 >
                   Manage Tasks
                   <ArrowRight size={13} />
                 </Link>
               </div>
 
-              <div className="divide-y divide-cyan-500/10 bg-[#0a1a2f]/40">
+              <div className="divide-y divide-border">
                 {upcomingDeadlines.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400 text-sm">
+                  <div className="p-8 text-center text-text-muted text-sm">
                     No pending tasks right now. Great job!
                   </div>
                 ) : (
@@ -175,28 +251,33 @@ export default async function AdminDashboardPage() {
                     const st = STATUS_BADGE[task.computedStatus as TaskStatus] || STATUS_BADGE.UPCOMING;
                     const pr = PRIORITY_BADGE[task.priority as TaskPriority] || PRIORITY_BADGE.MEDIUM;
                     return (
-                      <div key={task.id} className="p-4 hover:bg-[#0e2447]/60 transition-colors flex items-center justify-between gap-4">
+                      <div key={task.id} className="p-4 hover:bg-surface/50 transition-colors flex items-center justify-between gap-4">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className={cn("badge text-[11px]", st.className)}>{st.label}</span>
-                            <span className={cn("badge text-[11px]", pr.className)}>{pr.label}</span>
+                            <span className={cn("px-2 py-0.5 rounded text-[10px] font-medium", st.className)}>{st.label}</span>
+                            <span className={cn("px-2 py-0.5 rounded text-[10px] font-medium", pr.className)}>{pr.label}</span>
                             {task.subject && (
-                              <span className="text-[11px] font-mono font-bold text-cyan-300 bg-[#061021] border border-cyan-500/20 px-2 py-0.5 rounded">
+                              <span className="text-[10px] font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
                                 {task.subject.code}
                               </span>
                             )}
+                            {task.taskType && (
+                              <span className="text-[10px] text-text-muted uppercase">
+                                [{task.taskType}]
+                              </span>
+                            )}
                           </div>
-                          <h4 className="text-sm font-bold text-white truncate">{task.title}</h4>
-                          <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 font-mono">
-                            <Calendar size={12} className="text-cyan-400" />
+                          <h4 className="text-sm font-bold text-text-primary truncate">{task.title}</h4>
+                          <p className="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-mono">
+                            <Calendar size={12} className="text-brand-500" />
                             Due: {formatDate(task.deadline)} ({getRelativeDeadline(task.deadline).text})
                           </p>
                         </div>
                         <Link
                           href="/admin/tasks"
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-300 bg-[#061021] hover:bg-cyan-950/80 border border-cyan-500/20 hover:border-cyan-400 transition-colors flex-shrink-0"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-text-primary bg-surface hover:bg-surface-elevated border border-border transition-colors shrink-0"
                         >
-                          View
+                          Manage
                         </Link>
                       </div>
                     );
@@ -205,45 +286,103 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Recent Announcements */}
-            <div className="cyber-card rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 overflow-hidden">
-              <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between bg-[#061021]/80">
+            {/* Recent Daily Notes (Class Journal) */}
+            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2.5">
-                  <Megaphone size={18} className="text-cyan-400" />
-                  <h2 className="text-base font-extrabold text-white">Latest Announcements</h2>
+                  <FileText size={18} className="text-purple-500" />
+                  <h2 className="text-base font-bold text-text-primary">Recent Daily Notes (Class Journal)</h2>
                 </div>
                 <Link
-                  href="/admin/announcements"
-                  className="text-xs font-bold text-cyan-400 hover:text-white flex items-center gap-1 transition-colors"
+                  href="/admin/daily-notes"
+                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 transition-colors"
                 >
-                  All Bulletins
+                  View All Journal Notes
                   <ArrowRight size={13} />
                 </Link>
               </div>
 
-              <div className="divide-y divide-cyan-500/10 bg-[#0a1a2f]/40">
-                {recentAnnouncements.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400 text-sm">
-                    No announcements published yet.
+              <div className="divide-y divide-border">
+                {recentDailyNotes.length === 0 ? (
+                  <div className="p-8 text-center text-text-muted text-sm">
+                    No daily notes written yet. Click &quot;+ Add Note&quot; to write today&apos;s summary.
                   </div>
                 ) : (
-                  recentAnnouncements.map((ann: any) => (
-                    <div key={ann.id} className="p-4 hover:bg-[#0e2447]/60 transition-colors">
+                  recentDailyNotes.map((note: any) => (
+                    <div key={note.id} className="p-4 hover:bg-surface/50 transition-colors">
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <h4 className="text-sm font-bold text-white truncate">{ann.title}</h4>
-                        <span className={cn("badge text-[11px] flex-shrink-0", ann.isPublished ? "badge-green" : "badge-gray")}>
-                          {ann.isPublished ? "Published" : "Draft"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                        {ann.content}
-                      </p>
-                      <div className="flex items-center justify-between mt-2.5 pt-2 text-xs text-slate-400 border-t border-cyan-500/10">
-                        <span className="font-mono text-[11px]">{formatDate(ann.createdAt)}</span>
-                        <Link href="/admin/announcements" className="text-cyan-400 hover:underline font-semibold">
-                          Edit Bulletin
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
+                            {formatDate(note.date)}
+                          </span>
+                          {note.subject && (
+                            <span className="text-[11px] font-semibold text-text-muted">
+                              {note.subject.name}
+                            </span>
+                          )}
+                        </div>
+                        <Link
+                          href={`/daily-notes/${note.id}`}
+                          target="_blank"
+                          className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:underline"
+                        >
+                          Read &rarr;
                         </Link>
                       </div>
+                      <h4 className="text-sm font-bold text-text-primary">{note.title}</h4>
+                      <p className="text-xs text-text-secondary line-clamp-2 mt-1 leading-relaxed">
+                        {note.summary}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Recent Learning Materials */}
+            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
+                <div className="flex items-center gap-2.5">
+                  <FileCode size={18} className="text-emerald-500" />
+                  <h2 className="text-base font-bold text-text-primary">Latest Course Materials</h2>
+                </div>
+                <Link
+                  href="/admin/materials"
+                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 transition-colors"
+                >
+                  Manage Materials
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+
+              <div className="divide-y divide-border">
+                {recentMaterials.length === 0 ? (
+                  <div className="p-8 text-center text-text-muted text-sm">
+                    No course materials uploaded yet.
+                  </div>
+                ) : (
+                  recentMaterials.map((mat: any) => (
+                    <div key={mat.id} className="p-4 hover:bg-surface/50 transition-colors flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            {mat.type}
+                          </span>
+                          {mat.subject && (
+                            <span className="text-[11px] text-text-muted font-medium">
+                              {mat.subject.code} &bull; {mat.subject.name}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-bold text-text-primary truncate">{mat.title}</h4>
+                      </div>
+                      <Link
+                        href={`/materials/${mat.id}`}
+                        target="_blank"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-text-primary bg-surface hover:bg-surface-elevated border border-border transition-colors shrink-0"
+                      >
+                        Open
+                      </Link>
                     </div>
                   ))
                 )}
@@ -254,105 +393,118 @@ export default async function AdminDashboardPage() {
           {/* Right Column: Quick Links & Recent Activity */}
           <div className="space-y-8">
             {/* Quick Actions */}
-            <div className="cyber-card rounded-2xl border border-cyan-500/20 p-5 bg-[#0a1a2f]/70">
-              <h3 className="text-sm font-extrabold text-white mb-3.5 flex items-center gap-2">
-                <Activity size={16} className="text-cyan-400" />
+            <div className="card rounded-2xl border border-border p-5 bg-card shadow-xs">
+              <h3 className="text-sm font-bold text-text-primary mb-3.5 flex items-center gap-2">
+                <Activity size={16} className="text-brand-500" />
                 Quick Management
               </h3>
               <div className="grid grid-cols-2 gap-2.5">
                 <Link
                   href="/admin/schedule"
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-cyan-500/20 bg-[#061021]/80 hover:bg-cyan-950/60 hover:border-cyan-400/50 hover:text-cyan-300 text-slate-300 text-xs font-semibold transition-all"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
                 >
-                  <Calendar size={15} className="text-cyan-400" />
+                  <Calendar size={15} className="text-brand-500" />
                   <span>Schedule</span>
                 </Link>
                 <Link
                   href="/admin/tasks"
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-cyan-500/20 bg-[#061021]/80 hover:bg-cyan-950/60 hover:border-cyan-400/50 hover:text-cyan-300 text-slate-300 text-xs font-semibold transition-all"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
                 >
-                  <CheckSquare size={15} className="text-cyan-400" />
+                  <CheckSquare size={15} className="text-amber-500" />
                   <span>Tasks</span>
                 </Link>
                 <Link
-                  href="/admin/students"
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-cyan-500/20 bg-[#061021]/80 hover:bg-cyan-950/60 hover:border-cyan-400/50 hover:text-cyan-300 text-slate-300 text-xs font-semibold transition-all"
+                  href="/admin/materials"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
                 >
-                  <Users size={15} className="text-cyan-400" />
+                  <FileCode size={15} className="text-emerald-500" />
+                  <span>Materials</span>
+                </Link>
+                <Link
+                  href="/admin/daily-notes"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
+                >
+                  <FileText size={15} className="text-purple-500" />
+                  <span>Daily Notes</span>
+                </Link>
+                <Link
+                  href="/admin/students"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
+                >
+                  <Users size={15} className="text-blue-500" />
                   <span>Students</span>
                 </Link>
                 <Link
-                  href="/admin/gallery"
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-cyan-500/20 bg-[#061021]/80 hover:bg-cyan-950/60 hover:border-cyan-400/50 hover:text-cyan-300 text-slate-300 text-xs font-semibold transition-all"
+                  href="/admin/settings"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
                 >
-                  <ImageIcon size={15} className="text-cyan-400" />
-                  <span>Gallery</span>
-                </Link>
-                <Link
-                  href="/admin/events"
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-cyan-500/20 bg-[#061021]/80 hover:bg-cyan-950/60 hover:border-cyan-400/50 hover:text-cyan-300 text-slate-300 text-xs font-semibold transition-all"
-                >
-                  <CalendarDays size={15} className="text-cyan-400" />
-                  <span>Events</span>
+                  <GraduationCap size={15} className="text-cyan-500" />
+                  <span>Settings</span>
                 </Link>
               </div>
             </div>
 
             {/* Recent Achievements */}
-            <div className="cyber-card rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-cyan-500/20 flex items-center justify-between bg-[#061021]/80">
+            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+              <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2">
-                  <Trophy size={16} className="text-amber-400" />
-                  <h3 className="text-sm font-extrabold text-white">Recent Honors</h3>
+                  <Trophy size={16} className="text-amber-500" />
+                  <h3 className="text-sm font-bold text-text-primary">Recent Class Honors</h3>
                 </div>
                 <Link
                   href="/admin/achievements"
-                  className="text-xs font-bold text-cyan-400 hover:text-white transition-colors"
+                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline transition-colors"
                 >
                   View
                 </Link>
               </div>
-              <div className="divide-y divide-cyan-500/10 bg-[#0a1a2f]/40">
+              <div className="divide-y divide-border">
                 {recentAchievements.length === 0 ? (
-                  <div className="p-6 text-center text-slate-400 text-xs">
+                  <div className="p-6 text-center text-text-muted text-xs">
                     No achievements recorded yet.
                   </div>
                 ) : (
                   recentAchievements.map((ach: any) => (
-                    <div key={ach.id} className="p-3.5 hover:bg-[#0e2447]/60 transition-colors">
-                      <p className="text-xs font-bold text-white line-clamp-1">{ach.title}</p>
-                      <p className="text-[11px] text-cyan-300 font-mono mt-0.5">{formatDate(ach.achievementDate)}</p>
+                    <div key={ach.id} className="p-3.5 hover:bg-surface/50 transition-colors">
+                      <p className="text-xs font-bold text-text-primary line-clamp-1">{ach.title}</p>
+                      <p className="text-[11px] text-brand-600 dark:text-brand-400 font-mono mt-0.5">{formatDate(ach.achievementDate)}</p>
                     </div>
                   ))
                 )}
               </div>
             </div>
 
-            {/* Audit / Activity Feed */}
-            <div className="cyber-card rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-cyan-500/20 flex items-center justify-between bg-[#061021]/80">
+            {/* Audit / Activity Telemetry */}
+            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+              <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2">
-                  <UserCheck size={16} className="text-cyan-400" />
-                  <h3 className="text-sm font-extrabold text-white">System Telemetry</h3>
+                  <UserCheck size={16} className="text-brand-500" />
+                  <h3 className="text-sm font-bold text-text-primary">Activity Audit Log</h3>
                 </div>
+                <Link
+                  href="/admin/logs"
+                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline transition-colors"
+                >
+                  Full Log
+                </Link>
               </div>
-              <div className="divide-y divide-cyan-500/10 bg-[#0a1a2f]/40 max-h-72 overflow-y-auto">
+              <div className="divide-y divide-border max-h-72 overflow-y-auto">
                 {recentActivities.length === 0 ? (
-                  <div className="p-6 text-center text-slate-400 text-xs">
+                  <div className="p-6 text-center text-text-muted text-xs">
                     No recent activity logs.
                   </div>
                 ) : (
                   recentActivities.map((act: any) => (
                     <div key={act.id} className="p-3 text-xs">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-bold text-white">
+                        <span className="font-semibold text-text-primary">
                           {act.user?.name || "System"}
                         </span>
-                        <span className="text-slate-400 text-[10px] font-mono">
+                        <span className="text-text-muted text-[10px] font-mono">
                           {formatDate(act.createdAt)}
                         </span>
                       </div>
-                      <p className="text-slate-300 line-clamp-2">{act.details || act.action}</p>
+                      <p className="text-text-secondary line-clamp-2">{act.details || act.action}</p>
                     </div>
                   ))
                 )}

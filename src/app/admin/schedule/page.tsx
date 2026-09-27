@@ -12,7 +12,7 @@ export default async function AdminSchedulePage() {
   const { schedules, subjects } = await getScheduleData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary">
       <AdminHeader
         title="Schedule Management"
         description="Organize class timetable slots, classroom venues, and lecturer assignments."

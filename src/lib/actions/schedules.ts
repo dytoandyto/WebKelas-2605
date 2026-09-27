@@ -23,6 +23,9 @@ export async function createScheduleAction(input: ScheduleInput): Promise<Action
         endTime: data.endTime,
         room: data.room,
         lecturerName: data.lecturerName || null,
+        className: data.className || "JS1SI-26-REG-05",
+        semester: data.semester || "Semester Ganjil 2026/2027",
+        academicYear: data.academicYear || "2026/2027",
         notes: data.notes || null,
       },
       include: {
@@ -61,6 +64,9 @@ export async function updateScheduleAction(id: string, input: ScheduleInput): Pr
         endTime: data.endTime,
         room: data.room,
         lecturerName: data.lecturerName || null,
+        className: data.className || "JS1SI-26-REG-05",
+        semester: data.semester || "Semester Ganjil 2026/2027",
+        academicYear: data.academicYear || "2026/2027",
         notes: data.notes || null,
       },
       include: {

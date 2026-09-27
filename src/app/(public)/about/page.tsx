@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Code,
   HeartHandshake,
+  Layers,
+  Award,
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon, InstagramIcon, DiscordIcon } from "@/components/icons";
 import { getSettings, getClassEventsData, getStudentsData, getAchievementsData } from "@/lib/data";
@@ -21,8 +23,8 @@ import { formatDate } from "@/lib/utils";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return {
-    title: `About — ${settings.className}`,
-    description: `Learn about ${settings.className} at ${settings.institutionName || "our university"}. Discover our cohort vision, leadership structure, and community.`,
+    title: `Tentang Kelas | ${settings.classCode || "JS1SI-26-REG-05"}`,
+    description: `Tentang kelas ${settings.classCode || "JS1SI-26-REG-05"} program studi ${settings.studyProgram || "S1 Sistem Informasi"} ${settings.institutionName || "Telkom University Jakarta"}, di bawah bimbingan Wali Dosen ${settings.waliDosen || "Muhammad Ardiansyah"}.`,
   };
 }
 
@@ -34,96 +36,81 @@ export default async function AboutPage() {
     getAchievementsData(),
   ]);
 
-  const upcomingEvents = events
-    .filter((e) => new Date(e.eventDate) >= new Date())
-    .slice(0, 3);
+  const classCode = settings.classCode || "JS1SI-26-REG-05";
+  const studyProgram = settings.studyProgram || "S1 Sistem Informasi";
+  const institutionName = settings.institutionName || "Telkom University Jakarta";
+  const waliDosen = settings.waliDosen || "Muhammad Ardiansyah";
+  const academicYear = settings.academicYear || "Semester Ganjil 2026/2027";
 
-  // Representative leadership roles from students
   const leaders = [
     {
-      role: "Class President (Ketua Kelas)",
-      student: students[0] || { name: "Andyto Pratama", major: "Informatics Engineering" },
-      description: "Overseeing cohort coordination, liaison with faculty lecturers, and class initiatives.",
+      role: "Ketua Kelas (Class President)",
+      student: students[0] || { name: "Andyto Pratama", major: "S1 Sistem Informasi" },
+      description: "Bertanggung jawab atas koordinasi angkatan, narahubung utama dosen pengampu, dan pergerakan kegiatan kelas.",
       icon: ShieldCheck,
       color: "from-cyan-500 to-blue-600",
     },
     {
-      role: "Vice President & Secretary",
-      student: students[1] || { name: "Davina Aurelia", major: "Informatics Engineering" },
-      description: "Managing cohort documentation, schedules, academic notices, and internal logistics.",
+      role: "Wakil & Sekretaris",
+      student: students[1] || { name: "Davina Aurelia", major: "S1 Sistem Informasi" },
+      description: "Mengelola dokumentasi akademik, arsip jadwal perkuliahan, pengumuman tugas, dan notulensi kelas.",
       icon: HeartHandshake,
       color: "from-blue-600 to-indigo-600",
     },
     {
-      role: "Academic & Tech Lead",
-      student: students[2] || { name: "Ibrahim Rasyid", major: "Informatics Engineering" },
-      description: "Coordinating peer tutoring, laboratory study sprints, and coding competition teams.",
+      role: "Koordinator Akademik & Lab",
+      student: students[2] || { name: "Ibrahim Rasyid", major: "S1 Sistem Informasi" },
+      description: "Mengkoordinasikan kelompok belajar mandiri, praktikum laboratorium, dan tim kompetisi pemrograman.",
       icon: Code,
       color: "from-indigo-600 to-purple-600",
     },
   ];
 
   return (
-    <div className="cosmic-canvas min-h-screen text-slate-100 pb-20">
+    <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       {/* ── HERO BANNER ─────────────────────────────────── */}
-      <section className="relative py-20 px-4 border-b border-cyan-500/20 bg-[#060f22]/70 backdrop-blur-xl overflow-hidden">
-        {/* Glow circles */}
-        <div
-          className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-20 pointer-events-none"
-          style={{ background: "radial-gradient(circle, #06b6d4, transparent)" }}
-        />
-        <div
-          className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-20 pointer-events-none"
-          style={{ background: "radial-gradient(circle, #2563eb, transparent)" }}
-        />
-
-        <div className="max-w-5xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-xs font-semibold text-cyan-300 mb-6 backdrop-blur-md">
-            <Sparkles size={14} className="text-cyan-400" />
-            <span>Academic Cohort {settings.academicYear}</span>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="card p-8 sm:p-12 bg-[#08152e]/90 light:bg-white border-cyan-500/25 light:border-slate-200 backdrop-blur-xl shadow-xl space-y-6 text-center relative overflow-hidden">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 light:bg-blue-50 border border-cyan-400/30 light:border-blue-200 text-cyan-300 light:text-blue-700 text-xs sm:text-sm font-semibold tracking-wider uppercase font-mono">
+            <Sparkles size={14} className="text-cyan-400 light:text-blue-600" />
+            <span>Class Academic Hub &bull; {academicYear}</span>
           </div>
 
-          <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white mb-4"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            {settings.className}
-          </h1>
-
-          {settings.institutionName && (
-            <p className="text-xl sm:text-2xl text-cyan-200 font-medium mb-6">
-              {settings.institutionName}
+          <div className="space-y-2">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white light:text-slate-900 font-display tracking-tight">
+              {classCode}
+            </h1>
+            <p className="text-xl sm:text-2xl text-cyan-300 light:text-blue-700 font-display font-bold">
+              {studyProgram} &bull; {institutionName}
             </p>
-          )}
+          </div>
 
-          {settings.classMotto && (
-            <p className="text-lg text-slate-300 italic max-w-2xl mx-auto mb-8 font-serif">
-              &ldquo;{settings.classMotto}&rdquo;
-            </p>
-          )}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <div className="px-4 py-2 rounded-xl bg-[#040813]/60 light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-xs sm:text-sm text-slate-300 light:text-slate-700 font-medium">
+              <span>Wali Dosen:</span>{" "}
+              <strong className="text-white light:text-slate-900 font-bold">{waliDosen}</strong>
+            </div>
+            <div className="px-4 py-2 rounded-xl bg-[#040813]/60 light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-xs sm:text-sm text-slate-300 light:text-slate-700 font-mono">
+              Short: <strong className="text-cyan-400 light:text-blue-600 font-bold">SI &bull; 26-05</strong>
+            </div>
+          </div>
+
+          <p className="text-sm sm:text-base text-slate-300 light:text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            {settings.classDescription ||
+              "Wadah kolaboratif akademik mahasiswa S1 Sistem Informasi Telkom University Jakarta angkatan 2026 kelas 05 untuk saling bertumbuh, berbagi catatan kuliah, dan menyelesaikan proyek perkuliahan secara terstruktur."}
+          </p>
 
           {/* Social Links */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
+          <div className="flex items-center justify-center gap-3 flex-wrap pt-2">
             {settings.githubUrl && (
               <a
                 href={settings.githubUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 border border-cyan-500/30 text-white hover:border-cyan-400 hover:bg-cyan-950/60 text-sm font-semibold transition-all shadow-xs"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400"
               >
-                <GithubIcon size={15} />
+                <GithubIcon size={14} />
                 <span>GitHub Org</span>
-              </a>
-            )}
-            {settings.linkedinUrl && (
-              <a
-                href={settings.linkedinUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 border border-cyan-500/30 text-white hover:border-cyan-400 hover:bg-cyan-950/60 text-sm font-semibold transition-all shadow-xs"
-              >
-                <LinkedinIcon size={15} />
-                <span>LinkedIn</span>
               </a>
             )}
             {settings.instagramUrl && (
@@ -131,120 +118,106 @@ export default async function AboutPage() {
                 href={settings.instagramUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 border border-cyan-500/30 text-white hover:border-cyan-400 hover:bg-cyan-950/60 text-sm font-semibold transition-all shadow-xs"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400"
               >
-                <InstagramIcon size={15} />
+                <InstagramIcon size={14} />
                 <span>Instagram</span>
               </a>
             )}
             {settings.contactEmail && (
               <a
                 href={`mailto:${settings.contactEmail}`}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-cyan-glow text-sm font-bold hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-sm"
               >
-                <Mail size={15} />
-                <span>Contact Class</span>
+                <Mail size={14} />
+                <span>Kontak Kelas</span>
               </a>
             )}
           </div>
         </div>
       </section>
 
-      {/* ── KEY METRICS STRIP ──────────────────────────── */}
-      <section className="bg-[#060f22]/70 border-b border-cyan-500/20 py-8 px-4 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 flex items-center justify-center flex-shrink-0">
-              <Users size={20} />
-            </div>
+      {/* ── METRICS STRIP ──────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 flex items-center gap-3">
+            <Users className="w-8 h-8 text-cyan-400 light:text-blue-600 flex-shrink-0" />
             <div>
-              <div className="text-2xl font-black text-white leading-none font-mono">{students.length}</div>
-              <div className="text-xs text-slate-400 mt-1">Enrolled Students</div>
+              <div className="text-2xl font-black text-white light:text-slate-900 font-mono">{students.length}</div>
+              <div className="text-xs text-slate-400 light:text-slate-500">Mahasiswa</div>
             </div>
           </div>
-
-          <div className="p-5 rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-amber-950/60 border border-amber-500/30 text-amber-400 flex items-center justify-center flex-shrink-0">
-              <Trophy size={20} />
-            </div>
+          <div className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 flex items-center gap-3">
+            <Trophy className="w-8 h-8 text-amber-400 light:text-amber-600 flex-shrink-0" />
             <div>
-              <div className="text-2xl font-black text-white leading-none font-mono">{achievements.length}</div>
-              <div className="text-xs text-slate-400 mt-1">Honors & Awards</div>
+              <div className="text-2xl font-black text-white light:text-slate-900 font-mono">{achievements.length}</div>
+              <div className="text-xs text-slate-400 light:text-slate-500">Prestasi Kelas</div>
             </div>
           </div>
-
-          <div className="p-5 rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-blue-950/60 border border-blue-500/30 text-blue-400 flex items-center justify-center flex-shrink-0">
-              <GraduationCap size={20} />
-            </div>
+          <div className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 flex items-center gap-3">
+            <GraduationCap className="w-8 h-8 text-blue-400 light:text-blue-600 flex-shrink-0" />
             <div>
-              <div className="text-2xl font-black text-white leading-none font-mono">{settings.academicYear}</div>
-              <div className="text-xs text-slate-400 mt-1">Academic Year</div>
+              <div className="text-sm font-bold text-white light:text-slate-900 leading-tight">S1 SI</div>
+              <div className="text-xs text-slate-400 light:text-slate-500">Program Studi</div>
             </div>
           </div>
-
-          <div className="p-5 rounded-2xl border border-cyan-500/20 bg-[#0a1a2f]/70 flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-purple-950/60 border border-purple-500/30 text-purple-400 flex items-center justify-center flex-shrink-0">
-              <Calendar size={20} />
-            </div>
+          <div className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 flex items-center gap-3">
+            <Calendar className="w-8 h-8 text-purple-400 light:text-purple-600 flex-shrink-0" />
             <div>
-              <div className="text-2xl font-black text-white leading-none font-mono">{events.length}</div>
-              <div className="text-xs text-slate-400 mt-1">Events & Workshops</div>
+              <div className="text-sm font-bold text-white light:text-slate-900 leading-tight">Ganjil 26/27</div>
+              <div className="text-xs text-slate-400 light:text-slate-500">Periode Akademik</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── MAIN CONTENT ─────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
-        {/* Mission & Vision Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="cyber-card p-8 rounded-3xl bg-[#0a1a2f]/70 border border-cyan-500/20 hover:border-cyan-400/50 hover:shadow-cyan-glow transition-all duration-300">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5">
+      {/* ── VISION & VALUES ────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="card p-8 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-950/60 light:bg-blue-50 border border-cyan-500/30 light:border-blue-200 flex items-center justify-center text-cyan-400 light:text-blue-600 mb-2">
               <Target size={24} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Our Vision
+            <h2 className="text-2xl font-bold text-white light:text-slate-900 font-display">
+              Visi Kelas
             </h2>
-            <p className="text-slate-300 leading-relaxed text-sm sm:text-base">
-              To cultivate an inclusive, ambitious, and collaborative academic environment where future
-              software engineers, system architects, and tech innovators excel in technical rigor,
-              ethical leadership, and impactful real-world contributions.
+            <p className="text-slate-300 light:text-slate-600 text-sm leading-relaxed">
+              Mewujudkan kelas JS1SI-26-REG-05 sebagai lingkungan akademik yang solid, inovatif, dan berdaya saing tinggi, dengan penguasaan mendalam di bidang sistem enterprise, arsitektur data, dan rekayasa perangkat lunak modern.
             </p>
           </div>
 
-          <div className="cyber-card p-8 rounded-3xl bg-[#0a1a2f]/70 border border-cyan-500/20 hover:border-cyan-400/50 hover:shadow-cyan-glow transition-all duration-300">
-            <div className="w-12 h-12 rounded-2xl bg-blue-950/60 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-5">
+          <div className="card p-8 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-blue-950/60 light:bg-blue-50 border border-blue-500/30 light:border-blue-200 flex items-center justify-center text-blue-400 light:text-blue-600 mb-2">
               <Compass size={24} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Our Core Values
+            <h2 className="text-2xl font-bold text-white light:text-slate-900 font-display">
+              Nilai Utama Kelas
             </h2>
-            <ul className="space-y-3.5 text-slate-300 text-sm sm:text-base">
-              <li className="flex items-start gap-2.5">
-                <span className="font-bold text-cyan-400 mt-1">&bull;</span>
-                <span><strong className="text-white">Innovation First:</strong> Embracing modern tools, open-source tech, and cutting-edge software practices.</span>
+            <ul className="space-y-2.5 text-slate-300 light:text-slate-600 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400 light:text-blue-600 font-bold">&bull;</span>
+                <span><strong>Integritas Akademik:</strong> Kejujuran dalam setiap penugasan, ujian, dan riset kelompok.</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <span className="font-bold text-cyan-400 mt-1">&bull;</span>
-                <span><strong className="text-white">Radical Collaboration:</strong> Supporting peers through code reviews, study sprints, and mutual mentorship.</span>
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400 light:text-blue-600 font-bold">&bull;</span>
+                <span><strong>Kolaborasi Terbuka:</strong> Berbagi wawasan, modul, dan pendampingan sebaya tanpa membeda-bedakan.</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <span className="font-bold text-cyan-400 mt-1">&bull;</span>
-                <span><strong className="text-white">Community Impact:</strong> Channeling engineering talents into civic education and social volunteering.</span>
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400 light:text-blue-600 font-bold">&bull;</span>
+                <span><strong>Adaptif &amp; Visioner:</strong> Cepat beradaptasi dengan perkembangan teknologi industri dan kecerdasan buatan.</span>
               </li>
             </ul>
           </div>
-        </section>
+        </div>
 
         {/* Leadership Section */}
-        <section>
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-3xl font-extrabold text-white mb-3" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Class Leadership & Coordination
+        <div className="space-y-6">
+          <div className="text-center max-w-xl mx-auto space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-white light:text-slate-900 font-display">
+              Struktur Kepengurusan Kelas
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base">
-              Elected representatives dedicated to supporting our academic journey, liaising with professors, and organizing events.
+            <p className="text-slate-400 light:text-slate-600 text-xs sm:text-sm">
+              Perwakilan mahasiswa yang bertugas mengoordinasikan kegiatan akademik dan komunikasi dengan wali dosen.
             </p>
           </div>
 
@@ -254,98 +227,36 @@ export default async function AboutPage() {
               return (
                 <div
                   key={lead.role}
-                  className="cyber-card p-6 rounded-3xl bg-[#0a1a2f]/70 border border-cyan-500/20 hover:border-cyan-400/50 hover:shadow-cyan-glow transition-all duration-300 text-center flex flex-col items-center group hover:-translate-y-1"
+                  className="card p-6 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 text-center flex flex-col items-center justify-between group hover:-translate-y-1 transition-all"
                 >
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-tr ${lead.color} text-white flex items-center justify-center shadow-cyan-glow mb-4`}>
-                    <Icon size={28} />
+                  <div className="flex flex-col items-center">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${lead.color} text-white flex items-center justify-center shadow-md mb-4`}>
+                      <Icon size={26} />
+                    </div>
+                    <h3 className="font-extrabold text-white light:text-slate-900 text-base">{lead.student.name}</h3>
+                    <span className="inline-block px-3 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/15 light:bg-blue-50 text-cyan-300 light:text-blue-700 border border-cyan-500/30 light:border-blue-200 my-2">
+                      {lead.role}
+                    </span>
+                    <p className="text-slate-300 light:text-slate-600 text-xs leading-relaxed mt-1">
+                      {lead.description}
+                    </p>
                   </div>
-                  <h3 className="font-extrabold text-white text-lg leading-snug">{lead.student.name}</h3>
-                  <span className="inline-block px-3 py-0.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 my-2.5">
-                    {lead.role}
-                  </span>
-                  <p className="text-slate-300 text-xs sm:text-sm mt-1 leading-relaxed">
-                    {lead.description}
-                  </p>
-                  {lead.student.id && (
+
+                  {(lead.student as any).id && (
                     <Link
-                      href={`/students/${lead.student.id}`}
-                      className="mt-4 text-xs font-bold text-cyan-300 hover:text-white flex items-center gap-1 transition-colors"
+                      href={`/students/${(lead.student as any).id}`}
+                      className="mt-4 text-xs font-bold text-cyan-400 light:text-blue-600 hover:underline flex items-center gap-1"
                     >
-                      View Student Profile <ArrowRight size={12} />
+                      <span>Lihat Profil Mahasiswa</span>
+                      <ArrowRight size={12} />
                     </Link>
                   )}
                 </div>
               );
             })}
           </div>
-        </section>
-
-        {/* Upcoming Class Events Preview */}
-        {upcomingEvents.length > 0 && (
-          <section className="cyber-card p-8 rounded-3xl bg-[#0a1a2f]/70 border border-cyan-500/20">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-extrabold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  Upcoming Class Activities
-                </h2>
-                <p className="text-slate-400 text-sm">Non-recurring gatherings, hackathons, and study workshops</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {upcomingEvents.map((ev) => (
-                <div
-                  key={ev.id}
-                  className="p-5 rounded-2xl border border-cyan-500/20 bg-[#061021]/80 hover:border-cyan-400/40 transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 mb-2.5">
-                      Class Event
-                    </span>
-                    <h3 className="font-bold text-white text-base leading-snug mb-2">{ev.title}</h3>
-                    {ev.description && (
-                      <p className="text-slate-300 text-xs line-clamp-2 mb-3 leading-relaxed">{ev.description}</p>
-                    )}
-                  </div>
-                  <div className="pt-3 border-t border-cyan-500/15 text-xs text-slate-400 space-y-1">
-                    <div className="text-cyan-300 font-mono">📅 {formatDate(ev.eventDate)}</div>
-                    {ev.location && <div className="truncate text-slate-300">📍 {ev.location}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Bottom CTA */}
-        <section className="relative rounded-3xl p-8 sm:p-12 text-center overflow-hidden border border-cyan-500/30 bg-[#081326]/90 shadow-cyan-glow">
-          <div className="absolute inset-0 cyber-grid opacity-20 pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Explore Our Cohort Directory
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-              Get to know each of our {students.length} fellow students, their dreams, coding portfolios, and achievements.
-            </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Link
-                href="/students"
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-cyan-glow hover:brightness-110 flex items-center gap-2 transition-all"
-              >
-                <Users size={16} />
-                View Student Profiles
-              </Link>
-              <Link
-                href="/achievements"
-                className="px-6 py-3 rounded-full bg-[#0a1a2f] border border-cyan-500/30 text-cyan-300 font-bold text-sm hover:border-cyan-400 hover:text-white flex items-center gap-2 transition-all"
-              >
-                <Trophy size={16} />
-                Hall of Fame
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

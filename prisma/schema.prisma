@@ -25,16 +25,37 @@ enum DayOfWeek {
   SUNDAY
 }
 
+enum TaskType {
+  INDIVIDUAL
+  GROUP
+  ADDITIONAL
+}
+
+enum MaterialType {
+  PDF
+  PPT
+  DOC
+  XLS
+  LINK
+  VIDEO
+  IMAGE
+  OTHER
+}
+
 enum TaskPriority {
   LOW
   MEDIUM
   HIGH
+  URGENT
 }
 
 enum TaskStatus {
+  TODO
+  IN_PROGRESS
   UPCOMING
   DUE_SOON
   COMPLETED
+  SUBMITTED
   OVERDUE
 }
 
@@ -71,6 +92,8 @@ model User {
   announcements Announcement[]
   gallery       Gallery[]
   resources     Resource[]
+  materials     Material[]
+  dailyNotes    DailyNote[]
   classEvents   ClassEvent[]
   activityLogs  ActivityLog[]
 
@@ -105,13 +128,20 @@ model Subject {
   id           String     @id @default(cuid())
   code         String     @unique
   name         String
+  englishName  String?    @map("english_name")
   description  String?
+  sks          Int?       @default(3)
   lecturerName String?    @map("lecturer_name")
+  semester     String?    @default("Semester Ganjil 2026/2027")
+  academicYear String?    @default("2026/2027") @map("academic_year")
+  color        String?
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  schedules Schedule[]
-  tasks     Task[]
+  schedules  Schedule[]
+  tasks      Task[]
+  materials  Material[]
+  dailyNotes DailyNote[]
 
   @@map("subjects")
 }
@@ -124,6 +154,9 @@ model Schedule {
   endTime      String    @map("end_time")
   room         String
   lecturerName String?   @map("lecturer_name")
+  className    String?   @default("JS1SI-26-REG-05") @map("class_name")
+  semester     String?   @default("Semester Ganjil 2026/2027")
+  academicYear String?   @default("2026/2027") @map("academic_year")
   notes        String?
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
@@ -136,24 +169,108 @@ model Schedule {
 }
 
 model Task {
-  id          String       @id @default(cuid())
-  subjectId   String       @map("subject_id")
-  title       String
-  description String?
-  deadline    DateTime
-  priority    TaskPriority @default(MEDIUM)
-  status      TaskStatus   @default(UPCOMING)
-  createdBy   String       @map("created_by")
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  id            String       @id @default(cuid())
+  subjectId     String?      @map("subject_id")
+  title         String
+  description   String?
+  taskType      TaskType     @default(INDIVIDUAL) @map("task_type")
+  deadline      DateTime
+  estimatedTime String?      @map("estimated_time")
+  priority      TaskPriority @default(MEDIUM)
+  status        TaskStatus   @default(UPCOMING)
+  groupName     String?      @map("group_name")
+  groupMembers  String?      @map("group_members")
+  attachmentUrl String?      @map("attachment_url")
+  submissionUrl String?      @map("submission_url")
+  referenceUrl  String?      @map("reference_url")
+  notes         String?
+  createdBy     String       @map("created_by")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
 
-  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
-  creator User    @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  subject    Subject?        @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  creator    User            @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  dailyNotes DailyNoteTask[]
 
   @@map("tasks")
   @@index([deadline])
   @@index([subjectId])
   @@index([status])
+  @@index([taskType])
+}
+
+model Material {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String?      @map("subject_id")
+  type        MaterialType @default(PDF)
+  fileUrl     String?      @map("file_url")
+  externalUrl String?      @map("external_url")
+  fileName    String?      @map("file_name")
+  fileSize    String?      @map("file_size")
+  tags        String?
+  uploadedBy  String       @map("uploaded_by")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  subject    Subject?            @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  uploader   User                @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
+  dailyNotes DailyNoteMaterial[]
+
+  @@map("materials")
+  @@index([subjectId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model DailyNote {
+  id              String   @id @default(cuid())
+  date            DateTime
+  title           String
+  summary         String?
+  content         String
+  importantPoints String?  @map("important_points")
+  nextSteps       String?  @map("next_steps")
+  subjectId       String?  @map("subject_id")
+  authorId        String   @map("author_id")
+  tags            String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  subject   Subject?            @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  author    User                @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  materials DailyNoteMaterial[]
+  tasks     DailyNoteTask[]
+
+  @@map("daily_notes")
+  @@index([date])
+  @@index([subjectId])
+  @@index([authorId])
+}
+
+model DailyNoteMaterial {
+  dailyNoteId String   @map("daily_note_id")
+  materialId  String   @map("material_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  dailyNote DailyNote @relation(fields: [dailyNoteId], references: [id], onDelete: Cascade)
+  material  Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@id([dailyNoteId, materialId])
+  @@map("daily_note_materials")
+}
+
+model DailyNoteTask {
+  dailyNoteId String   @map("daily_note_id")
+  taskId      String   @map("task_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  dailyNote DailyNote @relation(fields: [dailyNoteId], references: [id], onDelete: Cascade)
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@id([dailyNoteId, taskId])
+  @@map("daily_note_tasks")
 }
 
 model Achievement {

@@ -9,11 +9,13 @@ import {
   Heart,
   BookOpen,
   Star,
+  User,
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import { getStudentById } from "@/lib/data";
 import { formatDate, cn } from "@/lib/utils";
 import { AchievementCategory } from "@prisma/client";
+import { ContentContainer } from "@/components/shared";
 
 const CATEGORY_COLOR: Record<AchievementCategory, string> = {
   COMPETITION: "badge-amber",
@@ -21,18 +23,18 @@ const CATEGORY_COLOR: Record<AchievementCategory, string> = {
   ORGANIZATION: "badge-purple",
   ACADEMIC: "badge-blue",
   CREATIVE: "badge-green",
-  TECHNOLOGY: "badge-blue",
+  TECHNOLOGY: "badge-cyan",
   OTHER: "badge-gray",
 };
 
 const CATEGORY_LABEL: Record<AchievementCategory, string> = {
-  COMPETITION: "Competition",
-  VOLUNTEER: "Volunteer",
-  ORGANIZATION: "Organization",
-  ACADEMIC: "Academic",
-  CREATIVE: "Creative",
-  TECHNOLOGY: "Technology",
-  OTHER: "Other",
+  COMPETITION: "Kompetisi",
+  VOLUNTEER: "Relawan",
+  ORGANIZATION: "Organisasi",
+  ACADEMIC: "Akademik",
+  CREATIVE: "Kreatif",
+  TECHNOLOGY: "Teknologi",
+  OTHER: "Lainnya",
 };
 
 export async function generateMetadata({
@@ -42,10 +44,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const student = await getStudentById(id);
-  if (!student) return { title: "Student Not Found" };
+  if (!student) return { title: "Mahasiswa Tidak Ditemukan | JS1SI-26-REG-05" };
   return {
-    title: student.name,
-    description: student.bio || `Profile of ${student.name} — ${student.major}`,
+    title: `${student.name} | Mahasiswa JS1SI-26-REG-05`,
+    description: student.bio || `Profil akademik mahasiswa ${student.name} — ${student.major} Telkom University Jakarta.`,
   };
 }
 
@@ -59,24 +61,24 @@ export default async function StudentDetailPage({
   if (!student) notFound();
 
   return (
-    <div className="cosmic-canvas min-h-screen text-slate-100 pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Back */}
+    <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
+      <ContentContainer>
+        {/* Back Link */}
         <Link
           href="/students"
-          className="inline-flex items-center gap-2 text-cyan-400 hover:text-white text-sm font-semibold mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--primary)] hover:underline mb-6 transition-colors"
         >
-          <ArrowLeft size={16} />
-          Back to Students Directory
+          <ArrowLeft size={14} />
+          <span>Kembali ke Direktori Mahasiswa</span>
         </Link>
 
         {/* Profile Card */}
-        <div className="cyber-card rounded-3xl overflow-hidden mb-8 bg-[#0a1a2f]/75 border border-cyan-500/25 shadow-cyan-glow">
+        <div className="card rounded-3xl overflow-hidden mb-8 shadow-md">
           {/* Banner */}
-          <div className="h-36 bg-gradient-to-r from-blue-700 via-cyan-600 to-indigo-800 relative">
+          <div className="h-40 bg-gradient-to-r from-blue-700 via-cyan-600 to-indigo-800 relative">
             <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
-            <div className="absolute -bottom-12 left-6">
-              <div className="w-24 h-24 rounded-2xl border-2 border-cyan-300 shadow-cyan-glow overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+            <div className="absolute -bottom-12 left-6 sm:left-8">
+              <div className="w-24 h-24 rounded-2xl border-4 border-[var(--bg-surface)] shadow-lg overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
                 {student.photoUrl ? (
                   <img
                     src={student.photoUrl}
@@ -84,7 +86,7 @@ export default async function StudentDetailPage({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-white font-extrabold text-3xl">
+                  <span className="text-white font-extrabold text-3xl font-display">
                     {student.name.charAt(0).toUpperCase()}
                   </span>
                 )}
@@ -96,13 +98,24 @@ export default async function StudentDetailPage({
           <div className="pt-16 pb-8 px-6 sm:px-8">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{student.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] font-display tracking-tight">
+                  {student.name}
+                </h1>
                 {student.studentNumber && (
-                  <p className="font-mono text-cyan-300 text-sm mt-0.5">{student.studentNumber}</p>
+                  <p className="font-mono text-[var(--primary)] text-sm mt-0.5 font-bold">
+                    NIM: {student.studentNumber}
+                  </p>
                 )}
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 mt-2.5">
-                  {student.major}
-                </span>
+                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30">
+                    {student.major}
+                  </span>
+                  {(student as any).classRole && (
+                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30">
+                      {(student as any).classRole}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Social links */}
@@ -112,11 +125,11 @@ export default async function StudentDetailPage({
                     href={student.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#061021] border border-cyan-500/25 text-slate-300 hover:text-white hover:border-cyan-400 text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary)] text-xs font-semibold transition-colors"
                     aria-label="GitHub"
                   >
                     <GithubIcon size={14} />
-                    GitHub
+                    <span>GitHub</span>
                   </a>
                 )}
                 {student.linkedinUrl && (
@@ -124,11 +137,11 @@ export default async function StudentDetailPage({
                     href={student.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#061021] border border-cyan-500/25 text-slate-300 hover:text-white hover:border-cyan-400 text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary)] text-xs font-semibold transition-colors"
                     aria-label="LinkedIn"
                   >
                     <LinkedinIcon size={14} />
-                    LinkedIn
+                    <span>LinkedIn</span>
                   </a>
                 )}
                 {student.portfolioUrl && (
@@ -136,11 +149,11 @@ export default async function StudentDetailPage({
                     href={student.portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#061021] border border-cyan-500/25 text-cyan-300 hover:text-white hover:border-cyan-400 text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-[var(--primary)] hover:underline text-xs font-semibold transition-colors"
                     aria-label="Portfolio"
                   >
                     <Globe size={14} />
-                    Portfolio
+                    <span>Portfolio</span>
                   </a>
                 )}
               </div>
@@ -149,51 +162,57 @@ export default async function StudentDetailPage({
             {/* Bio / Dream / Motivation */}
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
               {student.bio && (
-                <div className="sm:col-span-3 p-4 rounded-2xl bg-[#061021]/80 border border-cyan-500/15">
+                <div className="sm:col-span-3 p-5 rounded-2xl bg-[var(--bg-muted)] border border-[var(--border-color)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <BookOpen size={15} className="text-cyan-400" />
-                    <span className="text-sm font-bold text-white">About</span>
+                    <BookOpen size={15} className="text-[var(--primary)]" />
+                    <span className="text-xs font-bold font-mono uppercase tracking-wider text-[var(--text-primary)]">
+                      // Tentang Mahasiswa
+                    </span>
                   </div>
-                  <p className="text-slate-300 text-sm leading-relaxed">{student.bio}</p>
+                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{student.bio}</p>
                 </div>
               )}
               {student.dream && (
-                <div className="p-4 rounded-2xl bg-[#061021]/80 border border-cyan-500/15">
+                <div className="p-4 rounded-2xl bg-[var(--bg-muted)] border border-[var(--border-color)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <Star size={15} className="text-amber-400" />
-                    <span className="text-sm font-bold text-white">Future Goal</span>
+                    <Star size={15} className="text-amber-500" />
+                    <span className="text-xs font-bold font-mono uppercase tracking-wider text-[var(--text-primary)]">
+                      Cita-Cita &amp; Visi
+                    </span>
                   </div>
-                  <p className="text-slate-300 text-sm leading-relaxed">{student.dream}</p>
+                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{student.dream}</p>
                 </div>
               )}
               {student.motivation && (
-                <div className="p-4 rounded-2xl bg-[#061021]/80 border border-cyan-500/15">
+                <div className="p-4 rounded-2xl bg-[var(--bg-muted)] border border-[var(--border-color)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <Heart size={15} className="text-rose-400" />
-                    <span className="text-sm font-bold text-white">Core Motivation</span>
+                    <Heart size={15} className="text-rose-500" />
+                    <span className="text-xs font-bold font-mono uppercase tracking-wider text-[var(--text-primary)]">
+                      Motivasi Belajar
+                    </span>
                   </div>
-                  <p className="text-slate-300 text-sm leading-relaxed">{student.motivation}</p>
+                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{student.motivation}</p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Achievements */}
+        {/* Achievements Section */}
         {(student as any).achievements?.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-extrabold text-white flex items-center gap-2.5">
-              <Trophy size={20} className="text-amber-400" />
-              Achievements ({(student as any).achievements.length})
+            <h2 className="text-xl font-bold text-[var(--text-primary)] font-display flex items-center gap-2.5">
+              <Trophy size={20} className="text-amber-500" />
+              <span>Prestasi &amp; Pencapaian ({(student as any).achievements.length})</span>
             </h2>
-            <div className="space-y-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(student as any).achievements.map((sa: any) => (
                 <div
                   key={sa.achievementId || sa.achievement?.id}
-                  className="cyber-card p-5 rounded-2xl bg-[#0a1a2f]/70 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-300"
+                  className="card p-5 hover:border-[var(--primary)] transition-all duration-300 shadow-sm"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-amber-400">
+                    <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-amber-500">
                       {sa.achievement?.badgeIconUrl ? (
                         <img src={sa.achievement.badgeIconUrl} alt="" className="w-7 h-7 object-contain" />
                       ) : (
@@ -202,22 +221,25 @@ export default async function StudentDetailPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={cn("badge text-xs", CATEGORY_COLOR[(sa.achievement?.category || "OTHER") as AchievementCategory])}>
+                        <span className={cn("px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase", CATEGORY_COLOR[(sa.achievement?.category || "OTHER") as AchievementCategory])}>
                           {CATEGORY_LABEL[(sa.achievement?.category || "OTHER") as AchievementCategory]}
                         </span>
                       </div>
-                      <h3 className="font-bold text-white text-base leading-snug">{sa.achievement?.title}</h3>
+                      <h3 className="font-bold text-[var(--text-primary)] text-sm sm:text-base leading-snug">
+                        {sa.achievement?.title}
+                      </h3>
                       {sa.achievement?.description && (
-                        <p className="text-slate-300 text-sm mt-1 line-clamp-2">{sa.achievement.description}</p>
+                        <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-1 line-clamp-2 leading-relaxed">
+                          {sa.achievement.description}
+                        </p>
                       )}
-                      <div className="flex items-center gap-3 mt-2.5 text-xs text-slate-400">
+                      <div className="flex items-center gap-3 mt-2.5 text-xs text-[var(--text-muted)] font-mono">
                         {sa.achievement?.organization && (
-                          <span className="text-cyan-300">{sa.achievement.organization}</span>
+                          <span className="text-[var(--primary)]">{sa.achievement.organization}</span>
                         )}
                         {sa.achievement?.achievementDate && (
                           <span>{formatDate(sa.achievement.achievementDate)}</span>
                         )}
-                        {sa.achievement?.location && <span>{sa.achievement.location}</span>}
                       </div>
                     </div>
                   </div>
@@ -226,7 +248,7 @@ export default async function StudentDetailPage({
             </div>
           </div>
         )}
-      </div>
+      </ContentContainer>
     </div>
   );
 }

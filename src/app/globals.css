@@ -1,6 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
+@custom-variant light (&:where(.light, .light *));
+
 :root {
   /* Futuristic Digital-Event Color System (COMPFEST-inspired palette) */
   --navy-950: #040813;
@@ -39,21 +41,28 @@
   --accent-rose: #f43f5e;
   --accent-purple: #8b5cf6;
 
-  /* Canvas & Surface Tokens */
-  --bg-primary: #060b17;
-  --bg-secondary: #081326;
-  --bg-tertiary: #0a1b36;
-  --bg-card: rgba(10, 26, 47, 0.72);
-  --bg-card-hover: rgba(14, 34, 60, 0.85);
-  --border-color: rgba(56, 189, 248, 0.18);
-  --border-color-hover: rgba(56, 189, 248, 0.45);
-  --border-color-active: rgba(34, 211, 238, 0.7);
+  /* Canvas & Surface Tokens (Default Dark) */
+  --bg-primary: #030817;
+  --bg-secondary: #061326;
+  --bg-surface: #0a1d35;
+  --bg-muted: #08162b;
+  --bg-card: rgba(13, 34, 57, 0.72);
+  --bg-card-hover: rgba(18, 44, 75, 0.85);
+
+  --primary: #1498ff;
+  --primary-hover: #0568b7;
+  --primary-bright: #35bfff;
+  --accent-cyan: #50e8ff;
+
+  --border-color: rgba(80, 232, 255, 0.2);
+  --border-color-hover: rgba(80, 232, 255, 0.45);
+  --border-color-active: rgba(80, 232, 255, 0.7);
 
   /* High-Contrast Futuristic Text */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-cyan: #38bdf8;
+  --text-primary: #f4fbff;
+  --text-secondary: #b9d1df;
+  --text-muted: #7190a5;
+  --text-cyan: #50e8ff;
 
   /* Glows & Cyber Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -75,13 +84,47 @@
   --radius-full: 9999px;
 }
 
+/* Intentional Light Mode Theme */
+html.light {
+  color-scheme: light;
+  --bg-primary: #f6f9fc;
+  --bg-secondary: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-muted: #eef4f8;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: #ffffff;
+
+  --primary: #087edb;
+  --primary-hover: #0568b7;
+  --primary-bright: #1498ff;
+  --accent-cyan: #0284c7;
+
+  --text-primary: #12202c;
+  --text-secondary: #405463;
+  --text-muted: #718391;
+  --text-cyan: #087edb;
+
+  --border-color: #dce7ee;
+  --border-color-hover: #bcd3e2;
+  --border-color-active: #087edb;
+
+  --shadow-xs: 0 1px 2px rgba(18, 32, 44, 0.05);
+  --shadow-sm: 0 2px 8px rgba(18, 32, 44, 0.06);
+  --shadow-md: 0 8px 24px -4px rgba(18, 32, 44, 0.08);
+  --shadow-lg: 0 16px 36px -6px rgba(18, 32, 44, 0.1);
+  --shadow-xl: 0 24px 48px -10px rgba(18, 32, 44, 0.12);
+  --shadow-brand: 0 4px 20px rgba(8, 126, 219, 0.15);
+  --shadow-cyan-glow: 0 4px 20px rgba(8, 126, 219, 0.2);
+  --shadow-blue-glow: 0 4px 20px rgba(8, 126, 219, 0.2);
+}
+
 @theme inline {
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
-  --color-brand: var(--cyan-500);
+  --color-brand: var(--primary);
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
   --color-brand-200: var(--brand-200);
@@ -100,7 +143,6 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
-  color-scheme: dark;
 }
 
 body {
@@ -122,22 +164,21 @@ body {
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #040813;
+  background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.25);
+  background: var(--border-color);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.5);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  background: var(--primary);
 }
 
 /* ============================
    BACKGROUND AMBIENCE & GRID
    ============================ */
 .cosmic-canvas {
-  background-color: #060b17;
+  background-color: var(--bg-primary);
   background-image: 
     radial-gradient(ellipse 90% 60% at 50% -10%, rgba(37, 99, 235, 0.22) 0%, transparent 70%),
     radial-gradient(circle 400px at 15% 25%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
@@ -148,11 +189,74 @@ body {
   background-attachment: fixed;
 }
 
+html.light .cosmic-canvas {
+  background-color: #f6f9fc;
+  background-image: 
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(8, 126, 219, 0.07) 0%, transparent 70%),
+    radial-gradient(circle 400px at 15% 25%, rgba(2, 132, 199, 0.04) 0%, transparent 60%),
+    radial-gradient(circle 500px at 85% 65%, rgba(8, 126, 219, 0.05) 0%, transparent 60%),
+    radial-gradient(rgba(18, 32, 44, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px;
+}
+
 .cyber-grid {
   background-image: 
     linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
+}
+
+html.light .cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(220, 231, 238, 0.7) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(220, 231, 238, 0.7) 1px, transparent 1px);
+}
+
+/* Light mode component enhancements */
+html.light .glass {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #dce7ee;
+  box-shadow: 0 4px 20px -2px rgba(18, 32, 44, 0.05);
+}
+
+html.light .glass-dark {
+  background: rgba(246, 249, 252, 0.95);
+  border: 1px solid #dce7ee;
+  box-shadow: 0 4px 20px -2px rgba(18, 32, 44, 0.05);
+}
+
+html.light .glass-pill {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #dce7ee;
+  box-shadow: 0 8px 24px rgba(18, 32, 44, 0.08);
+}
+
+html.light .card,
+html.light .cyber-card {
+  background: #ffffff;
+  border: 1px solid #dce7ee;
+  box-shadow: 0 4px 16px -2px rgba(18, 32, 44, 0.05);
+}
+
+html.light .card:hover,
+html.light .cyber-card:hover {
+  background: #ffffff;
+  border-color: #bcd3e2;
+  box-shadow: 0 8px 24px -4px rgba(18, 32, 44, 0.08), 0 0 12px rgba(8, 126, 219, 0.1);
+}
+
+html.light .text-gradient {
+  background: linear-gradient(135deg, #12202c 0%, #087edb 60%, #0568b7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+html.light .hero-gradient {
+  background: 
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(8, 126, 219, 0.1) 0%, transparent 70%),
+    radial-gradient(circle 350px at 80% 20%, rgba(2, 132, 199, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #f6f9fc 0%, #ffffff 50%, #f6f9fc 100%);
 }
 
 /* Subtle glowing circuit dot */
@@ -241,7 +345,8 @@ body {
 /* ============================
    FUTURISTIC CARDS
    ============================ */
-.card {
+.card,
+.cyber-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 20px;
@@ -253,7 +358,8 @@ body {
   overflow: hidden;
 }
 
-.card:hover {
+.card:hover,
+.cyber-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-color-hover);
   box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6), 0 0 20px rgba(6, 182, 212, 0.2);
@@ -847,122 +953,364 @@ body {
 }
 
 /* ============================
-   ADMIN & DATA TABLE DARK CYBER THEME
+   DESIGN SYSTEM UTILITY TOKENS
    ============================ */
-/* Ensure all tables and cards in the application adhere to the dark cyber aesthetic */
-.card,
-.cyber-card,
-.table-container {
-  color: #f8fafc;
+
+/* Surface Tokens */
+.surface-primary {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
-/* Override lingering bg-white on table bodies and table cards */
-.table tbody,
-tbody.bg-white,
-.card .bg-white,
-.table-container .bg-white {
+.surface-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.surface-tertiary {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.surface-glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.surface-elevated {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+}
+
+/* Card System Variants */
+.card-default {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.card-elevated {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.card-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+}
+
+.card-feature {
+  position: relative;
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.card-feature::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--accent-cyan) 100%);
+}
+
+.card-interactive {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-color-hover);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Badge Variants */
+.badge-default {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(113, 144, 165, 0.15);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.badge-cyan {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(6, 182, 212, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+html.light .badge-cyan {
+  background: #f0f9ff;
+  color: #0284c7;
+  border-color: #bae6fd;
+}
+
+.badge-blue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+html.light .badge-blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.badge-purple {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(139, 92, 246, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+}
+
+html.light .badge-purple {
+  background: #faf5ff;
+  color: #7e22ce;
+  border-color: #e9d5ff;
+}
+
+.badge-amber {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+html.light .badge-amber {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.badge-emerald {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+html.light .badge-emerald {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.badge-rose {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.3);
+}
+
+html.light .badge-rose {
+  background: #fff1f2;
+  color: #be123c;
+  border-color: #fecdd3;
+}
+
+/* Typography Utility Hierarchy */
+.display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.display-lg {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.heading-xl {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.heading-lg {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.heading-md {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.body-lg {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.65;
+}
+
+.body-md {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.body-sm {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.caption {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ============================
+   SCOPED DARK MODE STYLES
+   ============================ */
+html.dark .card,
+html.dark .cyber-card,
+html.dark .table-container {
+  color: var(--text-primary);
+}
+
+html.dark .table tbody,
+html.dark tbody.bg-white,
+html.dark .table-container .bg-white {
   background-color: transparent !important;
-  color: #f8fafc !important;
+  color: var(--text-primary) !important;
 }
 
-.table tbody tr:hover,
-tbody.bg-white tr:hover {
+html.dark .table tbody tr:hover,
+html.dark tbody.bg-white tr:hover {
   background-color: rgba(56, 189, 248, 0.08) !important;
 }
 
-/* Convert lingering light text utilities inside dark containers */
-.card .text-slate-900,
-.cyber-card .text-slate-900,
-.table-container .text-slate-900,
-main .text-slate-900 {
-  color: #f8fafc !important;
+html.dark input.input,
+html.dark .form-input,
+html.dark select.input,
+html.dark textarea.input {
+  background-color: #061021;
+  border-color: rgba(56, 189, 248, 0.25);
+  color: #f8fafc;
 }
 
-.card .text-slate-800,
-.cyber-card .text-slate-800,
-.table-container .text-slate-800 {
-  color: #f1f5f9 !important;
+html.dark input.input:focus,
+html.dark .form-input:focus,
+html.dark select.input:focus,
+html.dark textarea.input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 0 15px rgba(56, 189, 248, 0.2);
 }
 
-.card .text-slate-700,
-.card .text-slate-600,
-.table-container .text-slate-700,
-.table-container .text-slate-600 {
-  color: #cbd5e1 !important;
+/* ============================
+   SCOPED LIGHT MODE STYLES
+   ============================ */
+html.light .table tbody tr:hover {
+  background-color: #f8fafc !important;
 }
 
-.card .text-slate-500,
-.table-container .text-slate-500 {
-  color: #94a3b8 !important;
+html.light input.input,
+html.light .form-input,
+html.light select.input,
+html.light textarea.input {
+  background-color: #ffffff;
+  border-color: #dce7ee;
+  color: #12202c;
 }
 
-/* Darken lingering bg-slate-50 backgrounds in tables and cards */
-.card .bg-slate-50,
-.card .bg-slate-50\/50,
-.card .bg-slate-50\/80,
-.table-container .bg-slate-50,
-main .bg-slate-50 {
-  background-color: rgba(6, 16, 33, 0.8) !important;
-  color: #cbd5e1 !important;
-}
-
-.card .hover\:bg-slate-50:hover,
-.table-container .hover\:bg-slate-50:hover,
-tbody.bg-white tr.hover\:bg-slate-50:hover {
-  background-color: rgba(56, 189, 248, 0.09) !important;
-}
-
-/* Harmonize borders and dividers */
-.card .border-slate-100,
-.card .border-slate-200,
-.card .border-slate-200\/80,
-.table-container .border-slate-100,
-.table-container .border-slate-200,
-main .border-slate-100,
-main .border-slate-200 {
-  border-color: rgba(56, 189, 248, 0.16) !important;
-}
-
-.card .divide-slate-100 > * + *,
-.table-container .divide-slate-100 > * + *,
-tbody.divide-slate-100 > * + * {
-  border-color: rgba(56, 189, 248, 0.12) !important;
-}
-
-/* Convert lingering light filter buttons */
-button.bg-white,
-a.bg-white {
-  background-color: #061021 !important;
-  color: #cbd5e1 !important;
-  border-color: rgba(56, 189, 248, 0.22) !important;
-}
-
-button.bg-white:hover,
-a.bg-white:hover {
-  background-color: rgba(6, 182, 212, 0.18) !important;
-  color: #ffffff !important;
-  border-color: rgba(56, 189, 248, 0.5) !important;
-}
-
-/* Ensure all form inputs inside cards/tables have dark cyber styling */
-input.input,
-.form-input,
-select.input {
-  background-color: #061021 !important;
-  border-color: rgba(56, 189, 248, 0.25) !important;
-  color: #f8fafc !important;
-}
-
-input.input:focus,
-.form-input:focus,
-select.input:focus {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 0 15px rgba(56, 189, 248, 0.2) !important;
+html.light input.input:focus,
+html.light .form-input:focus,
+html.light select.input:focus,
+html.light textarea.input:focus {
+  border-color: #087edb;
+  box-shadow: 0 0 0 3px rgba(8, 126, 219, 0.15);
 }
 
 /* Focus outline for a11y */
 :focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid var(--primary);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }

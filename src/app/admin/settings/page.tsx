@@ -12,7 +12,7 @@ export default async function AdminSettingsPage() {
   const settings = await getSettings();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary">
       <AdminHeader
         title="Class Configuration"
         description="Update class information, cohort details, branding motto, and social channel links."

@@ -12,7 +12,7 @@ export default async function AdminSubjectsPage() {
   const { subjects } = await getSubjectsData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary">
       <AdminHeader
         title="Subjects & Courses"
         description="Configure academic subjects, syllabus descriptions, and lecturer assignments."

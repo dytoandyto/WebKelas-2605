@@ -26,13 +26,20 @@ export async function createSubjectAction(input: SubjectInput): Promise<ActionRe
       data: {
         code: data.code,
         name: data.name,
+        englishName: data.englishName || null,
         description: data.description || null,
+        sks: data.sks || 3,
         lecturerName: data.lecturerName || null,
+        semester: data.semester || "Semester Ganjil 2026/2027",
+        academicYear: data.academicYear || "2026/2027",
+        color: data.color || null,
       },
     });
 
     await logActivity("CREATE_SUBJECT", "SUBJECT", subject.id, `Created subject ${subject.code} - ${subject.name}`);
     revalidatePath("/admin/subjects");
+    revalidatePath("/subjects");
+    revalidatePath(`/subjects/${subject.code}`);
     revalidatePath("/schedule");
     revalidatePath("/tasks");
     revalidatePath("/");
@@ -67,13 +74,20 @@ export async function updateSubjectAction(id: string, input: SubjectInput): Prom
       data: {
         code: data.code,
         name: data.name,
+        englishName: data.englishName || null,
         description: data.description || null,
+        sks: data.sks || 3,
         lecturerName: data.lecturerName || null,
+        semester: data.semester || "Semester Ganjil 2026/2027",
+        academicYear: data.academicYear || "2026/2027",
+        color: data.color || null,
       },
     });
 
     await logActivity("UPDATE_SUBJECT", "SUBJECT", subject.id, `Updated subject ${subject.code} - ${subject.name}`);
     revalidatePath("/admin/subjects");
+    revalidatePath("/subjects");
+    revalidatePath(`/subjects/${subject.code}`);
     revalidatePath("/schedule");
     revalidatePath("/tasks");
     revalidatePath("/");

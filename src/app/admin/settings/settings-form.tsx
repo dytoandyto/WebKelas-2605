@@ -9,6 +9,8 @@ import {
   Globe,
   Mail,
   Building,
+  UserCheck,
+  BookOpen,
 } from "lucide-react";
 import { updateSettingsAction } from "@/lib/actions/settings";
 import { GithubIcon, InstagramIcon, DiscordIcon, LinkedinIcon } from "@/components/icons";
@@ -19,11 +21,18 @@ interface SettingsFormProps {
 
 export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [formData, setFormData] = useState({
-    className: initialSettings.className || "Informatics Class 2026",
-    institutionName: initialSettings.institutionName || "",
+    className: initialSettings.className || "JS1SI-26-REG-05",
+    classShortName: initialSettings.classShortName || "SI • 26-05",
+    classCode: initialSettings.classCode || "JS1SI-26-REG-05",
+    institutionName: initialSettings.institutionName || "Telkom University Jakarta",
+    campusName: initialSettings.campusName || "Telkom University Jakarta",
+    studyProgram: initialSettings.studyProgram || "S1 Sistem Informasi",
     academicYear: initialSettings.academicYear || "2026/2027",
-    classMotto: initialSettings.classMotto || "",
-    classDescription: initialSettings.classDescription || "",
+    semester: initialSettings.semester || "Semester Ganjil 2026/2027",
+    waliDosen: initialSettings.waliDosen || "Muhammad Ardiansyah",
+    classHeadline: initialSettings.classHeadline || "LEARN. BUILD. GROW. TOGETHER.",
+    classMotto: initialSettings.classMotto || "Innovate, Build, and Elevate Together",
+    classDescription: initialSettings.classDescription || "Hub akademik dan portal kelas S1 Sistem Informasi Telkom University Jakarta.",
     logoUrl: initialSettings.logoUrl || "",
     heroImageUrl: initialSettings.heroImageUrl || "",
     contactEmail: initialSettings.contactEmail || "",
@@ -65,150 +74,233 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
         <div
           className={`p-4 rounded-xl border flex items-center gap-3 text-sm animate-in fade-in duration-200 ${
             statusMessage.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-red-50 border-red-200 text-red-800"
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+              : "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400"
           }`}
         >
           {statusMessage.type === "success" && (
-            <CheckCircle className="text-emerald-500 flex-shrink-0" size={18} />
+            <CheckCircle className="text-emerald-500 shrink-0" size={18} />
           )}
           <span className="font-medium">{statusMessage.text}</span>
         </div>
       )}
 
-      {/* Section 1: General Class Profile */}
-      <div className="card p-6 border border-slate-200/80 shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
-            <GraduationCap size={18} />
+      {/* Section 1: Institution & Academic Program */}
+      <div className="card p-6 border border-border bg-card shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-border">
+          <div className="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+            <Building size={18} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Class Identity</h3>
-            <p className="text-xs text-slate-500">
-              Basic identification displayed across website header, hero banners, and footers.
+            <h3 className="text-base font-bold text-text-primary">Institution & Faculty Identity</h3>
+            <p className="text-xs text-text-muted">
+              Campus, institution, and study program naming.
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="form-label">Class Name *</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Institution Name *</label>
             <input
               type="text"
-              value={formData.className}
-              onChange={(e) => setFormData({ ...formData, className: e.target.value })}
-              className="form-input text-sm w-full"
+              value={formData.institutionName}
+              onChange={(e) => setFormData({ ...formData, institutionName: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Institution / Faculty</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Campus Location / Name</label>
             <input
               type="text"
-              placeholder="e.g. Faculty of Computer Science, Universitas Indonesia"
-              value={formData.institutionName}
-              onChange={(e) => setFormData({ ...formData, institutionName: e.target.value })}
-              className="form-input text-sm w-full"
+              value={formData.campusName}
+              onChange={(e) => setFormData({ ...formData, campusName: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="form-label">Academic Year *</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Study Program (Program Studi) *</label>
             <input
               type="text"
-              placeholder="e.g. 2026/2027"
-              value={formData.academicYear}
-              onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
-              className="form-input text-sm w-full"
+              value={formData.studyProgram}
+              onChange={(e) => setFormData({ ...formData, studyProgram: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Class Motto / Tagline</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Class Advisor (Wali Dosen) *</label>
             <input
               type="text"
-              placeholder="e.g. Innovate, Build, and Elevate Together"
-              value={formData.classMotto}
-              onChange={(e) => setFormData({ ...formData, classMotto: e.target.value })}
-              className="form-input text-sm w-full"
+              value={formData.waliDosen}
+              onChange={(e) => setFormData({ ...formData, waliDosen: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Section 2: Class Cohort Identity */}
+      <div className="card p-6 border border-border bg-card shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-border">
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+            <GraduationCap size={18} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-text-primary">Class Cohort & Period</h3>
+            <p className="text-xs text-text-muted">
+              Class identifier, academic period, and public branding slogans.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Class Name / Code *</label>
+            <input
+              type="text"
+              value={formData.className}
+              onChange={(e) => setFormData({ ...formData, className: e.target.value, classCode: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Short Display Code *</label>
+            <input
+              type="text"
+              placeholder="e.g. SI • 26-05"
+              value={formData.classShortName}
+              onChange={(e) => setFormData({ ...formData, classShortName: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Academic Year *</label>
+            <input
+              type="text"
+              value={formData.academicYear}
+              onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Academic Semester Period *</label>
+            <input
+              type="text"
+              placeholder="e.g. Semester Ganjil 2026/2027"
+              value={formData.semester}
+              onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Hero Headline</label>
+            <input
+              type="text"
+              value={formData.classHeadline}
+              onChange={(e) => setFormData({ ...formData, classHeadline: e.target.value })}
+              className="form-input text-sm w-full bg-surface border-border text-text-primary font-semibold"
             />
           </div>
         </div>
 
         <div>
-          <label className="form-label">Class Overview Description</label>
+          <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Class Motto / Tagline</label>
+          <input
+            type="text"
+            value={formData.classMotto}
+            onChange={(e) => setFormData({ ...formData, classMotto: e.target.value })}
+            className="form-input text-sm w-full bg-surface border-border text-text-primary"
+          />
+        </div>
+
+        <div>
+          <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Class Overview Description</label>
           <textarea
             placeholder="Introduce the cohort, learning focus, and class objectives..."
             value={formData.classDescription}
             onChange={(e) =>
               setFormData({ ...formData, classDescription: e.target.value })
             }
-            className="form-textarea text-sm w-full"
+            className="form-textarea text-sm w-full bg-surface border-border text-text-primary"
             rows={3}
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
           <div>
-            <label className="form-label">Logo Image URL</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Logo Image URL</label>
             <input
               type="url"
               placeholder="https://..."
               value={formData.logoUrl}
               onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-              className="form-input text-xs w-full"
+              className="form-input text-xs w-full bg-surface border-border text-text-primary"
             />
           </div>
 
           <div>
-            <label className="form-label">Hero Banner Image URL</label>
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Hero Banner Image URL</label>
             <input
               type="url"
               placeholder="https://..."
               value={formData.heroImageUrl}
               onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
-              className="form-input text-xs w-full"
+              className="form-input text-xs w-full bg-surface border-border text-text-primary"
             />
           </div>
         </div>
       </div>
 
-      {/* Section 2: Contact & Social Channels */}
-      <div className="card p-6 border border-slate-200/80 shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+      {/* Section 3: Contact & Social Channels */}
+      <div className="card p-6 border border-border bg-card shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-border">
+          <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
             <Globe size={18} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Contact & Social Channels</h3>
-            <p className="text-xs text-slate-500">
+            <h3 className="text-base font-bold text-text-primary">Contact & Social Channels</h3>
+            <p className="text-xs text-text-muted">
               Direct community and contact links shown in the site footer.
             </p>
           </div>
         </div>
 
         <div>
-          <label className="form-label flex items-center gap-1.5">
-            <Mail size={13} className="text-slate-400" />
+          <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
+            <Mail size={13} className="text-text-muted" />
             Official Contact Email
           </label>
           <input
             type="email"
-            placeholder="contact@classhub.edu"
+            placeholder="class.hub@student.telkomuniversity.ac.id"
             value={formData.contactEmail}
             onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-            className="form-input text-sm w-full"
+            className="form-input text-sm w-full bg-surface border-border text-text-primary"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="form-label flex items-center gap-1.5">
-              <GithubIcon size={13} className="text-slate-500" />
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
+              <GithubIcon size={13} className="text-text-muted" />
               GitHub Org
             </label>
             <input
@@ -216,13 +308,13 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               placeholder="https://github.com/..."
               value={formData.githubUrl}
               onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-              className="form-input text-xs w-full"
+              className="form-input text-xs w-full bg-surface border-border text-text-primary"
             />
           </div>
 
           <div>
-            <label className="form-label flex items-center gap-1.5">
-              <LinkedinIcon size={13} className="text-slate-500" />
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
+              <LinkedinIcon size={13} className="text-text-muted" />
               LinkedIn Page
             </label>
             <input
@@ -230,13 +322,13 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               placeholder="https://linkedin.com/..."
               value={formData.linkedinUrl}
               onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-              className="form-input text-xs w-full"
+              className="form-input text-xs w-full bg-surface border-border text-text-primary"
             />
           </div>
 
           <div>
-            <label className="form-label flex items-center gap-1.5">
-              <InstagramIcon size={13} className="text-slate-500" />
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
+              <InstagramIcon size={13} className="text-text-muted" />
               Instagram Profile
             </label>
             <input
@@ -244,13 +336,13 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               placeholder="https://instagram.com/..."
               value={formData.instagramUrl}
               onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
-              className="form-input text-xs w-full"
+              className="form-input text-xs w-full bg-surface border-border text-text-primary"
             />
           </div>
 
           <div>
-            <label className="form-label flex items-center gap-1.5">
-              <DiscordIcon size={13} className="text-slate-500" />
+            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
+              <DiscordIcon size={13} className="text-text-muted" />
               Discord Community
             </label>
             <input
@@ -258,7 +350,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               placeholder="https://discord.gg/..."
               value={formData.discordUrl}
               onChange={(e) => setFormData({ ...formData, discordUrl: e.target.value })}
-              className="form-input text-xs w-full"
+              className="form-input text-xs w-full bg-surface border-border text-text-primary"
             />
           </div>
         </div>
@@ -287,3 +379,4 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     </form>
   );
 }
+
