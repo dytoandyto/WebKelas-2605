@@ -91,15 +91,6 @@ cp .env.example .env
 ```
 Configure your environment parameters:
 ```env
-# PostgreSQL connection string
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/classhub?schema=public"
-DIRECT_URL="postgresql://postgres:postgres@localhost:5432/classhub?schema=public"
-
-# Minimum 32-character random secret key for JWT session encryption
-AUTH_SECRET="e9f8a3d2c1b4765098fedcba0123456789abcdef0123456789abcdef01234567"
-
-# Canonical public app URL
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ### 4. Database Setup & Migrations
