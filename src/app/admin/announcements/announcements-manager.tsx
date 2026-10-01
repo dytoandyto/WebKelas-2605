@@ -341,67 +341,73 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
         description="Share important class notices, exam schedules, or classroom news."
         maxWidth="lg"
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
           <div>
-            <label className="form-label">Announcement Title *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Announcement Title <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. Mid-Term Examination Schedule Released"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Content Body *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Content Body <span className="text-rose-500">*</span>
+            </label>
             <textarea
               placeholder="Write the complete announcement details, instructions, or meeting links..."
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="form-textarea text-sm w-full"
+              className="min-h-[120px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               rows={5}
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Banner Image URL (Optional)</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Banner Image URL (Optional)
+            </label>
             <input
               type="url"
               placeholder="https://images.unsplash.com/..."
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
             />
           </div>
 
-          <div className="pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+          <div className="pt-1">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={formData.isPublished}
                 onChange={(e) =>
                   setFormData({ ...formData, isPublished: e.target.checked })
                 }
-                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <span>Publish immediately to public announcements page</span>
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
               disabled={isPending}
             >
               Cancel
@@ -409,10 +415,10 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingAnnouncement ? "Save Changes" : "Post Announcement"}
+              <span>{editingAnnouncement ? "Save Changes" : "Post Announcement"}</span>
             </button>
           </div>
         </form>

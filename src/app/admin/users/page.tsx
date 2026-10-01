@@ -12,12 +12,12 @@ export default async function AdminUsersPage() {
   const { users } = await getUsersData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="space-y-6">
       <AdminHeader
         title="User & Access Management"
         description="Control team access, assign administrative roles, and manage credentials."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <UsersManager initialUsers={users} />
       </div>
     </div>

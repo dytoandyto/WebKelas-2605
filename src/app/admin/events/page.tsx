@@ -12,12 +12,12 @@ export default async function AdminEventsPage() {
   const { events } = await getClassEventsData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="space-y-6">
       <AdminHeader
         title="Class Events & Activities"
         description="Manage workshops, guest lectures, hackathons, company visits, and social gatherings for your class."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <EventsManager initialEvents={events} />
       </div>
     </div>

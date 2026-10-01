@@ -26,6 +26,7 @@ export async function createMaterialAction(input: MaterialInput): Promise<Action
         fileName: data.fileName || null,
         fileSize: data.fileSize || null,
         tags: data.tags || null,
+        attachments: data.attachments || null,
         uploadedBy: user.id,
       },
       include: {
@@ -67,6 +68,7 @@ export async function updateMaterialAction(id: string, input: MaterialInput): Pr
         fileName: data.fileName || null,
         fileSize: data.fileSize || null,
         tags: data.tags || null,
+        attachments: data.attachments || null,
       },
       include: {
         subject: {

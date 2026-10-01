@@ -4,20 +4,20 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { ResourcesManager } from "./resources-manager";
 
 export const metadata: Metadata = {
-  title: "Class Resources Management",
-  description: "Organize learning links, references, and shared drives.",
+  title: "Campus Resources Directory",
+  description: "Curate links to university portals, tools, repositories, and learning assets.",
 };
 
 export default async function AdminResourcesPage() {
   const { resources } = await getResourcesData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="space-y-6">
       <AdminHeader
-        title="Class Resources & Links"
-        description="Curate tools, GitHub classrooms, textbooks, and cloud storage repositories."
+        title="Campus Academic Resources"
+        description="Maintain useful links to Telkom University LMS, library catalogs, software tools, and academic guides."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <ResourcesManager initialResources={resources} />
       </div>
     </div>

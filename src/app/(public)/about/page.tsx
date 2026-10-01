@@ -45,7 +45,7 @@ export default async function AboutPage() {
   const leaders = [
     {
       role: "Ketua Kelas (Class President)",
-      student: students[0] || { name: "Andyto Pratama", major: "S1 Sistem Informasi" },
+      student: students[0] || { name: "Sigma Pratama", major: "S1 Sistem Informasi" },
       description: "Bertanggung jawab atas koordinasi angkatan, narahubung utama dosen pengampu, dan pergerakan kegiatan kelas.",
       icon: ShieldCheck,
       color: "from-cyan-500 to-blue-600",

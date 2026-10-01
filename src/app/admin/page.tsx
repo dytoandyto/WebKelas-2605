@@ -24,29 +24,12 @@ import { getAdminOverviewData } from "@/lib/data";
 import { getSession } from "@/lib/auth/session";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { NextClassCard } from "@/components/admin/next-class-card";
-import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
-import { TaskStatus, TaskPriority, TaskType } from "@prisma/client";
+import { formatDate, cn } from "@/lib/utils";
+import { DeadlineBadge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Academic Dashboard | JS1SI-26-REG-05",
   description: "Academic class control hub and learning overview.",
-};
-
-const STATUS_BADGE: Record<TaskStatus, { label: string; className: string }> = {
-  TODO: { label: "To Do", className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" },
-  IN_PROGRESS: { label: "In Progress", className: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" },
-  UPCOMING: { label: "Upcoming", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
-  DUE_SOON: { label: "Due Soon", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" },
-  OVERDUE: { label: "Overdue", className: "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20" },
-  SUBMITTED: { label: "Submitted", className: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20" },
-  COMPLETED: { label: "Completed", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" },
-};
-
-const PRIORITY_BADGE: Record<TaskPriority, { label: string; className: string }> = {
-  LOW: { label: "Low", className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" },
-  MEDIUM: { label: "Medium", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
-  HIGH: { label: "High", className: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" },
-  URGENT: { label: "Urgent", className: "bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30" },
 };
 
 export default async function AdminDashboardPage() {
@@ -122,7 +105,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary pb-16">
+    <div className="space-y-6 pb-12">
       <AdminHeader
         title="Academic Class Command Hub"
         description={`${classCode} • ${semester} • ${institution}`}
@@ -133,7 +116,7 @@ export default async function AdminDashboardPage() {
             className="btn btn-secondary btn-sm flex items-center gap-1.5 shadow-xs"
           >
             <Plus size={14} />
-            <span>+ Add Note</span>
+            <span>Add Note</span>
           </Link>
           <Link
             href="/admin/tasks"
@@ -145,7 +128,7 @@ export default async function AdminDashboardPage() {
         </div>
       </AdminHeader>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8 space-y-8">
+      <div className="space-y-8">
         {/* Welcome Banner & Next Class Card */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           <div className="lg:col-span-2 card p-6 border border-border bg-gradient-to-r from-card via-card to-brand-500/5 shadow-xs flex flex-col justify-between">
@@ -225,69 +208,101 @@ export default async function AdminDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Left Column: Tasks, Materials, Notes */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Urgent Tasks & Deadlines */}
-            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
-              <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
-                <div className="flex items-center gap-2.5">
-                  <Clock size={18} className="text-amber-500" />
-                  <h2 className="text-base font-bold text-text-primary">Upcoming Academic Deadlines</h2>
-                </div>
-                <Link
-                  href="/admin/tasks"
-                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 transition-colors"
-                >
-                  Manage Tasks
-                  <ArrowRight size={13} />
-                </Link>
-              </div>
-
-              <div className="divide-y divide-border">
-                {upcomingDeadlines.length === 0 ? (
-                  <div className="p-8 text-center text-text-muted text-sm">
-                    No pending tasks right now. Great job!
+            {/* Tasks with Due Dates */}
+            {(() => {
+              const now = new Date();
+              const overdueTasks = upcomingDeadlines.filter((t: any) => new Date(t.deadline) < now);
+              const overdueCount = overdueTasks.length;
+              return (
+                <div className="card rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+                  <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
+                    <div className="flex items-center gap-2.5">
+                      <Clock size={18} className="text-amber-500" />
+                      <h2 className="text-base font-bold text-text-primary">Task Deadlines</h2>
+                      {overdueCount > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                          <AlertCircle size={10} />
+                          {overdueCount} Overdue
+                        </span>
+                      )}
+                    </div>
+                    <Link
+                      href="/admin/tasks"
+                      className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 transition-colors"
+                    >
+                      Kelola Tugas
+                      <ArrowRight size={13} />
+                    </Link>
                   </div>
-                ) : (
-                  upcomingDeadlines.map((task: any) => {
-                    const st = STATUS_BADGE[task.computedStatus as TaskStatus] || STATUS_BADGE.UPCOMING;
-                    const pr = PRIORITY_BADGE[task.priority as TaskPriority] || PRIORITY_BADGE.MEDIUM;
-                    return (
-                      <div key={task.id} className="p-4 hover:bg-surface/50 transition-colors flex items-center justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className={cn("px-2 py-0.5 rounded text-[10px] font-medium", st.className)}>{st.label}</span>
-                            <span className={cn("px-2 py-0.5 rounded text-[10px] font-medium", pr.className)}>{pr.label}</span>
-                            {task.subject && (
-                              <span className="text-[10px] font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
-                                {task.subject.code}
-                              </span>
-                            )}
-                            {task.taskType && (
-                              <span className="text-[10px] text-text-muted uppercase">
-                                [{task.taskType}]
-                              </span>
-                            )}
-                          </div>
-                          <h4 className="text-sm font-bold text-text-primary truncate">{task.title}</h4>
-                          <p className="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-mono">
-                            <Calendar size={12} className="text-brand-500" />
-                            Due: {formatDate(task.deadline)} ({getRelativeDeadline(task.deadline).text})
-                          </p>
-                        </div>
-                        <Link
-                          href="/admin/tasks"
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-text-primary bg-surface hover:bg-surface-elevated border border-border transition-colors shrink-0"
-                        >
-                          Manage
-                        </Link>
+
+                  <div className="divide-y divide-border">
+                    {upcomingDeadlines.length === 0 ? (
+                      <div className="p-8 text-center text-text-muted text-sm">
+                        Tidak ada tugas aktif saat ini. 🎉
                       </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+                    ) : (
+                      upcomingDeadlines.map((task: any) => {
+                        const isOverdue = new Date(task.deadline) < now;
+                        const isToday = (() => {
+                          const d = new Date(task.deadline);
+                          return d.toDateString() === now.toDateString();
+                        })();
+                        return (
+                          <div
+                            key={task.id}
+                            className={`p-4 transition-colors flex items-center justify-between gap-4 ${
+                              isOverdue
+                                ? "bg-red-50/60 hover:bg-red-50 border-l-2 border-red-400"
+                                : isToday
+                                ? "bg-amber-50/50 hover:bg-amber-50/80 border-l-2 border-amber-400"
+                                : "hover:bg-slate-50/80 dark:hover:bg-white/[0.025]"
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <DeadlineBadge deadline={task.deadline} />
+                                {task.subject && (
+                                  <span className="text-[10px] font-mono font-bold text-blue-700 dark:text-cyan-300 bg-blue-50 dark:bg-cyan-500/10 border border-blue-200 dark:border-cyan-500/20 px-2 py-0.5 rounded">
+                                    {task.subject.code}
+                                  </span>
+                                )}
+                                {isOverdue && (
+                                  <span className="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <AlertCircle size={9} />
+                                    Sudah Lewat
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className={`text-sm font-bold truncate ${isOverdue ? "text-red-800 dark:text-red-300" : "text-slate-900 dark:text-white"}`}>
+                                {task.title}
+                              </h4>
+                              <p className={`text-xs mt-1 flex items-center gap-1.5 font-mono ${isOverdue ? "text-red-500" : "text-slate-500 dark:text-slate-400"}`}>
+                                <Calendar size={12} className={isOverdue ? "text-red-400" : "text-blue-500 dark:text-cyan-400"} />
+                                <span>Deadline: {formatDate(task.deadline)}</span>
+                              </p>
+                            </div>
+                            <Link
+                              href="/admin/tasks"
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 ${
+                                isOverdue
+                                  ? "text-red-700 bg-red-100 hover:bg-red-200 border-red-200"
+                                  : "text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700"
+                              }`}
+                            >
+                              Kelola
+                            </Link>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
 
             {/* Recent Daily Notes (Class Journal) */}
-            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+            <div className="card rounded-xl border border-border bg-card overflow-hidden shadow-xs">
               <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2.5">
                   <FileText size={18} className="text-purple-500" />
@@ -340,7 +355,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Recent Learning Materials */}
-            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+            <div className="card rounded-xl border border-border bg-card overflow-hidden shadow-xs">
               <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2.5">
                   <FileCode size={18} className="text-emerald-500" />
@@ -393,7 +408,7 @@ export default async function AdminDashboardPage() {
           {/* Right Column: Quick Links & Recent Activity */}
           <div className="space-y-8">
             {/* Quick Actions */}
-            <div className="card rounded-2xl border border-border p-5 bg-card shadow-xs">
+            <div className="card rounded-xl border border-border p-5 bg-card shadow-xs">
               <h3 className="text-sm font-bold text-text-primary mb-3.5 flex items-center gap-2">
                 <Activity size={16} className="text-brand-500" />
                 Quick Management
@@ -445,7 +460,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Recent Achievements */}
-            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+            <div className="card rounded-xl border border-border bg-card overflow-hidden shadow-xs">
               <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2">
                   <Trophy size={16} className="text-amber-500" />
@@ -475,7 +490,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Audit / Activity Telemetry */}
-            <div className="card rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+            <div className="card rounded-xl border border-border bg-card overflow-hidden shadow-xs">
               <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2">
                   <UserCheck size={16} className="text-brand-500" />

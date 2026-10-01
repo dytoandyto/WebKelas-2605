@@ -114,6 +114,7 @@ model Student {
   githubUrl     String?   @map("github_url")
   linkedinUrl   String?   @map("linkedin_url")
   portfolioUrl  String?   @map("portfolio_url")
+  instagramUrl  String?   @map("instagram_url")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -210,6 +211,7 @@ model Material {
   fileName    String?      @map("file_name")
   fileSize    String?      @map("file_size")
   tags        String?
+  attachments String?
   uploadedBy  String       @map("uploaded_by")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")

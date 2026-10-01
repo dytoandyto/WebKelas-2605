@@ -60,6 +60,19 @@ export async function updateTaskAction(id: string, input: TaskInput): Promise<Ac
     }
 
     const data = validation.data;
+    const deadlineDate = new Date(data.deadline);
+    const now = new Date();
+
+    // Preserve COMPLETED status if already completed.
+    // Otherwise calculate dynamically: if deadline is past, status is OVERDUE, else UPCOMING.
+    let resolvedStatus = data.status;
+    const existing = await prisma.task.findUnique({ where: { id }, select: { status: true } });
+    if (existing?.status === "COMPLETED") {
+      resolvedStatus = "COMPLETED" as any;
+    } else {
+      resolvedStatus = (deadlineDate.getTime() < now.getTime() ? "OVERDUE" : "UPCOMING") as any;
+    }
+
     const task = await prisma.task.update({
       where: { id },
       data: {
@@ -67,10 +80,10 @@ export async function updateTaskAction(id: string, input: TaskInput): Promise<Ac
         title: data.title,
         description: data.description || null,
         taskType: data.taskType,
-        deadline: new Date(data.deadline),
+        deadline: deadlineDate,
         estimatedTime: data.estimatedTime || null,
         priority: data.priority,
-        status: data.status,
+        status: resolvedStatus,
         groupName: data.groupName || null,
         groupMembers: data.groupMembers || null,
         attachmentUrl: data.attachmentUrl || null,
@@ -87,12 +100,70 @@ export async function updateTaskAction(id: string, input: TaskInput): Promise<Ac
 
     await logActivity("UPDATE_TASK", "TASK", task.id, `Updated task: ${task.title}`);
     revalidatePath("/tasks");
+    revalidatePath(`/tasks/${id}`);
     revalidatePath("/admin/tasks");
     revalidatePath("/");
 
     return { success: true, data: task };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to update task." };
+  }
+}
+
+export async function updateTaskDeadlineAction(
+  id: string,
+  newDeadline: string | Date
+): Promise<ActionResult> {
+  try {
+    await assertPermission("TASKS_MANAGE");
+    const deadlineDate = typeof newDeadline === "string" ? new Date(newDeadline) : newDeadline;
+    if (isNaN(deadlineDate.getTime())) {
+      return { success: false, error: "Format tanggal dan waktu tenggat tidak valid." };
+    }
+
+    const existing = await prisma.task.findUnique({
+      where: { id },
+      select: { id: true, title: true, status: true, deadline: true },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Tugas tidak ditemukan." };
+    }
+
+    const now = new Date();
+    let newStatus = existing.status;
+    // If not completed, dynamically set status:
+    // If new deadline is in the past -> OVERDUE
+    // If new deadline is in the future -> UPCOMING
+    if (existing.status !== "COMPLETED") {
+      newStatus = (deadlineDate.getTime() < now.getTime() ? "OVERDUE" : "UPCOMING") as any;
+    }
+
+    const updated = await prisma.task.update({
+      where: { id },
+      data: {
+        deadline: deadlineDate,
+        status: newStatus,
+      },
+      include: {
+        subject: { select: { id: true, code: true, name: true } },
+      },
+    });
+
+    const isPast = deadlineDate.getTime() < now.getTime();
+    const actionDesc = isPast
+      ? `Tenggat tugas "${existing.title}" diperbarui (telah lewat)`
+      : `Tenggat tugas "${existing.title}" diperpanjang ke ${deadlineDate.toLocaleString("id-ID")}`;
+
+    await logActivity("UPDATE_TASK_DEADLINE", "TASK", id, actionDesc);
+    revalidatePath("/tasks");
+    revalidatePath(`/tasks/${id}`);
+    revalidatePath("/admin/tasks");
+    revalidatePath("/");
+
+    return { success: true, data: updated };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Gagal memperbarui tenggat waktu tugas." };
   }
 }
 

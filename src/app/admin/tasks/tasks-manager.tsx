@@ -1,21 +1,22 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Edit2,
   Trash2,
   Copy,
   ExternalLink,
-  CheckCircle2,
   Clock,
-  Search,
   CheckSquare,
   AlertCircle,
   Loader2,
-  Users,
-  User,
+  BookOpen,
+  Calendar,
+  Link2,
+  RotateCcw,
   Sparkles,
 } from "lucide-react";
 import { Modal } from "@/components/admin/modal";
@@ -23,10 +24,16 @@ import { DeleteDialog } from "@/components/admin/delete-dialog";
 import {
   createTaskAction,
   updateTaskAction,
+  updateTaskDeadlineAction,
   deleteTaskAction,
+  duplicateTaskAction,
 } from "@/lib/actions/tasks";
 import { TaskStatus, TaskPriority, TaskType } from "@prisma/client";
 import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
+import { DeadlineBadge } from "@/components/ui/badge";
+import { Combobox } from "@/components/ui/combobox";
+import { SearchInput } from "@/components/ui/search-input";
+import { useToast } from "@/components/ui/toast";
 
 interface TaskItem {
   id: string;
@@ -63,528 +70,704 @@ interface TasksManagerProps {
   subjects: SubjectItem[];
 }
 
-const STATUS_BADGE: Record<TaskStatus, { label: string; className: string }> = {
-  TODO: { label: "To Do", className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" },
-  IN_PROGRESS: { label: "In Progress", className: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" },
-  UPCOMING: { label: "Upcoming", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
-  DUE_SOON: { label: "Due Soon", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" },
-  OVERDUE: { label: "Overdue", className: "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20" },
-  SUBMITTED: { label: "Submitted", className: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20" },
-  COMPLETED: { label: "Completed", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" },
-};
-
-const PRIORITY_BADGE: Record<TaskPriority, { label: string; className: string }> = {
-  LOW: { label: "Low", className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" },
-  MEDIUM: { label: "Medium", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" },
-  HIGH: { label: "High", className: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" },
-  URGENT: { label: "Urgent", className: "bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/30" },
-};
-
-const TYPE_BADGE: Record<TaskType, { label: string; icon: any; className: string }> = {
-  INDIVIDUAL: { label: "Individual", icon: User, className: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20" },
-  GROUP: { label: "Group", icon: Users, className: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" },
-  ADDITIONAL: { label: "Additional", icon: Sparkles, className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" },
-};
+type DeadlineFilter = "ALL" | "UPCOMING" | "DUE_SOON" | "PAST_DEADLINE";
 
 export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
+  const router = useRouter();
+  const { toast } = useToast();
   const [tasks, setTasks] = useState<TaskItem[]>(initialTasks);
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [deadlineFilter, setDeadlineFilter] = useState<DeadlineFilter>("ALL");
+  const [subjectFilter, setSubjectFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Form Data (Streamlined for academic assignment tracking)
   const [formData, setFormData] = useState<{
     subjectId: string;
     title: string;
     description: string;
-    taskType: TaskType;
     deadline: string;
-    estimatedTime: string;
-    priority: TaskPriority;
-    status: TaskStatus;
-    groupName: string;
-    groupMembers: string;
     submissionUrl: string;
     referenceUrl: string;
-    notes: string;
   }>({
     subjectId: subjects[0]?.id || "",
     title: "",
     description: "",
-    taskType: TaskType.INDIVIDUAL,
     deadline: "",
-    estimatedTime: "",
-    priority: TaskPriority.MEDIUM,
-    status: TaskStatus.UPCOMING,
-    groupName: "",
-    groupMembers: "",
     submissionUrl: "",
     referenceUrl: "",
-    notes: "",
   });
-  const [formError, setFormError] = useState<string | null>(null);
 
-  // Delete State
+  // Delete Dialog State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingTask, setDeletingTask] = useState<TaskItem | null>(null);
 
+  // Quick Deadline Modal State
+  const [quickDeadlineModalOpen, setQuickDeadlineModalOpen] = useState(false);
+  const [quickDeadlineTask, setQuickDeadlineTask] = useState<TaskItem | null>(null);
+  const [quickDeadlineValue, setQuickDeadlineValue] = useState("");
+  const [quickDeadlineError, setQuickDeadlineError] = useState<string | null>(null);
+
+  // Helper to format Date to local YYYY-MM-DDTHH:mm string without timezone shift
+  function toLocalDatetimeString(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  // Calculate preset extensions (+1d, +3d, +7d, tomorrow night)
+  function calculatePresetDate(type: "+1d" | "+3d" | "+7d" | "tomorrow_night", base?: string | Date): string {
+    const now = new Date();
+    let target: Date;
+
+    if (type === "tomorrow_night") {
+      target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
+    } else {
+      const days = type === "+1d" ? 1 : type === "+3d" ? 3 : 7;
+      const baseDate = base ? new Date(base) : now;
+      const startMs = !isNaN(baseDate.getTime()) && baseDate.getTime() > now.getTime()
+        ? baseDate.getTime()
+        : now.getTime();
+      target = new Date(startMs + days * 24 * 60 * 60 * 1000);
+    }
+
+    return toLocalDatetimeString(target);
+  }
+
+  // Helper to open create modal
   function openCreateModal() {
     setEditingTask(null);
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 3);
-    targetDate.setHours(23, 59, 0, 0);
+    setFormError(null);
+
+    // Default deadline: 3 days ahead at 23:59
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 3);
+    defaultDate.setHours(23, 59, 0, 0);
 
     setFormData({
       subjectId: subjects[0]?.id || "",
       title: "",
       description: "",
-      taskType: TaskType.INDIVIDUAL,
-      deadline: targetDate.toISOString().slice(0, 16),
-      estimatedTime: "2-3 hours",
-      priority: TaskPriority.MEDIUM,
-      status: TaskStatus.UPCOMING,
-      groupName: "",
-      groupMembers: "",
+      deadline: toLocalDatetimeString(defaultDate),
       submissionUrl: "",
       referenceUrl: "",
-      notes: "",
     });
-    setFormError(null);
     setModalOpen(true);
   }
 
+  // Helper to open edit modal
   function openEditModal(task: TaskItem) {
     setEditingTask(task);
+    setFormError(null);
+
     const d = new Date(task.deadline);
-    const deadlineString = !isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : "";
+    const formattedDeadline = !isNaN(d.getTime())
+      ? toLocalDatetimeString(d)
+      : "";
 
     setFormData({
-      subjectId: task.subjectId || "",
+      subjectId: task.subjectId || subjects[0]?.id || "",
       title: task.title,
       description: task.description || "",
-      taskType: task.taskType || TaskType.INDIVIDUAL,
-      deadline: deadlineString,
-      estimatedTime: task.estimatedTime || "",
-      priority: task.priority || TaskPriority.MEDIUM,
-      status: task.status || TaskStatus.UPCOMING,
-      groupName: task.groupName || "",
-      groupMembers: task.groupMembers || "",
+      deadline: formattedDeadline,
       submissionUrl: task.submissionUrl || "",
       referenceUrl: task.referenceUrl || "",
-      notes: task.notes || "",
     });
-    setFormError(null);
     setModalOpen(true);
   }
 
-  function handleDuplicate(task: TaskItem) {
-    setEditingTask(null);
+  // Helper to open quick deadline modal
+  function openQuickDeadlineModal(task: TaskItem) {
+    setQuickDeadlineTask(task);
     const d = new Date(task.deadline);
-    const deadlineString = !isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : "";
-
-    setFormData({
-      subjectId: task.subjectId || "",
-      title: `${task.title} (Copy)`,
-      description: task.description || "",
-      taskType: task.taskType || TaskType.INDIVIDUAL,
-      deadline: deadlineString,
-      estimatedTime: task.estimatedTime || "",
-      priority: task.priority || TaskPriority.MEDIUM,
-      status: TaskStatus.UPCOMING,
-      groupName: task.groupName || "",
-      groupMembers: task.groupMembers || "",
-      submissionUrl: task.submissionUrl || "",
-      referenceUrl: task.referenceUrl || "",
-      notes: task.notes || "",
-    });
-    setFormError(null);
-    setModalOpen(true);
+    setQuickDeadlineValue(!isNaN(d.getTime()) ? toLocalDatetimeString(d) : "");
+    setQuickDeadlineError(null);
+    setQuickDeadlineModalOpen(true);
   }
 
-  function openDeleteDialog(task: TaskItem) {
-    setDeletingTask(task);
-    setDeleteDialogOpen(true);
-  }
-
-  async function handleToggleComplete(task: TaskItem) {
-    const newStatus =
-      task.status === TaskStatus.COMPLETED
-        ? TaskStatus.UPCOMING
-        : TaskStatus.COMPLETED;
+  // Handle Quick Deadline Submit
+  async function handleQuickDeadlineSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!quickDeadlineTask || !quickDeadlineValue) {
+      setQuickDeadlineError("Silakan pilih tanggal dan waktu tenggat baru.");
+      return;
+    }
 
     startTransition(async () => {
-      const res = await updateTaskAction(task.id, {
-        subjectId: task.subjectId || null,
-        title: task.title,
-        description: task.description,
-        taskType: task.taskType || TaskType.INDIVIDUAL,
-        deadline: new Date(task.deadline).toISOString(),
-        priority: task.priority,
-        status: newStatus,
-        groupName: task.groupName,
-        groupMembers: task.groupMembers,
-        submissionUrl: task.submissionUrl,
-        referenceUrl: task.referenceUrl,
-        notes: task.notes,
-      });
+      try {
+        const res = await updateTaskDeadlineAction(quickDeadlineTask.id, quickDeadlineValue);
+        if (!res.success) {
+          setQuickDeadlineError(res.error || "Gagal memperbarui tenggat waktu.");
+          return;
+        }
 
-      if (res.success) {
+        const isPast = new Date(quickDeadlineValue).getTime() < Date.now();
+        const newStatus = quickDeadlineTask.status === TaskStatus.COMPLETED
+          ? TaskStatus.COMPLETED
+          : isPast
+          ? TaskStatus.OVERDUE
+          : TaskStatus.UPCOMING;
+
         setTasks((prev) =>
           prev.map((t) =>
-            t.id === task.id
-              ? { ...t, status: newStatus, computedStatus: newStatus }
+            t.id === quickDeadlineTask.id
+              ? {
+                  ...t,
+                  deadline: new Date(quickDeadlineValue),
+                  status: newStatus,
+                  computedStatus: newStatus,
+                }
               : t
           )
         );
+
+        toast({
+          title: isPast ? "Tenggat Waktu Diperbarui" : "Tenggat Waktu Diperpanjang",
+          description: isPast
+            ? `Tenggat tugas "${quickDeadlineTask.title}" diperbarui (status: sudah lewat).`
+            : `Tenggat tugas "${quickDeadlineTask.title}" berhasil diperpanjang.`,
+          type: "success",
+        });
+
+        setQuickDeadlineModalOpen(false);
+        setQuickDeadlineTask(null);
+        router.refresh();
+      } catch (err: any) {
+        setQuickDeadlineError(err.message || "Terjadi kesalahan internal.");
       }
     });
   }
 
+  // Handle Form Submit
   async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
 
-    if (formData.taskType !== TaskType.ADDITIONAL && !formData.subjectId) {
-      setFormError("Please select a subject for individual and group assignments.");
-      return;
-    }
     if (!formData.title.trim()) {
-      setFormError("Task title is required.");
+      setFormError("Judul tugas wajib diisi.");
       return;
     }
+
     if (!formData.deadline) {
-      setFormError("Deadline is required.");
+      setFormError("Deadline tugas wajib diisi.");
       return;
     }
 
     startTransition(async () => {
-      const payload = {
-        ...formData,
-        subjectId: formData.subjectId || null,
-        deadline: new Date(formData.deadline).toISOString(),
-      };
-
-      if (editingTask) {
-        const res = await updateTaskAction(editingTask.id, payload);
-        if (!res.success) {
-          setFormError(res.error || "Failed to update task.");
+      try {
+        const isPast = new Date(formData.deadline).getTime() < Date.now();
+        let resolvedStatus: TaskStatus = TaskStatus.UPCOMING;
+        if (editingTask) {
+          resolvedStatus = editingTask.status === TaskStatus.COMPLETED
+            ? TaskStatus.COMPLETED
+            : isPast
+            ? TaskStatus.OVERDUE
+            : TaskStatus.UPCOMING;
         } else {
-          const selectedSub = subjects.find((s) => s.id === formData.subjectId) || null;
+          resolvedStatus = isPast ? TaskStatus.OVERDUE : TaskStatus.UPCOMING;
+        }
+
+        const payload: any = {
+          title: formData.title.trim(),
+          subjectId: formData.subjectId || null,
+          deadline: formData.deadline,
+          description: formData.description.trim() || null,
+          submissionUrl: formData.submissionUrl.trim() || null,
+          referenceUrl: formData.referenceUrl.trim() || null,
+          taskType: editingTask?.taskType || TaskType.INDIVIDUAL,
+          priority: editingTask?.priority || TaskPriority.MEDIUM,
+          status: resolvedStatus,
+        };
+
+        if (editingTask) {
+          const res = await updateTaskAction(editingTask.id, payload);
+          if (!res.success) {
+            setFormError(res.error || "Gagal memperbarui tugas.");
+            return;
+          }
           setTasks((prev) =>
             prev.map((t) =>
               t.id === editingTask.id
                 ? {
                     ...t,
-                    ...formData,
-                    deadline: new Date(formData.deadline),
-                    subject: selectedSub,
+                    ...payload,
+                    computedStatus: resolvedStatus,
+                    subject: subjects.find((s) => s.id === payload.subjectId),
                   }
                 : t
             )
           );
-          setModalOpen(false);
-        }
-      } else {
-        const res = await createTaskAction(payload);
-        if (!res.success) {
-          setFormError(res.error || "Failed to create task.");
+          toast({
+            title: "Tugas Diperbarui",
+            description: `Tugas "${formData.title}" berhasil disimpan.`,
+            type: "success",
+          });
         } else {
-          const selectedSub = subjects.find((s) => s.id === formData.subjectId) || null;
-          const newTask: TaskItem = {
-            id: (res.data as any)?.id || `temp-${Date.now()}`,
-            ...formData,
-            deadline: new Date(formData.deadline),
-            subject: selectedSub,
-          };
-          setTasks((prev) => [newTask, ...prev]);
-          setModalOpen(false);
+          const res = await createTaskAction(payload);
+          if (!res.success) {
+            setFormError(res.error || "Gagal membuat tugas.");
+            return;
+          }
+          if (res.data) {
+            setTasks((prev) => [res.data, ...prev]);
+          }
+          toast({
+            title: "Tugas Berhasil Dibuat",
+            description: `Tugas "${formData.title}" telah ditambahkan ke sistem.`,
+            type: "success",
+          });
         }
+
+        setModalOpen(false);
+        router.refresh();
+      } catch (err: any) {
+        setFormError(err.message || "Terjadi kesalahan internal.");
       }
     });
   }
 
-  async function handleDeleteConfirm() {
-    if (!deletingTask) return;
-    const res = await deleteTaskAction(deletingTask.id);
-    if (res.success) {
-      setTasks((prev) => prev.filter((t) => t.id !== deletingTask.id));
-    }
+  // Handle Duplicate Task
+  async function handleDuplicate(task: TaskItem) {
+    startTransition(async () => {
+      try {
+        const res = await duplicateTaskAction(task.id);
+        if (!res.success) {
+          toast({
+            title: "Gagal Menduplikat",
+            description: res.error || "Tidak dapat menduplikat tugas.",
+            type: "error",
+          });
+          return;
+        }
+        if (res.data) {
+          setTasks((prev) => [res.data, ...prev]);
+        }
+        toast({
+          title: "Tugas Diduplikat",
+          description: `Salinan tugas "${task.title}" telah ditambahkan.`,
+          type: "success",
+        });
+        router.refresh();
+      } catch (err: any) {
+        toast({
+          title: "Gagal Menduplikat",
+          description: err.message,
+          type: "error",
+        });
+      }
+    });
   }
 
-  const filteredTasks = tasks.filter((t) => {
-    const currentStatus = t.computedStatus || t.status;
-    if (statusFilter !== "ALL" && currentStatus !== statusFilter) return false;
-    if (typeFilter !== "ALL" && (t.taskType || TaskType.INDIVIDUAL) !== typeFilter) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = t.title.toLowerCase().includes(q);
-      const matchSubject = t.subject?.name.toLowerCase().includes(q) || t.subject?.code.toLowerCase().includes(q);
-      const matchGroup = t.groupName?.toLowerCase().includes(q) || t.groupMembers?.toLowerCase().includes(q);
-      return matchTitle || matchSubject || matchGroup;
-    }
-    return true;
-  });
+  // Handle Delete Confirmation
+  async function handleDeleteConfirm() {
+    if (!deletingTask) return;
+    const targetId = deletingTask.id;
+
+    startTransition(async () => {
+      try {
+        const res = await deleteTaskAction(targetId);
+        if (!res.success) {
+          toast({
+            title: "Gagal Menghapus",
+            description: res.error || "Tidak dapat menghapus tugas.",
+            type: "error",
+          });
+          return;
+        }
+        setTasks((prev) => prev.filter((t) => t.id !== targetId));
+        toast({
+          title: "Tugas Dihapus",
+          description: `Tugas "${deletingTask.title}" telah dihapus.`,
+          type: "success",
+        });
+        setDeleteDialogOpen(false);
+        setDeletingTask(null);
+        router.refresh();
+      } catch (err: any) {
+        toast({
+          title: "Gagal Menghapus",
+          description: err.message,
+          type: "error",
+        });
+      }
+    });
+  }
+
+  // Filter tasks based on deadline, subject, and search query
+  const filteredTasks = useMemo(() => {
+    const now = new Date().getTime();
+
+    return tasks.filter((t) => {
+      const taskDeadline = new Date(t.deadline).getTime();
+      const diffMs = taskDeadline - now;
+      const diffHours = diffMs / (1000 * 60 * 60);
+
+      // 1. Deadline Filter
+      if (deadlineFilter === "UPCOMING" && diffHours <= 48) return false;
+      if (deadlineFilter === "DUE_SOON" && (diffMs < 0 || diffHours > 48)) return false;
+      if (deadlineFilter === "PAST_DEADLINE" && diffMs >= 0) return false;
+
+      // 2. Subject Filter
+      if (subjectFilter !== "ALL" && t.subjectId !== subjectFilter) {
+        return false;
+      }
+
+      // 3. Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = t.title.toLowerCase().includes(q);
+        const matchDesc = t.description?.toLowerCase().includes(q);
+        const matchSubject =
+          t.subject?.name.toLowerCase().includes(q) ||
+          t.subject?.code.toLowerCase().includes(q);
+        return Boolean(matchTitle || matchDesc || matchSubject);
+      }
+
+      return true;
+    });
+  }, [tasks, deadlineFilter, subjectFilter, searchQuery]);
+
+  // Counts for deadline chips
+  const counts = useMemo(() => {
+    const now = new Date().getTime();
+    let upcoming = 0;
+    let dueSoon = 0;
+    let past = 0;
+
+    tasks.forEach((t) => {
+      const taskDeadline = new Date(t.deadline).getTime();
+      const diffMs = taskDeadline - now;
+      const diffHours = diffMs / (1000 * 60 * 60);
+
+      if (diffMs < 0) {
+        past++;
+      } else if (diffHours <= 48) {
+        dueSoon++;
+      } else {
+        upcoming++;
+      }
+    });
+
+    return { all: tasks.length, upcoming, dueSoon, past };
+  }, [tasks]);
+
+  // Subject options for Combobox
+  const subjectOptions = useMemo(() => {
+    return subjects.map((s) => ({
+      value: s.id,
+      label: s.name,
+      subLabel: s.code,
+    }));
+  }, [subjects]);
+
+  const activeSubject = subjects.find((s) => s.id === subjectFilter);
+  const hasActiveFilters =
+    deadlineFilter !== "ALL" || subjectFilter !== "ALL" || Boolean(searchQuery);
 
   return (
-    <div className="space-y-6">
-      {/* Controls Bar */}
+    <div className="space-y-5">
+      {/* 1. Header Toolbar Controls */}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Status Filters */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
-            <button
-              type="button"
-              onClick={() => setStatusFilter("ALL")}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
-                statusFilter === "ALL"
-                  ? "bg-brand-600 text-white shadow-xs"
-                  : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
-              )}
-            >
-              All Statuses ({tasks.length})
-            </button>
-            {Object.entries(STATUS_BADGE).map(([statusKey, badge]) => {
-              const count = tasks.filter(
-                (t) => (t.computedStatus || t.status) === statusKey
-              ).length;
-              return (
-                <button
-                  key={statusKey}
-                  type="button"
-                  onClick={() => setStatusFilter(statusKey)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
-                    statusFilter === statusKey
-                      ? "bg-brand-600 text-white shadow-xs"
-                      : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
-                  )}
-                >
-                  {badge.label} {count > 0 && `(${count})`}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            {/* Search Box */}
-            <div className="relative flex-1 sm:w-64">
-              <Search
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-              />
-              <input
-                type="text"
-                placeholder="Search tasks, subjects, groups..."
+        {/* Top Row: Search + Subject Selector + Create Task Button */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="flex flex-1 items-center gap-2.5 flex-wrap">
+            {/* Search Input */}
+            <div className="flex-1 min-w-[220px] max-w-md">
+              <SearchInput
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="form-input text-xs pl-8 pr-3 py-1.5 w-full bg-surface border-border text-text-primary placeholder:text-text-muted"
+                onChange={setSearchQuery}
+                placeholder="Search tasks, course code, instructions..."
               />
             </div>
 
-            <button
-              type="button"
-              onClick={openCreateModal}
-              className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm whitespace-nowrap"
-            >
-              <Plus size={16} />
-              <span>Create Task</span>
-            </button>
+            {/* Course Filter Dropdown */}
+            <div className="w-full sm:w-60">
+              <select
+                value={subjectFilter}
+                onChange={(e) => setSubjectFilter(e.target.value)}
+                className="w-full h-10 px-3.5 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-2xs"
+              >
+                <option value="ALL">Semua Mata Kuliah</option>
+                {subjects.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.code} - {sub.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
 
-        {/* Task Type Filters */}
-        <div className="flex items-center gap-1.5 text-xs text-text-muted">
-          <span className="font-medium mr-1">Type:</span>
+          {/* Primary Action Button */}
           <button
             type="button"
-            onClick={() => setTypeFilter("ALL")}
-            className={cn(
-              "px-2.5 py-1 rounded-md transition-colors",
-              typeFilter === "ALL"
-                ? "bg-brand-500/15 text-brand-600 dark:text-brand-400 font-semibold border border-brand-500/30"
-                : "text-text-secondary hover:text-text-primary"
-            )}
+            onClick={openCreateModal}
+            className="h-10 px-4 rounded-lg font-semibold text-xs sm:text-sm inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors cursor-pointer shrink-0"
           >
-            All Types
+            <Plus size={16} />
+            <span>Create Task</span>
           </button>
-          {Object.entries(TYPE_BADGE).map(([typeKey, badge]) => {
-            const Icon = badge.icon;
-            return (
-              <button
-                key={typeKey}
-                type="button"
-                onClick={() => setTypeFilter(typeKey)}
-                className={cn(
-                  "px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-colors",
-                  typeFilter === typeKey
-                    ? `${badge.className} font-semibold`
-                    : "text-text-secondary hover:text-text-primary"
-                )}
-              >
-                <Icon size={12} />
-                <span>{badge.label}</span>
-              </button>
-            );
-          })}
+        </div>
+
+        {/* Bottom Row: Quick Deadline Filter Tabs */}
+        <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setDeadlineFilter("ALL")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer",
+                deadlineFilter === "ALL"
+                  ? "bg-slate-900 text-white dark:bg-blue-600 dark:text-white"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+              )}
+            >
+              Semua Tugas ({counts.all})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDeadlineFilter("DUE_SOON")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer",
+                deadlineFilter === "DUE_SOON"
+                  ? "bg-amber-500 text-white dark:bg-amber-500/20 dark:text-amber-300 dark:border dark:border-amber-500/30 font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+              )}
+            >
+              Hari Ini / Besok ({counts.dueSoon})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDeadlineFilter("UPCOMING")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer",
+                deadlineFilter === "UPCOMING"
+                  ? "bg-blue-600 text-white dark:bg-blue-500/20 dark:text-blue-300 dark:border dark:border-blue-500/30 font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+              )}
+            >
+              Mendatang ({counts.upcoming})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDeadlineFilter("PAST_DEADLINE")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer",
+                deadlineFilter === "PAST_DEADLINE"
+                  ? "bg-rose-500 text-white dark:bg-rose-500/20 dark:text-rose-300 dark:border dark:border-rose-500/30 font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+              )}
+            >
+              Lewat Deadline ({counts.past})
+            </button>
+          </div>
+
+          {/* Active Filter Clear Action */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setDeadlineFilter("ALL");
+                setSubjectFilter("ALL");
+                setSearchQuery("");
+              }}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
+            >
+              <RotateCcw size={12} />
+              <span>Reset filter</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Tasks Table */}
-      <div className="card border border-border shadow-xs overflow-hidden bg-card">
+      {/* 2. Tasks Table Container */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1427] shadow-xs overflow-hidden transition-colors">
         {filteredTasks.length === 0 ? (
-          <div className="p-12 text-center">
-            <CheckSquare className="w-10 h-10 text-text-muted mx-auto mb-3 opacity-40" />
-            <p className="text-sm font-semibold text-text-primary">No tasks found</p>
-            <p className="text-xs text-text-muted mt-1">
-              Try adjusting your filter or create a new assignment task.
-            </p>
+          <div className="p-12 text-center space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500">
+              <CheckSquare size={24} />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                Tidak ada tugas ditemukan
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                {hasActiveFilters
+                  ? "Coba atur ulang filter deadline, kata kunci pencarian, atau mata kuliah."
+                  : "Belum ada penugasan akademik yang terdaftar. Klik 'Create Task' untuk menambahkan."}
+              </p>
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-text-secondary">
-              <thead className="bg-surface text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border">
-                <tr>
-                  <th className="py-3.5 px-6">Status</th>
-                  <th className="py-3.5 px-6">Task Title & Details</th>
-                  <th className="py-3.5 px-6">Subject</th>
-                  <th className="py-3.5 px-6">Deadline</th>
-                  <th className="py-3.5 px-6">Priority</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-50/90 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider select-none">
+                  <th className="py-3.5 px-5">Informasi Tugas & Instruksi</th>
+                  <th className="py-3.5 px-5">Mata Kuliah</th>
+                  <th className="py-3.5 px-5">Deadline</th>
+                  <th className="py-3.5 px-5">LMS / Sumber</th>
+                  <th className="py-3.5 px-5 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border bg-card">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70 bg-white dark:bg-[#0c1427]">
                 {filteredTasks.map((task) => {
-                  const displayStatus = task.computedStatus || task.status;
-                  const st = STATUS_BADGE[displayStatus] || STATUS_BADGE.UPCOMING;
-                  const pr = PRIORITY_BADGE[task.priority] || PRIORITY_BADGE.MEDIUM;
-                  const tp = TYPE_BADGE[task.taskType || TaskType.INDIVIDUAL] || TYPE_BADGE.INDIVIDUAL;
-                  const TypeIcon = tp.icon;
-                  const isCompleted = task.status === TaskStatus.COMPLETED;
+                  const relativeInfo = getRelativeDeadline(task.deadline);
+                  const lmsUrl = task.submissionUrl;
+                  const resourceUrl = task.referenceUrl || task.attachmentUrl;
 
                   return (
                     <tr
                       key={task.id}
-                      className={cn(
-                        "hover:bg-surface/50 transition-colors",
-                        isCompleted && "opacity-60 bg-surface/20"
-                      )}
+                      className="hover:bg-slate-50/80 dark:hover:bg-white/[0.025] transition-colors"
                     >
-                      <td className="py-4 px-6">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleComplete(task)}
-                          className="flex items-center gap-2 group text-left"
-                          title="Click to toggle completed status"
-                        >
-                          <CheckCircle2
-                            size={18}
-                            className={cn(
-                              "transition-colors shrink-0",
-                              isCompleted
-                                ? "text-emerald-500 fill-emerald-500/20"
-                                : "text-text-muted/40 group-hover:text-emerald-400"
-                            )}
-                          />
-                          <span className={cn("px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap", st.className)}>
-                            {st.label}
-                          </span>
-                        </button>
-                      </td>
-                      <td className="py-4 px-6 max-w-md">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className={cn("px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1", tp.className)}>
-                            <TypeIcon size={10} />
-                            {tp.label}
-                          </span>
-                          {task.groupName && (
-                            <span className="text-[11px] font-medium text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
-                              {task.groupName}
-                            </span>
+                      {/* Column 1: Task Title & Instructions */}
+                      <td className="py-4 px-5 max-w-md">
+                        <div className="space-y-1">
+                          <div className="font-bold text-slate-900 dark:text-white text-sm leading-snug">
+                            {task.title}
+                          </div>
+                          {task.description && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                              {task.description}
+                            </p>
+                          )}
+                          {resourceUrl && (
+                            <a
+                              href={resourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-medium text-cyan-600 dark:text-cyan-400 hover:underline pt-0.5"
+                            >
+                              <Link2 size={11} />
+                              <span>Lihat Materi Referensi</span>
+                            </a>
                           )}
                         </div>
-                        <div
-                          className={cn(
-                            "font-semibold text-text-primary leading-snug",
-                            isCompleted && "line-through text-text-muted"
-                          )}
-                        >
-                          {task.title}
-                        </div>
-                        {task.description && (
-                          <p className="text-xs text-text-muted line-clamp-1 mt-0.5">
-                            {task.description}
-                          </p>
-                        )}
-                        {task.groupMembers && (
-                          <p className="text-[11px] text-text-muted mt-1 flex items-center gap-1">
-                            <Users size={11} className="shrink-0" />
-                            <span>Anggota: {task.groupMembers}</span>
-                          </p>
-                        )}
                       </td>
-                      <td className="py-4 px-6">
+
+                      {/* Column 2: Subject / Course */}
+                      <td className="py-4 px-5 whitespace-nowrap">
                         {task.subject ? (
-                          <>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                          <div className="space-y-0.5">
+                            <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/25">
                               {task.subject.code}
                             </span>
-                            <p className="text-xs text-text-secondary mt-1 truncate max-w-xs font-medium">
+                            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1 max-w-[180px] truncate">
                               {task.subject.name}
-                            </p>
-                          </>
+                            </div>
+                          </div>
                         ) : (
-                          <span className="text-xs text-text-muted italic">Non-course / General</span>
+                          <span className="text-xs text-slate-400 italic">
+                            Umum / Non-MK
+                          </span>
                         )}
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="font-medium text-text-primary text-xs">
-                          {formatDate(task.deadline)}
-                        </div>
-                        <div className="flex items-center gap-1 text-[11px] text-text-muted mt-0.5">
-                          <Clock size={11} />
-                          <span>{getRelativeDeadline(task.deadline).text}</span>
+
+                      {/* Column 3: Deadline & Visual Indicator */}
+                      <td className="py-4 px-5 whitespace-nowrap">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5 font-medium text-slate-900 dark:text-slate-200 text-xs">
+                            <Calendar size={13} className="text-slate-400" />
+                            <span>{formatDate(task.deadline)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DeadlineBadge deadline={task.deadline} />
+                            <button
+                              type="button"
+                              onClick={() => openQuickDeadlineModal(task)}
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-cyan-400 dark:hover:text-cyan-300 hover:underline cursor-pointer transition-colors"
+                              title="Ubah atau perpanjang tenggat waktu tugas"
+                            >
+                              <Clock size={11} />
+                              <span>Ubah Tenggat</span>
+                            </button>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <span className={cn("px-2 py-0.5 rounded text-[11px] font-medium", pr.className)}>
-                          {pr.label}
-                        </span>
+
+                      {/* Column 4: LMS Link */}
+                      <td className="py-4 px-5 whitespace-nowrap">
+                        {lmsUrl ? (
+                          <a
+                            href={lmsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-cyan-500/15 dark:hover:bg-cyan-500/25 dark:text-cyan-300 dark:border-cyan-500/30 transition-colors shadow-2xs"
+                          >
+                            <span>Open LMS</span>
+                            <ExternalLink size={12} />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400 dark:text-slate-500">
+                            —
+                          </span>
+                        )}
                       </td>
-                      <td className="py-4 px-6 text-right">
+
+                      {/* Column 5: Actions */}
+                      <td className="py-4 px-5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1">
+                          {/* Public View link */}
                           <Link
                             href={`/tasks/${task.id}`}
                             target="_blank"
-                            className="p-1.5 rounded-lg text-text-muted hover:text-brand-500 hover:bg-surface transition-colors"
-                            title="View public task page"
+                            className="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                            title="Buka halaman mahasiswa"
                           >
                             <ExternalLink size={15} />
                           </Link>
+
+                          {/* Quick Deadline button */}
+                          <button
+                            type="button"
+                            onClick={() => openQuickDeadlineModal(task)}
+                            className="p-2 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/10 transition-colors cursor-pointer"
+                            title="Ubah / Perpanjang tenggat waktu"
+                          >
+                            <Clock size={15} />
+                          </button>
+
+                          {/* Duplicate button */}
                           <button
                             type="button"
                             onClick={() => handleDuplicate(task)}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-brand-500 hover:bg-surface transition-colors"
-                            title="Duplicate Task"
+                            className="p-2 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Duplikat tugas"
                           >
                             <Copy size={15} />
                           </button>
+
+                          {/* Edit button */}
                           <button
                             type="button"
                             onClick={() => openEditModal(task)}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-brand-500 hover:bg-surface transition-colors"
-                            title="Edit"
+                            className="p-2 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Edit tugas"
                           >
                             <Edit2 size={15} />
                           </button>
+
+                          {/* Delete button */}
                           <button
                             type="button"
-                            onClick={() => openDeleteDialog(task)}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-rose-500 hover:bg-surface transition-colors"
-                            title="Delete"
+                            onClick={() => {
+                              setDeletingTask(task);
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Hapus tugas"
                           >
                             <Trash2 size={15} />
                           </button>
@@ -599,235 +782,353 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
         )}
       </div>
 
-      {/* Create / Edit Modal */}
+      {/* 3. Create & Edit Task Modal */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingTask ? "Edit Assignment Task" : "Create Assignment Task"}
-        description="Set assignment requirements, course relation, group specifications, and submission deadlines."
+        title={editingTask ? "Edit Tugas Akademik" : "Tambah Tugas Baru"}
+        description="Isi detail penugasan mahasiswa, mata kuliah, deadline, serta tautan LMS."
         maxWidth="lg"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
+              disabled={isPending}
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              form="task-form"
+              disabled={isPending}
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
+            >
+              {isPending && <Loader2 size={15} className="animate-spin" />}
+              <span>{editingTask ? "Simpan Perubahan" : "Buat Tugas"}</span>
+            </button>
+          </>
+        }
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form id="task-form" onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
               <AlertCircle size={14} className="shrink-0" />
               <span>{formError}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-                Task Type *
-              </label>
-              <select
-                value={formData.taskType}
-                onChange={(e) =>
-                  setFormData({ ...formData, taskType: e.target.value as TaskType })
-                }
-                className="form-select text-sm w-full bg-surface border-border text-text-primary"
-                required
-              >
-                <option value={TaskType.INDIVIDUAL}>Individual Assignment</option>
-                <option value={TaskType.GROUP}>Group Project / Assignment</option>
-                <option value={TaskType.ADDITIONAL}>Additional / Class Activity</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-                Subject {formData.taskType === TaskType.ADDITIONAL ? "(Optional)" : "*"}
-              </label>
-              <select
-                value={formData.subjectId}
-                onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
-                className="form-select text-sm w-full bg-surface border-border text-text-primary"
-                required={formData.taskType !== TaskType.ADDITIONAL}
-              >
-                {formData.taskType === TaskType.ADDITIONAL && (
-                  <option value="">(None / General Activity)</option>
-                )}
-                {subjects.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
-                    {sub.code} - {sub.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
+          {/* Task Title */}
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-              Task Title *
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Judul Tugas <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="e.g. Tugas Praktikum 03: Algoritma Sorting & Complexity"
+              placeholder="Contoh: Membuat ERD Sistem Informasi Basis Data"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="form-input text-sm w-full bg-surface border-border text-text-primary"
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
-          {/* Group Specific Fields */}
-          {formData.taskType === TaskType.GROUP && (
-            <div className="p-3.5 rounded-xl bg-purple-500/5 border border-purple-500/20 space-y-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400">
-                <Users size={14} />
-                <span>Group Assignment Configuration</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-text-secondary mb-1 block">
-                    Group Name / Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Kelompok 03 - Team Cyber"
-                    value={formData.groupName}
-                    onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
-                    className="form-input text-xs w-full bg-surface border-border text-text-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-text-secondary mb-1 block">
-                    Members Roster
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Ahmad (Ketua), Bella, Dito, Rina"
-                    value={formData.groupMembers}
-                    onChange={(e) => setFormData({ ...formData, groupMembers: e.target.value })}
-                    className="form-input text-xs w-full bg-surface border-border text-text-primary"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-              Description & Instructions
-            </label>
-            <textarea
-              placeholder="Provide detailed submission requirements, rubric, or instructions..."
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="form-textarea text-sm w-full bg-surface border-border text-text-primary"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Course Selector & Deadline */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-                Deadline *
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Mata Kuliah <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="datetime-local"
-                value={formData.deadline}
-                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary"
-                required
+              <Combobox
+                options={subjectOptions}
+                value={formData.subjectId}
+                onChange={(val) => setFormData({ ...formData, subjectId: val })}
+                placeholder="Pilih Mata Kuliah..."
+                searchPlaceholder="Cari kode atau nama MK..."
+                emptyText="Mata kuliah tidak ditemukan."
               />
             </div>
 
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-                Priority
-              </label>
-              <select
-                value={formData.priority}
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+                  Deadline & Waktu <span className="text-rose-500">*</span>
+                </label>
+                {formData.deadline && new Date(formData.deadline).getTime() < Date.now() ? (
+                  <span className="text-[11px] font-semibold text-rose-500 dark:text-rose-400 flex items-center gap-1">
+                    <AlertCircle size={12} /> Sudah lewat
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <Sparkles size={12} /> Aktif
+                  </span>
+                )}
+              </div>
+              <input
+                type="datetime-local"
+                value={formData.deadline}
                 onChange={(e) =>
-                  setFormData({ ...formData, priority: e.target.value as TaskPriority })
+                  setFormData({ ...formData, deadline: e.target.value })
                 }
-                className="form-select text-sm w-full bg-surface border-border text-text-primary"
-              >
-                <option value={TaskPriority.LOW}>Low</option>
-                <option value={TaskPriority.MEDIUM}>Medium</option>
-                <option value={TaskPriority.HIGH}>High</option>
-                <option value={TaskPriority.URGENT}>Urgent</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData({ ...formData, status: e.target.value as TaskStatus })
-                }
-                className="form-select text-sm w-full bg-surface border-border text-text-primary"
-              >
-                <option value={TaskStatus.UPCOMING}>Upcoming</option>
-                <option value={TaskStatus.DUE_SOON}>Due Soon</option>
-                <option value={TaskStatus.OVERDUE}>Overdue</option>
-                <option value={TaskStatus.COMPLETED}>Completed</option>
-              </select>
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+                required
+              />
+              {/* Quick preset chips */}
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap text-[11px]">
+                <span className="text-slate-400 dark:text-slate-500 text-[10px] font-medium mr-1">Preset:</span>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+1d", prev.deadline) }))}
+                  className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
+                >
+                  +1 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+3d", prev.deadline) }))}
+                  className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
+                >
+                  +3 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+7d", prev.deadline) }))}
+                  className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
+                >
+                  +1 Minggu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("tomorrow_night") }))}
+                  className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
+                >
+                  Besok 23:59
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {/* Description & Instructions */}
+          <div>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Instruksi / Catatan Tugas
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Instruksi pengerjaan, format berkas, batasan materi, atau catatan penting..."
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="min-h-[100px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+            />
+          </div>
+
+          {/* LMS Link & Resource Link */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="text-[11px] font-semibold text-text-secondary mb-1 block">
-                Submission URL (LMS / Drive / GitHub)
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Tautan LMS (Telkom / Classroom)
               </label>
               <input
                 type="url"
                 placeholder="https://lms.telkomuniversity.ac.id/..."
                 value={formData.submissionUrl}
-                onChange={(e) => setFormData({ ...formData, submissionUrl: e.target.value })}
-                className="form-input text-xs w-full bg-surface border-border text-text-primary"
+                onChange={(e) =>
+                  setFormData({ ...formData, submissionUrl: e.target.value })
+                }
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
+
             <div>
-              <label className="text-[11px] font-semibold text-text-secondary mb-1 block">
-                Reference / Guide URL
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Materi Referensi (Opsional)
               </label>
               <input
                 type="url"
-                placeholder="https://docs.google.com/..."
+                placeholder="https://drive.google.com/... atau tautan materi"
                 value={formData.referenceUrl}
-                onChange={(e) => setFormData({ ...formData, referenceUrl: e.target.value })}
-                className="form-input text-xs w-full bg-surface border-border text-text-primary"
+                onChange={(e) =>
+                  setFormData({ ...formData, referenceUrl: e.target.value })
+                }
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
-              disabled={isPending}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
-            >
-              {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingTask ? "Save Changes" : "Create Task"}
-            </button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation */}
+      {/* 4. Quick Deadline Update Modal */}
+      <Modal
+        isOpen={quickDeadlineModalOpen}
+        onClose={() => {
+          setQuickDeadlineModalOpen(false);
+          setQuickDeadlineTask(null);
+        }}
+        title="Ubah Tenggat Waktu Tugas"
+        description="Perpanjang batas waktu pengerjaan tugas atau atur ulang tenggat waktu."
+        maxWidth="md"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setQuickDeadlineModalOpen(false);
+                setQuickDeadlineTask(null);
+              }}
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
+              disabled={isPending}
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleQuickDeadlineSubmit}
+              disabled={isPending}
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
+            >
+              {isPending && <Loader2 size={15} className="animate-spin" />}
+              <span>Simpan Tenggat Waktu</span>
+            </button>
+          </>
+        }
+      >
+        {quickDeadlineTask && (
+          <div className="space-y-4">
+            {quickDeadlineError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                <AlertCircle size={14} className="shrink-0" />
+                <span>{quickDeadlineError}</span>
+              </div>
+            )}
+
+            {/* Task Info summary */}
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                {quickDeadlineTask.subject ? (
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/25">
+                    {quickDeadlineTask.subject.code}
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-slate-500">UMUM</span>
+                )}
+                <span className="text-xs font-semibold text-slate-900 dark:text-white line-clamp-1">
+                  {quickDeadlineTask.title}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-1 flex-wrap">
+                <span>Tenggat saat ini:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {formatDate(quickDeadlineTask.deadline)}
+                </span>
+                <DeadlineBadge deadline={quickDeadlineTask.deadline} />
+              </div>
+            </div>
+
+            {/* Current overdue notice if deadline passed */}
+            {new Date(quickDeadlineTask.deadline).getTime() < Date.now() && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <AlertCircle size={15} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="font-semibold">Tugas Sudah Melewati Tenggat (Sudah Lewat)</p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400/90 mt-0.5">
+                    Pilih tanggal di masa depan menggunakan tombol preset di bawah untuk mengaktifkan kembali tugas ini bagi mahasiswa.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Input Datetime */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Tenggat Waktu Baru <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                value={quickDeadlineValue}
+                onChange={(e) => setQuickDeadlineValue(e.target.value)}
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+                required
+              />
+            </div>
+
+            {/* Quick Extension Presets */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                Pilihan Cepat Perpanjang Tenggat:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuickDeadlineValue(calculatePresetDate("+1d", quickDeadlineTask.deadline))}
+                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                >
+                  +1 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDeadlineValue(calculatePresetDate("+3d", quickDeadlineTask.deadline))}
+                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                >
+                  +3 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDeadlineValue(calculatePresetDate("+7d", quickDeadlineTask.deadline))}
+                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                >
+                  +1 Minggu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDeadlineValue(calculatePresetDate("tomorrow_night"))}
+                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                >
+                  Besok 23:59
+                </button>
+              </div>
+            </div>
+
+            {/* Status change indicator preview */}
+            {quickDeadlineValue && (
+              <div className="pt-1">
+                {new Date(quickDeadlineValue).getTime() < Date.now() ? (
+                  <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-400 flex items-center gap-2">
+                    <AlertCircle size={14} className="shrink-0" />
+                    <span>
+                      Tenggat baru di masa lalu. Status tugas akan menjadi <strong>OVERDUE (Sudah Lewat)</strong>.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                    <Sparkles size={14} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span>
+                      Tenggat baru di masa depan. Status tugas akan menjadi <strong>UPCOMING (Aktif Kembali)</strong>.
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* 5. Delete Confirmation Dialog */}
       <DeleteDialog
         isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setDeletingTask(null);
+        }}
         onConfirm={handleDeleteConfirm}
-        title="Delete Task"
-        description="Are you sure you want to delete this task? All student deadline tracking will be removed."
-        itemTitle={deletingTask?.title}
+        title="Hapus Tugas Akademik"
+        message={`Apakah Anda yakin ingin menghapus tugas "${deletingTask?.title}"? Tindakan ini tidak dapat dibatalkan.`}
+        isDeleting={isPending}
       />
     </div>
   );
 }
-

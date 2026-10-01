@@ -2,6 +2,8 @@ import {
   PrismaClient,
   UserRole,
   DayOfWeek,
+  TaskType,
+  MaterialType,
   TaskPriority,
   TaskStatus,
   AchievementCategory,
@@ -12,12 +14,16 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting ClassHub database seed...");
+  console.log("🌱 Starting Telkom University Jakarta (JS1SI-26-REG-05) database seed...");
 
-  // 1. Clean existing records in correct order (handling foreign key cascades)
+  // 1. Clean existing records in dependency order
   await prisma.activityLog.deleteMany();
   await prisma.studentAchievement.deleteMany();
   await prisma.achievement.deleteMany();
+  await prisma.dailyNoteMaterial.deleteMany();
+  await prisma.dailyNoteTask.deleteMany();
+  await prisma.dailyNote.deleteMany();
+  await prisma.material.deleteMany();
   await prisma.task.deleteMany();
   await prisma.schedule.deleteMany();
   await prisma.subject.deleteMany();
@@ -34,12 +40,12 @@ async function main() {
   const lecturerPassword = await bcrypt.hash("Lecturer2026!", 12);
   const assistantPassword = await bcrypt.hash("Assistant2026!", 12);
 
-  // 3. Create Users
+  // 3. Create Administrative Users
   console.log("Creating administrative users...");
   const adminUser = await prisma.user.create({
     data: {
-      name: "System Administrator",
-      email: "admin@classhub.edu",
+      name: "Muhammad Ardiansyah (Wali Dosen)",
+      email: "ardiansyah@telkomuniversity.ac.id",
       passwordHash: adminPassword,
       role: UserRole.ADMIN,
       isActive: true,
@@ -48,8 +54,8 @@ async function main() {
 
   const classAdminUser = await prisma.user.create({
     data: {
-      name: "Class Coordinator",
-      email: "classadmin@classhub.edu",
+      name: "Ketua Kelas JS1SI-26-REG-05",
+      email: "classadmin@telkomuniversity.ac.id",
       passwordHash: classAdminPassword,
       role: UserRole.CLASS_ADMIN,
       isActive: true,
@@ -58,8 +64,8 @@ async function main() {
 
   const lecturerUser = await prisma.user.create({
     data: {
-      name: "Dr. Aris Thorne",
-      email: "lecturer@classhub.edu",
+      name: "Budi Santoso, S.Kom., M.T.",
+      email: "budisantoso@telkomuniversity.ac.id",
       passwordHash: lecturerPassword,
       role: UserRole.LECTURER,
       isActive: true,
@@ -68,518 +74,489 @@ async function main() {
 
   const assistantUser = await prisma.user.create({
     data: {
-      name: "Bryan Tech Assistant",
-      email: "assistant@classhub.edu",
+      name: "Asisten Lab SI Tel-U",
+      email: "asisten.si@telkomuniversity.ac.id",
       passwordHash: assistantPassword,
       role: UserRole.ASSISTANT,
       isActive: true,
     },
   });
 
-  // 4. Create Subjects
-  console.log("Creating academic subjects...");
-  const cs101 = await prisma.subject.create({
+  // 4. Create Settings (Exact Class Identity)
+  console.log("Configuring class identity settings...");
+  const settingsData = [
+    { key: "className", value: "JS1SI-26-REG-05" },
+    { key: "classShortName", value: "SI • 26-05" },
+    { key: "classCode", value: "JS1SI-26-REG-05" },
+    { key: "institutionName", value: "Telkom University Jakarta" },
+    { key: "campusName", value: "Telkom University Jakarta" },
+    { key: "studyProgram", value: "S1 Sistem Informasi" },
+    { key: "academicYear", value: "2026/2027" },
+    { key: "semester", value: "Semester Ganjil 2026/2027" },
+    { key: "waliDosen", value: "Muhammad Ardiansyah" },
+    { key: "classHeadline", value: "LEARN. BUILD. GROW. TOGETHER." },
+    { key: "classDescription", value: "Academic class hub and digital ecosystem for S1 Sistem Informasi Telkom University Jakarta class JS1SI-26-REG-05." },
+    { key: "contactEmail", value: "si2605@telkomuniversity.ac.id" },
+    { key: "githubUrl", value: "https://github.com/dytoandyto/WebKelas-2605" },
+    { key: "instagramUrl", value: "https://instagram.com/telkomuniversity_jakarta" },
+    { key: "discordUrl", value: "https://discord.gg/telkomuniversity" },
+    { key: "classMotto", value: "LEARN. BUILD. GROW. TOGETHER." },
+  ];
+
+  for (const s of settingsData) {
+    await prisma.setting.create({ data: s });
+  }
+
+  // 5. Create 7 Exact Subjects
+  console.log("Creating curriculum subjects...");
+  const subAlgoritma = await prisma.subject.create({
     data: {
-      code: "CS101",
-      name: "Introduction to Computer Science",
-      description: "Foundational computer science principles, discrete mathematics, and problem-solving methodologies.",
-      lecturerName: "Dr. Aris Thorne",
+      code: "BBK1AAB4",
+      name: "Algoritma dan Pemrograman",
+      englishName: "Algorithms and Programming",
+      description: "Dasar logika komputasi, struktur data primitif, algoritma pencarian/pengurutan, flowchart, pseudocode, dan implementasi kode terstruktur.",
+      sks: 4,
+      lecturerName: "Muhammad Ardiansyah, S.Kom., M.Kom.",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-blue-500 to-indigo-600",
     },
   });
 
-  const cs201 = await prisma.subject.create({
+  const subEnterprise = await prisma.subject.create({
     data: {
-      code: "CS201",
-      name: "Data Structures & Algorithms",
-      description: "Advanced data structures, computational complexity, dynamic programming, and graph algorithms.",
-      lecturerName: "Prof. Helena Vance",
+      code: "BBK1EAB3",
+      name: "Sistem Enterprise",
+      englishName: "Enterprise Systems",
+      description: "Arsitektur enterprise resource planning (ERP), integrasi proses rantai pasok (SCM), CRM, dan tata kelola sistem skala besar.",
+      sks: 3,
+      lecturerName: "Budi Santoso, S.Kom., M.T.",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-amber-500 to-orange-600",
     },
   });
 
-  const cs301 = await prisma.subject.create({
+  const subDiskrit = await prisma.subject.create({
     data: {
-      code: "CS301",
-      name: "Database Systems & Cloud Architecture",
-      description: "Relational database modeling, query optimization, ACID transactions, and distributed cloud databases.",
-      lecturerName: "Dr. David Chen",
+      code: "BBK1BAB3",
+      name: "Matematika Diskrit",
+      englishName: "Discrete Mathematics",
+      description: "Logika proposisi, predikat, teori himpunan, relasi biner, fungsi, kombinatorika, teori graf, dan penerapan dalam sistem informasi.",
+      sks: 3,
+      lecturerName: "Drs. Hendra Wijaya, M.Si.",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-purple-500 to-violet-600",
     },
   });
 
-  const cs310 = await prisma.subject.create({
+  const subMatematikaSI = await prisma.subject.create({
     data: {
-      code: "CS310",
-      name: "Web Application Engineering",
-      description: "Fullstack web development with modern frameworks, server-side rendering, and scalable architectures.",
-      lecturerName: "Ir. Maya Kusuma, M.Kom",
+      code: "BBK1CAB3",
+      name: "Matematika untuk Sistem Informasi",
+      englishName: "Mathematics for Information System",
+      description: "Aljabar linier terapan, kalkulus dasar diferensial & integral untuk optimasi data, vektor matriks, dan probabilitas dalam komputasi bisnis.",
+      sks: 3,
+      lecturerName: "Dr. Rina Astuti, M.Sc.",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-emerald-500 to-teal-600",
     },
   });
 
-  const cs405 = await prisma.subject.create({
+  const subPengantarSI = await prisma.subject.create({
     data: {
-      code: "CS405",
-      name: "Artificial Intelligence & Machine Learning",
-      description: "Neural network architectures, statistical learning theory, computer vision, and generative models.",
-      lecturerName: "Prof. Marcus Aurel",
+      code: "BBK1DAB3",
+      name: "Pengantar Sistem Informasi",
+      englishName: "Introduction to Information Systems",
+      description: "Konsep dasar SI/TI dalam organisasi, tata kelola data, e-business, siklus hidup pengembangan sistem, dan etika profesi informasi.",
+      sks: 3,
+      lecturerName: "Fitri Ramadhani, S.T., M.M.",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-cyan-500 to-sky-600",
     },
   });
 
-  // 5. Create Schedules
-  console.log("Creating class schedules...");
+  const subKarakter = await prisma.subject.create({
+    data: {
+      code: "UCK1FDB1",
+      name: "Internalisasi Budaya dan Pembentukan Karakter",
+      englishName: "Cultural Internalization and Character Formation",
+      description: "Penguatan nilai HEI (Harmony, Excellence, Integrity), etika akademik, kepemimpinan adaptif, dan karakter unggul mahasiswa Telkom University.",
+      sks: 1,
+      lecturerName: "Tim Dosen Karakter Tel-U",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-rose-500 to-pink-600",
+    },
+  });
+
+  const subAgama = await prisma.subject.create({
+    data: {
+      code: "UAKXACB2",
+      name: "Agama Islam",
+      englishName: "Islamic Religion",
+      description: "Pondasi akidah, syariat, akhlak mulia, serta integrasi nilai-nilai keislaman dalam pengembangan teknologi dan sains kemasyarakatan.",
+      sks: 2,
+      lecturerName: "Ust. Ahmad Fauzi, M.Ag.",
+      semester: "Semester Ganjil 2026/2027",
+      academicYear: "2026/2027",
+      color: "from-teal-500 to-emerald-600",
+    },
+  });
+
+  // 6. Create 7 Exact Class Schedules
+  console.log("Creating timetable schedules with exact rooms...");
   await prisma.schedule.createMany({
     data: [
       {
-        subjectId: cs101.id,
+        subjectId: subAlgoritma.id,
         dayOfWeek: DayOfWeek.MONDAY,
-        startTime: "08:30",
-        endTime: "11:00",
-        room: "Auditorium Hall A-301",
-        lecturerName: "Dr. Aris Thorne",
-        notes: "Bring laptop with Python 3.12+ installed",
-      },
-      {
-        subjectId: cs201.id,
-        dayOfWeek: DayOfWeek.TUESDAY,
-        startTime: "10:00",
-        endTime: "12:30",
-        room: "Advanced Computing Lab 402",
-        lecturerName: "Prof. Helena Vance",
-        notes: "Weekly algorithm problem sets discussion",
-      },
-      {
-        subjectId: cs301.id,
-        dayOfWeek: DayOfWeek.WEDNESDAY,
-        startTime: "13:00",
-        endTime: "15:30",
-        room: "Hall B-102",
-        lecturerName: "Dr. David Chen",
-        notes: "PostgreSQL and query benchmarking exercises",
-      },
-      {
-        subjectId: cs310.id,
-        dayOfWeek: DayOfWeek.THURSDAY,
-        startTime: "09:00",
+        startTime: "07:30",
         endTime: "11:30",
-        room: "Software Engineering Lab 3",
-        lecturerName: "Ir. Maya Kusuma, M.Kom",
-        notes: "Next.js project consultations and live code review",
+        room: "RLC.KJ.05.001",
+        lecturerName: "Muhammad Ardiansyah, S.Kom., M.Kom.",
+        className: "JS1SI-26-REG-05",
+        notes: "Bawa laptop untuk praktikum algoritma dasar dan compiler",
       },
       {
-        subjectId: cs405.id,
+        subjectId: subEnterprise.id,
+        dayOfWeek: DayOfWeek.TUESDAY,
+        startTime: "09:30",
+        endTime: "12:30",
+        room: "RLC.KJ.05.002",
+        lecturerName: "Budi Santoso, S.Kom., M.T.",
+        className: "JS1SI-26-REG-05",
+        notes: "Kuliah teori arsitektur ERP dan studi kasus proses bisnis",
+      },
+      {
+        subjectId: subDiskrit.id,
+        dayOfWeek: DayOfWeek.WEDNESDAY,
+        startTime: "07:30",
+        endTime: "10:30",
+        room: "RKC.KJ.03.002",
+        lecturerName: "Drs. Hendra Wijaya, M.Si.",
+        className: "JS1SI-26-REG-05",
+        notes: "Pembahasan latihan soal logika proposisi & tabel kebenaran",
+      },
+      {
+        subjectId: subMatematikaSI.id,
+        dayOfWeek: DayOfWeek.WEDNESDAY,
+        startTime: "10:30",
+        endTime: "13:30",
+        room: "RKC.KJ.04.001",
+        lecturerName: "Dr. Rina Astuti, M.Sc.",
+        className: "JS1SI-26-REG-05",
+        notes: "Aljabar matriks dan kalkulus sistem informasi",
+      },
+      {
+        subjectId: subKarakter.id,
+        dayOfWeek: DayOfWeek.THURSDAY,
+        startTime: "14:30",
+        endTime: "15:30",
+        room: "RLC.KJ.03.003",
+        lecturerName: "Tim Dosen Karakter Tel-U",
+        className: "JS1SI-26-REG-05",
+        notes: "Sesi pembentukan karakter HEI dan etika kampus",
+      },
+      {
+        subjectId: subPengantarSI.id,
         dayOfWeek: DayOfWeek.FRIDAY,
-        startTime: "13:30",
-        endTime: "16:00",
-        room: "Multimedia Center Room 204",
-        lecturerName: "Prof. Marcus Aurel",
-        notes: "PyTorch workshop session",
+        startTime: "08:30",
+        endTime: "10:30",
+        room: "RLC.KJ.03.003",
+        lecturerName: "Fitri Ramadhani, S.T., M.M.",
+        className: "JS1SI-26-REG-05",
+        notes: "Presentasi studi kasus sistem informasi e-commerce",
+      },
+      {
+        subjectId: subAgama.id,
+        dayOfWeek: DayOfWeek.SATURDAY,
+        startTime: "07:30",
+        endTime: "09:30",
+        room: "RKC.KJ.03.001",
+        lecturerName: "Ust. Ahmad Fauzi, M.Ag.",
+        className: "JS1SI-26-REG-05",
+        notes: "Kajian nilai etika dan moralitas dalam profesi digital",
       },
     ],
   });
 
-  // 6. Create Tasks with realistic upcoming & due dates
-  console.log("Creating academic tasks...");
+  // 7. Create Realistic Academic Tasks with LMS Links
+  console.log("Creating academic reminder tasks with LMS links...");
   const now = new Date();
-  const inTwoDays = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
-  const inFiveDays = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
-  const inNineDays = new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000);
-  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const inToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0);
+  const inThreeDays = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const inSixDays = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+  const inTenDays = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+  const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
-  await prisma.task.createMany({
-    data: [
-      {
-        subjectId: cs310.id,
-        title: "Milestone 2: App Router Authentication & Database Schema",
-        description: "Implement secure server actions, Prisma PostgreSQL integration, and role-based access control.",
-        deadline: inTwoDays,
-        priority: TaskPriority.HIGH,
-        status: TaskStatus.DUE_SOON,
-        createdBy: classAdminUser.id,
-      },
-      {
-        subjectId: cs301.id,
-        title: "PostgreSQL Performance Benchmarking & Query Tuning",
-        description: "Analyze EXPLAIN ANALYZE execution plans, composite indexes, and write an optimization report.",
-        deadline: inFiveDays,
-        priority: TaskPriority.MEDIUM,
-        status: TaskStatus.UPCOMING,
-        createdBy: lecturerUser.id,
-      },
-      {
-        subjectId: cs405.id,
-        title: "Deep Neural Network Image Classifier Training",
-        description: "Train a ResNet model on CIFAR-100 and achieve >= 82% top-1 accuracy on the validation split.",
-        deadline: inNineDays,
-        priority: TaskPriority.MEDIUM,
-        status: TaskStatus.UPCOMING,
-        createdBy: lecturerUser.id,
-      },
-      {
-        subjectId: cs201.id,
-        title: "Self-Balancing Red-Black Tree Implementation",
-        description: "Submit C++ or Java implementation of node insertion, rotation invariants, and deletion.",
-        deadline: threeDaysAgo,
-        priority: TaskPriority.HIGH,
-        status: TaskStatus.OVERDUE,
-        createdBy: assistantUser.id,
-      },
-      {
-        subjectId: cs101.id,
-        title: "Ethics in Computer Science & Artificial Intelligence Essay",
-        description: "Submit a 2,000-word critical evaluation on algorithmic bias and transparent AI governance.",
-        deadline: lastWeek,
-        priority: TaskPriority.LOW,
-        status: TaskStatus.COMPLETED,
-        createdBy: lecturerUser.id,
-      },
-    ],
+  const task1 = await prisma.task.create({
+    data: {
+      subjectId: subAlgoritma.id,
+      title: "Praktikum Modul 3: Pseudocode & Flowchart Algoritma Pencarian",
+      description: "Susun notasi algoritmik terstruktur dan flowchart untuk algoritma Binary Search vs Linear Search pada kumpulan data mahasiswa.",
+      taskType: TaskType.INDIVIDUAL,
+      deadline: inThreeDays,
+      priority: TaskPriority.HIGH,
+      status: TaskStatus.DUE_SOON,
+      submissionUrl: "https://lms.telkomuniversity.ac.id/mod/assign/view.php?id=101234",
+      referenceUrl: "https://lms.telkomuniversity.ac.id/course/view.php?id=2605",
+      notes: "Kumpulkan file PDF laporan praktikum sesuai template resmi Tel-U.",
+      createdBy: adminUser.id,
+    },
   });
 
-  // 7. Create Students
-  console.log("Creating student profiles...");
-  const studentAlex = await prisma.student.create({
+  const task2 = await prisma.task.create({
     data: {
-      name: "Alex Raditya Pratama",
-      studentNumber: "220601201",
-      major: "Computer Science",
-      bio: "Full-stack engineer passionate about cloud architecture, reactive systems, and open-source software.",
-      dream: "Founding an open developer platform that empowers emerging engineers globally.",
-      motivation: "Code is poetry that executes. Strive to make every line meaningful and impactful.",
-      githubUrl: "https://github.com/alexraditya",
-      linkedinUrl: "https://linkedin.com/in/alexraditya",
-      portfolioUrl: "https://alexraditya.dev",
+      subjectId: subEnterprise.id,
+      title: "Studi Kasus Analisis Integrasi ERP & Business Process",
+      description: "Analisis studi kasus implementasi modul Supply Chain Management (SCM) dan Financial ERP pada perusahaan FMCG terkemuka.",
+      taskType: TaskType.GROUP,
+      deadline: inSixDays,
+      priority: TaskPriority.MEDIUM,
+      status: TaskStatus.UPCOMING,
+      groupName: "Kelompok 2 - Enterprise Core",
+      groupMembers: "Dyto, Sarah, David, Amanda",
+      submissionUrl: "https://lms.telkomuniversity.ac.id/mod/assign/view.php?id=101235",
+      notes: "Sertakan diagram BPMN proses bisnis sebelum dan sesudah integrasi ERP.",
+      createdBy: lecturerUser.id,
+    },
+  });
+
+  const task3 = await prisma.task.create({
+    data: {
+      subjectId: subDiskrit.id,
+      title: "Latihan Soal Mandiri: Relasi Ekuivalensi & Teori Graf",
+      description: "Kerjakan 10 soal pembuktian relasi ekuivalensi, graf berarah, serta algoritma Dijkstra pada buku pegangan Matematika Diskrit.",
+      taskType: TaskType.INDIVIDUAL,
+      deadline: inTenDays,
+      priority: TaskPriority.MEDIUM,
+      status: TaskStatus.UPCOMING,
+      submissionUrl: "https://lms.telkomuniversity.ac.id/mod/assign/view.php?id=101236",
+      createdBy: lecturerUser.id,
+    },
+  });
+
+  const task4 = await prisma.task.create({
+    data: {
+      subjectId: subPengantarSI.id,
+      title: "Tugas Pengayaan: Makalah Tren AI & Transformasi Digital",
+      description: "Tugas tambahan pengayaan materi: Ulas dampak GenAI terhadap arsitektur sistem informasi modern dalam industri perbankan.",
+      taskType: TaskType.ADDITIONAL,
+      deadline: inToday,
+      priority: TaskPriority.LOW,
+      status: TaskStatus.UPCOMING,
+      submissionUrl: "https://lms.telkomuniversity.ac.id/mod/assign/view.php?id=101237",
+      createdBy: adminUser.id,
+    },
+  });
+
+  const task5 = await prisma.task.create({
+    data: {
+      subjectId: subKarakter.id,
+      title: "Refleksi Karakter HEI (Harmony, Excellence, Integrity)",
+      description: "Tuliskan esai refleksi pribadi mengenai penerapan nilai Integrity dalam kolaborasi proyek teknologi informasi.",
+      taskType: TaskType.INDIVIDUAL,
+      deadline: twoDaysAgo,
+      priority: TaskPriority.HIGH,
+      status: TaskStatus.OVERDUE,
+      submissionUrl: "https://lms.telkomuniversity.ac.id/mod/assign/view.php?id=101238",
+      createdBy: adminUser.id,
+    },
+  });
+
+  // 8. Create Learning Materials
+  console.log("Creating course learning materials...");
+  const matAlgo1 = await prisma.material.create({
+    data: {
+      title: "Slide Kuliah Pertemuan 1 - Konsep Algoritma & Flowchart",
+      description: "Materi presentasi pengenalan dasar logika algoritma, simbol-simbol flowchart standar ANSI, dan pseudocode.",
+      subjectId: subAlgoritma.id,
+      type: MaterialType.PDF,
+      fileName: "BBK1AAB4_Pertemuan_01_Logika_Algoritma.pdf",
+      fileUrl: "https://raw.githubusercontent.com/dytoandyto/WebKelas-2605/main/public/materials/BBK1AAB4_Modul_01.pdf",
+      fileSize: "2.8 MB",
+      tags: "algoritma,flowchart,logika,modul-1",
+      uploadedBy: adminUser.id,
+    },
+  });
+
+  const matEnterprise1 = await prisma.material.create({
+    data: {
+      title: "Modul ERP 01 - Pengenalan Enterprise Architecture & SAP S/4HANA",
+      description: "Panduan pengantar struktur modul ERP, siklus rantai pasok (P2P dan O2C), serta integrasi master data.",
+      subjectId: subEnterprise.id,
+      type: MaterialType.PPT,
+      fileName: "BBK1EAB3_Slide_ERP_Overview.pptx",
+      fileUrl: "https://raw.githubusercontent.com/dytoandyto/WebKelas-2605/main/public/materials/BBK1EAB3_ERP_Intro.pptx",
+      fileSize: "5.4 MB",
+      tags: "erp,enterprise,scm,sap",
+      uploadedBy: lecturerUser.id,
+    },
+  });
+
+  const matDiskrit1 = await prisma.material.create({
+    data: {
+      title: "Diktat Matematika Diskrit - Logika Proposisi & Himpunan",
+      description: "Ringkasan teorema logika, tabel kebenaran, hukum De Morgan, dan operasi himpunan ganda.",
+      subjectId: subDiskrit.id,
+      type: MaterialType.PDF,
+      fileName: "BBK1BAB3_Diktat_Logika_Proposisi.pdf",
+      fileUrl: "https://raw.githubusercontent.com/dytoandyto/WebKelas-2605/main/public/materials/BBK1BAB3_Diktat_Diskrit.pdf",
+      fileSize: "1.9 MB",
+      tags: "diskrit,logika,matematika",
+      uploadedBy: lecturerUser.id,
+    },
+  });
+
+  // 9. Create Daily Notes (Academic Journal format)
+  console.log("Creating daily notes / study journal...");
+  const note1 = await prisma.dailyNote.create({
+    data: {
+      date: new Date("2026-09-28T09:00:00Z"),
+      title: "Rangkuman Kuliah: Arsitektur Enterprise Systems & Value Chain",
+      summary: "Membahas konsep dasar enterprise system, perbedaan silo system vs integrated ERP, dan bagaimana value chain Porter diterapkan dalam pemetaan proses bisnis.",
+      content: `Hari ini perkuliahan Sistem Enterprise membahas secara mendalam bagaimana perusahaan bertransformasi dari sistem silo menuju ekosistem ERP terintegrasi.
+
+Poin penting yang didiskusikan:
+1. Mengapa sistem informasi silo menyebabkan redundansi data dan inefisiensi inventaris.
+2. Peran single source of truth (SSOT) dalam arsitektur database enterprise terpusat.
+3. Contoh siklus Order to Cash (O2C) dan Procure to Pay (P2P).
+
+Dosen menekankan pentingnya memahami proses bisnis riil sebelum memilih platform ERP komersial.`,
+      importantPoints: "- Integrasi data real-time antar departemen\n- Pengurangan cycle time pengadaan barang\n- Peningkatan akurasi laporan keuangan",
+      nextSteps: "Mempersiapkan kelompok studi kasus dan membaca modul ERP bab 2.",
+      subjectId: subEnterprise.id,
+      authorId: adminUser.id,
+      tags: "erp,enterprise,proses-bisnis",
+    },
+  });
+
+  // Link daily note to material
+  await prisma.dailyNoteMaterial.create({
+    data: {
+      dailyNoteId: note1.id,
+      materialId: matEnterprise1.id,
+    },
+  });
+
+  // 10. Create Students with Proper Fallbacks
+  console.log("Creating class students...");
+  const student1 = await prisma.student.create({
+    data: {
+      name: "Dyto Andyto",
+      studentNumber: "1204220001",
+      major: "S1 Sistem Informasi",
+      bio: "Mahasiswa S1 Sistem Informasi Telkom University Jakarta yang antusias terhadap rekayasa sistem enterprise dan arsitektur cloud modern.",
+      dream: "Enterprise Systems Architect & Tech Founder",
+      motivation: "Belajar terus tanpa henti, bangun karya yang berdampak nyata.",
+      githubUrl: "https://github.com/dytoandyto",
+      linkedinUrl: "https://linkedin.com/in/dytoandyto",
+      portfolioUrl: "https://github.com/dytoandyto",
       photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
     },
   });
 
-  const studentSarah = await prisma.student.create({
+  const student2 = await prisma.student.create({
     data: {
-      name: "Sarah Olivia Jenkins",
-      studentNumber: "220601202",
-      major: "Information Systems",
-      bio: "Product strategist and UI/UX researcher dedicated to creating accessible and human-centered digital experiences.",
-      dream: "Leading digital transformation initiatives for global education accessibility.",
-      motivation: "Design is not just what it looks like and feels like. Design is how it works.",
-      githubUrl: "https://github.com/sarahjenkins",
-      linkedinUrl: "https://linkedin.com/in/sarahjenkins",
-      portfolioUrl: "https://sarahjenkins.design",
-      photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
+      name: "Sarah Olivia",
+      studentNumber: "1204220002",
+      major: "S1 Sistem Informasi",
+      bio: "Fokus pada interaksi manusia dan komputer (HCI), analisis sistem informasi bisnis, dan perancangan UI/UX.",
+      dream: "Principal Product Designer di tech company terkemuka.",
+      motivation: "Desain yang baik adalah yang menyelesaikan masalah pengguna dengan anggun.",
+      githubUrl: "https://github.com",
+      linkedinUrl: "https://linkedin.com",
+      // Test fallback: no photoUrl, testing generated initials avatar
+      photoUrl: null,
     },
   });
 
-  const studentDavid = await prisma.student.create({
+  const student3 = await prisma.student.create({
     data: {
       name: "David Kurniawan",
-      studentNumber: "220601203",
-      major: "Software Engineering",
-      bio: "Competitive programmer and distributed systems enthusiast. Loves tackling complex algorithmic puzzles.",
-      dream: "Becoming a Principal Infrastructure Architect at a world-class technology firm.",
-      motivation: "Continuous learning and relentless problem solving.",
-      githubUrl: "https://github.com/davidkurniawan",
-      linkedinUrl: "https://linkedin.com/in/davidkurniawan",
-      portfolioUrl: "https://davidk.dev",
+      studentNumber: "1204220003",
+      major: "S1 Sistem Informasi",
+      bio: "Tertarik pada tata kelola data (Data Governance), Business Intelligence, dan optimasi SQL database.",
+      dream: "Data Architect di institusi finansial nasional.",
+      motivation: "Data adalah aset paling berharga jika diolah menjadi wawasan strategis.",
+      githubUrl: "https://github.com",
       photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
     },
   });
 
-  const studentNadia = await prisma.student.create({
-    data: {
-      name: "Nadia Zahra",
-      studentNumber: "220601204",
-      major: "Artificial Intelligence",
-      bio: "AI researcher focusing on computer vision and multi-modal neural network architectures.",
-      dream: "Publishing groundbreaking AI medical diagnostics research in top-tier conferences.",
-      motivation: "Harnessing technology to solve the world's most difficult healthcare challenges.",
-      githubUrl: "https://github.com/nadiazahra",
-      linkedinUrl: "https://linkedin.com/in/nadiazahra",
-      photoUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
-    },
-  });
-
-  const studentKevin = await prisma.student.create({
-    data: {
-      name: "Kevin Sanjaya",
-      studentNumber: "220601205",
-      major: "Computer Science",
-      bio: "Cybersecurity analyst, CTF player, and reverse engineering enthusiast.",
-      dream: "Securing critical cloud infrastructures from modern cyber vulnerabilities.",
-      motivation: "Security is a process, not a state. Always stay vigilant and curious.",
-      githubUrl: "https://github.com/kevinsanjaya",
-      linkedinUrl: "https://linkedin.com/in/kevinsanjaya",
-      photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
-    },
-  });
-
-  const studentAmanda = await prisma.student.create({
+  const student4 = await prisma.student.create({
     data: {
       name: "Amanda Putri",
-      studentNumber: "220601206",
-      major: "Data Science",
-      bio: "Data storyteller and predictive modeling researcher analyzing urban mobility and sustainable cities.",
-      dream: "Building data-driven climate resilience and smart city infrastructure solutions.",
-      motivation: "In God we trust; all others must bring clean data.",
-      githubUrl: "https://github.com/amandaputri",
-      linkedinUrl: "https://linkedin.com/in/amandaputri",
-      photoUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80",
+      studentNumber: "1204220004",
+      major: "S1 Sistem Informasi",
+      bio: "Penggiat inovasi teknologi kampus dan analitika sistem informasi manajemen.",
+      dream: "Konsultan IT & Analis Sistem Terkemuka.",
+      motivation: "Inovasi lahir dari keberanian mencoba hal baru setiap hari.",
+      // Test fallback: no achievements, no social media
+      photoUrl: null,
     },
   });
 
-  // 8. Create Achievements
-  console.log("Creating achievements...");
-  const hackathonAch = await prisma.achievement.create({
+  // 11. Create Class Achievements
+  console.log("Creating class achievements...");
+  const ach1 = await prisma.achievement.create({
     data: {
-      title: "1st Place Champion - National Tech Innovation Hackathon 2026",
-      description: "Built an AI-driven smart emergency response and disaster routing platform within 36 consecutive hours.",
+      title: "Juara 1 Lomba Inovasi Sistem Informasi Nasional 2026",
+      description: "Mengembangkan purwarupa aplikasi pemantauan inventaris digital berbasis event-driven untuk UMKM.",
       category: AchievementCategory.COMPETITION,
-      achievementDate: new Date("2026-03-15T00:00:00Z"),
-      organization: "National Ministry of Education & Tech Giants Guild",
-      location: "Jakarta Convention Center",
+      achievementDate: new Date("2026-05-15T00:00:00Z"),
+      organization: "Forum Komunikasi Mahasiswa Sistem Informasi Indonesia",
+      location: "Jakarta",
       badgeIconUrl: "🏆",
       imageUrl: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
       createdBy: adminUser.id,
       students: {
         create: [
-          { studentId: studentAlex.id },
-          { studentId: studentDavid.id },
-          { studentId: studentSarah.id },
+          { studentId: student1.id },
+          { studentId: student3.id },
         ],
       },
     },
   });
 
-  const researchAch = await prisma.achievement.create({
-    data: {
-      title: "Best Academic Paper Award - IEEE International Conference",
-      description: "Published and presented research on lightweight Transformer models for embedded Edge IoT computing.",
-      category: AchievementCategory.ACADEMIC,
-      achievementDate: new Date("2026-05-20T00:00:00Z"),
-      organization: "IEEE Computer Society",
-      location: "Singapore / Virtual",
-      badgeIconUrl: "📜",
-      imageUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80",
-      createdBy: lecturerUser.id,
-      students: {
-        create: [
-          { studentId: studentNadia.id },
-          { studentId: studentAmanda.id },
-        ],
-      },
-    },
-  });
-
-  const volunteerAch = await prisma.achievement.create({
-    data: {
-      title: "Lead Mentors for High School STEM Empowerment Program",
-      description: "Organized a 6-week weekend programming and robotics workshop for over 250 underprivileged high school students.",
-      category: AchievementCategory.VOLUNTEER,
-      achievementDate: new Date("2026-02-10T00:00:00Z"),
-      organization: "Yayasan Generasi Maju Indonesia",
-      location: "Bandung, West Java",
-      badgeIconUrl: "🤝",
-      imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80",
-      createdBy: classAdminUser.id,
-      students: {
-        create: [
-          { studentId: studentSarah.id },
-          { studentId: studentKevin.id },
-        ],
-      },
-    },
-  });
-
-  const ctfAch = await prisma.achievement.create({
-    data: {
-      title: "Top 3 Finalist - University Cyber Defense CTF Championship",
-      description: "Competed in high-intensity red-teaming, binary exploitation, and cloud penetration testing.",
-      category: AchievementCategory.COMPETITION,
-      achievementDate: new Date("2026-04-05T00:00:00Z"),
-      organization: "Cyber Security Association",
-      location: "Yogyakarta",
-      badgeIconUrl: "🛡️",
-      imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80",
-      createdBy: assistantUser.id,
-      students: {
-        create: [
-          { studentId: studentKevin.id },
-          { studentId: studentDavid.id },
-        ],
-      },
-    },
-  });
-
-  // 9. Create Announcements
+  // 12. Create Announcements
   console.log("Creating announcements...");
   await prisma.announcement.createMany({
     data: [
       {
-        title: "Midterm Examination Schedule, Rules & Room Allocation Released",
-        content: `The official examination schedule for the Even Semester 2026 has been published.\n\nAll students must review their assigned room numbers and arrive at least 15 minutes before the exam begins. Bring your student ID card and ensure all electronic communication devices are placed in silent mode inside bags.\n\nGood luck with your preparations!`,
+        title: "Sosialisasi Jadwal & Peraturan Kuliah Semester Ganjil 2026/2027",
+        content: `Selamat datang di perkuliahan Semester Ganjil 2026/2027 untuk kelas JS1SI-26-REG-05 S1 Sistem Informasi Telkom University Jakarta.\n\nHarap seluruh mahasiswa memastikan telah terdaftar di LMS Telkom University pada setiap mata kuliah yang diambil dan mematuhi jadwal perkuliahan tatap muka di ruang masing-masing.`,
         imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80",
         isPublished: true,
         publishedAt: new Date("2026-09-20T08:00:00Z"),
         createdBy: adminUser.id,
       },
       {
-        title: "Distinguished Guest Lecture: Modern Cloud Architecture with Google Cloud",
-        content: `We are thrilled to invite all students to a guest lecture featuring Principal Engineers from Google Cloud on modern distributed systems, event-driven microservices, and serverless architectures.\n\nDate: Thursday, Oct 8, 2026\nTime: 13:00 - 15:30 WIB\nVenue: Main Auditorium & Live Stream\n\nAttendance counts towards CS301 laboratory extra credits!`,
-        imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80",
-        isPublished: true,
-        publishedAt: new Date("2026-09-24T10:00:00Z"),
-        createdBy: lecturerUser.id,
-      },
-      {
-        title: "Annual Hackathon Team Formation & Ideation Session",
-        content: `Looking for teammates for the upcoming Inter-University Hackathon? We will host an informal networking and ideation mixer in Software Lab 3 this coming Friday at 16:30 WIB. Free pizza and beverages provided!`,
+        title: "Informasi Praktikum Laboratorium Pemrograman RLC.KJ.05.001",
+        content: `Sesi praktikum Algoritma dan Pemrograman dimulai tepat waktu setiap Senin pukul 07:30 WIB di Lab RLC.KJ.05.001. Harap membawa laptop masing-masing dengan compiler yang telah terpasang.`,
         imageUrl: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
         isPublished: true,
-        publishedAt: new Date("2026-09-25T14:00:00Z"),
+        publishedAt: new Date("2026-09-22T10:00:00Z"),
         createdBy: classAdminUser.id,
-      },
-      {
-        title: "INTERNAL DRAFT: Upcoming Laboratory Maintenance & Server Migration",
-        content: "Draft notice: Software Lab 3 servers will undergo routine kernel upgrades and storage migration over the coming weekend. Please do not publish publicly yet.",
-        isPublished: false,
-        createdBy: assistantUser.id,
       },
     ],
   });
 
-  // 10. Create Gallery
-  console.log("Creating gallery memories...");
-  await prisma.gallery.createMany({
-    data: [
-      {
-        title: "Class Orientation & Welcome Gathering 2026",
-        description: "Welcoming our fellow students, introducing the core mentors, and discussing academic targets for the year.",
-        imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&auto=format&fit=crop&q=80",
-        eventDate: new Date("2026-01-15T00:00:00Z"),
-        uploadedBy: classAdminUser.id,
-      },
-      {
-        title: "Cloud Architecture Sprint & Live Coding Workshop",
-        description: "Hands-on session deploying distributed services, microservices benchmarks, and CI/CD pipelines.",
-        imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
-        eventDate: new Date("2026-02-28T00:00:00Z"),
-        uploadedBy: assistantUser.id,
-      },
-      {
-        title: "National Hackathon 36-Hour Final Presentation",
-        description: "Our class representative team delivering the live product pitch to industry judges at JCC.",
-        imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
-        eventDate: new Date("2026-03-16T00:00:00Z"),
-        uploadedBy: adminUser.id,
-      },
-      {
-        title: "Campus Tech Expo & Interactive Software Showcase",
-        description: "Demonstrating class capstone projects, student robotics, and AI systems to visitors and prospective partners.",
-        imageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
-        eventDate: new Date("2026-04-20T00:00:00Z"),
-        uploadedBy: classAdminUser.id,
-      },
-      {
-        title: "Mid-Semester Study Group & Coding Jam",
-        description: "Collaborative study group preparing algorithms and data structures mock exams over coffee.",
-        imageUrl: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&auto=format&fit=crop&q=80",
-        eventDate: new Date("2026-05-12T00:00:00Z"),
-        uploadedBy: assistantUser.id,
-      },
-      {
-        title: "Industry Mentorship & Tech Career Talk",
-        description: "Interactive Q&A session with alumni working at top tech firms on internships and resume building.",
-        imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80",
-        eventDate: new Date("2026-06-04T00:00:00Z"),
-        uploadedBy: lecturerUser.id,
-      },
-    ],
-  });
-
-  // 11. Create Resources
-  console.log("Creating academic resources...");
-  await prisma.resource.createMany({
-    data: [
-      {
-        title: "Class GitHub Classroom Organization",
-        description: "Official repository hub for weekly laboratory exercises, starter kits, and project templates.",
-        url: "https://github.com/classhub-official",
-        category: ResourceCategory.CLASS,
-        createdBy: classAdminUser.id,
-      },
-      {
-        title: "Next.js App Router & React Server Components Guide",
-        description: "Comprehensive documentation on Server Components, Server Actions, caching, and streaming.",
-        url: "https://nextjs.org/docs/app",
-        category: ResourceCategory.REFERENCE,
-        createdBy: lecturerUser.id,
-      },
-      {
-        title: "PostgreSQL & Prisma ORM Official Documentation",
-        description: "Relational database concepts, schema modeling, migration workflows, and relation queries.",
-        url: "https://www.prisma.io/docs",
-        category: ResourceCategory.ACADEMIC,
-        createdBy: lecturerUser.id,
-      },
-      {
-        title: "University Academic Information & Grade Portal (SIAK)",
-        description: "Official campus student portal for course enrollment, tuition fee payments, and transcript verification.",
-        url: "https://campus.university.ac.id/portal",
-        category: ResourceCategory.IMPORTANT_LINK,
-        createdBy: adminUser.id,
-      },
-      {
-        title: "Web Standards & Accessibility Guidelines (WCAG 2.2)",
-        description: "Essential reference for building inclusive, keyboard-navigable, and accessible web experiences.",
-        url: "https://www.w3.org/WAI/standards-guidelines/wcag/",
-        category: ResourceCategory.REFERENCE,
-        createdBy: classAdminUser.id,
-      },
-      {
-        title: "MIT OpenCourseWare: Algorithms & System Design",
-        description: "Free video lectures, lecture notes, and assignments from MIT EECS courses.",
-        url: "https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/",
-        category: ResourceCategory.ACADEMIC,
-        createdBy: lecturerUser.id,
-      },
-    ],
-  });
-
-  // 12. Create Settings
-  console.log("Creating class settings...");
-  const settingsData = [
-    { key: "className", value: "Informatics Engineering 2026 — Class A" },
-    { key: "classDescription", value: "Official digital class hub and academic platform for Informatics Engineering Class A, Department of Computer Science." },
-    { key: "academicYear", value: "2026/2027" },
-    { key: "contactEmail", value: "contact@classhub.edu" },
-    { key: "githubUrl", value: "https://github.com/classhub-official" },
-    { key: "instagramUrl", value: "https://instagram.com/classhub.2026" },
-    { key: "discordUrl", value: "https://discord.gg/classhub" },
-    { key: "classMotto", value: "Innovate, Collaborate, Elevate." },
-  ];
-
-  for (const s of settingsData) {
-    await prisma.setting.upsert({
-      where: { key: s.key },
-      update: { value: s.value },
-      create: s,
-    });
-  }
-
-  // 13. Create initial Activity Log
+  // 13. Create Activity Log
   await prisma.activityLog.create({
     data: {
       userId: adminUser.id,
       action: "INITIAL_DATABASE_SEED",
       entityType: "SYSTEM",
-      details: "Database successfully initialized with production seed data and demo credentials.",
+      details: "Initial database seed completed for Telkom University Jakarta JS1SI-26-REG-05.",
     },
   });
 
-  console.log("✅ Seed completed successfully!");
-  console.log("\n📋 DEMO CREDENTIALS FOR TESTING:");
-  console.log("----------------------------------------------------------------");
-  console.log("👑 ADMIN:       admin@classhub.edu      / AdminClassHub2026!");
-  console.log("🛡️ CLASS_ADMIN: classadmin@classhub.edu / ClassAdmin2026!");
-  console.log("🎓 LECTURER:    lecturer@classhub.edu   / Lecturer2026!");
-  console.log("⚡ ASSISTANT:   assistant@classhub.edu  / Assistant2026!");
-  console.log("----------------------------------------------------------------\n");
+  console.log("✅ Telkom University Jakarta Seed completed successfully!");
 }
 
 main()

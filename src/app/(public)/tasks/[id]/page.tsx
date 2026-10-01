@@ -138,6 +138,21 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
             </div>
           </div>
 
+          {/* Overdue Alert Banner */}
+          {(relative.isOverdue || task.computedStatus === TaskStatus.OVERDUE) && !isCompleted && (
+            <div className="p-4 rounded-xl bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 text-xs flex items-start gap-3">
+              <AlertCircle size={18} className="text-rose-400 light:text-rose-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <div className="font-bold text-rose-300 light:text-rose-800 text-sm">
+                  Tenggat Waktu Sudah Berakhir (Sudah Lewat)
+                </div>
+                <p className="text-rose-200/90 light:text-rose-700 leading-relaxed">
+                  Batas waktu pengumpulan untuk penugasan ini telah berakhir ({relative.text}). Tautan pengumpulan pada LMS Telkom / Classroom mungkin telah ditutup secara otomatis. Silakan hubungi dosen pengampu atau pengurus kelas jika Anda membutuhkan perpanjangan waktu.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           {task.description && (
             <div className="space-y-2 pt-2">

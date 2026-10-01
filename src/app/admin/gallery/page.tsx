@@ -4,20 +4,20 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { GalleryManager } from "./gallery-manager";
 
 export const metadata: Metadata = {
-  title: "Class Gallery Management",
-  description: "Curate photos, workshop snapshots, and memories from class activities.",
+  title: "Class Photo & Media Gallery",
+  description: "Upload, curate, and organize class photo moments and documentations.",
 };
 
 export default async function AdminGalleryPage() {
   const { gallery } = await getGalleryData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="space-y-6">
       <AdminHeader
-        title="Class Gallery"
-        description="Upload and organize photo albums, study sessions, and campus events."
+        title="Photo & Media Gallery"
+        description="Preserve class memories, event photo albums, and memorable community documentations."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <GalleryManager initialGallery={gallery} />
       </div>
     </div>

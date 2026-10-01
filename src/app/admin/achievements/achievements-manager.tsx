@@ -426,28 +426,32 @@ export function AchievementsManager({
         description="Record competition champions, hackathon winners, or research accolades."
         maxWidth="lg"
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
           <div>
-            <label className="form-label">Achievement Title *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Achievement Title <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. 1st Place Champion - National Hackathon 2026"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label">Category *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Category <span className="text-rose-500">*</span>
+              </label>
               <select
                 value={formData.category}
                 onChange={(e) =>
@@ -456,7 +460,7 @@ export function AchievementsManager({
                     category: e.target.value as AchievementCategory,
                   })
                 }
-                className="form-select text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors cursor-pointer"
               >
                 {Object.keys(AchievementCategory).map((cat) => (
                   <option key={cat} value={cat}>
@@ -467,22 +471,26 @@ export function AchievementsManager({
             </div>
 
             <div>
-              <label className="form-label">Date of Achievement *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Date of Achievement <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="date"
                 value={formData.achievementDate}
                 onChange={(e) =>
                   setFormData({ ...formData, achievementDate: e.target.value })
                 }
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
                 required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label">Organizer / Institution</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Organizer / Institution
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Ministry of Education or Google Tech"
@@ -490,38 +498,44 @@ export function AchievementsManager({
                 onChange={(e) =>
                   setFormData({ ...formData, organization: e.target.value })
                 }
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="form-label">Location / City</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Location / City
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Jakarta, Indonesia or Online"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="form-label">Description & Notes</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Description & Notes
+            </label>
             <textarea
               placeholder="Details about project presented, number of competing teams, etc..."
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="form-textarea text-sm w-full"
+              className="min-h-[85px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               rows={2}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label">Badge Emoji or Icon</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Badge Emoji or Icon
+              </label>
               <input
                 type="text"
                 placeholder="e.g. 🏆 or 🥇"
@@ -529,31 +543,35 @@ export function AchievementsManager({
                 onChange={(e) =>
                   setFormData({ ...formData, badgeIconUrl: e.target.value })
                 }
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="form-label">Image or Certificate URL</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Image or Certificate URL
+              </label>
               <input
                 type="url"
                 placeholder="https://images.unsplash.com/..."
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
           {/* Student Multi-Select Checkboxes */}
           <div>
-            <label className="form-label flex items-center justify-between">
-              <span>Select Participating Students</span>
-              <span className="text-xs text-brand-600 font-normal">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+                Select Participating Students
+              </label>
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                 {formData.studentIds.length} selected
               </span>
-            </label>
-            <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-slate-50/50 space-y-2">
+            </div>
+            <div className="max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50/70 dark:bg-slate-900/50 space-y-1.5">
               {allStudents.length === 0 ? (
                 <p className="text-xs text-slate-400">No students available.</p>
               ) : (
@@ -563,15 +581,15 @@ export function AchievementsManager({
                     <label
                       key={st.id}
                       className={cn(
-                        "flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-white cursor-pointer transition-colors text-xs",
-                        isChecked && "bg-brand-50/80 font-medium text-brand-900"
+                        "flex items-center gap-2.5 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors text-xs text-slate-900 dark:text-white",
+                        isChecked && "bg-blue-50 dark:bg-blue-950/40 font-medium text-blue-900 dark:text-blue-300"
                       )}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleStudentSelection(st.id)}
-                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span>{st.name}</span>
                       {st.studentNumber && (
@@ -586,11 +604,11 @@ export function AchievementsManager({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
               disabled={isPending}
             >
               Cancel
@@ -598,10 +616,10 @@ export function AchievementsManager({
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingAchievement ? "Save Changes" : "Create Achievement"}
+              <span>{editingAchievement ? "Save Changes" : "Create Achievement"}</span>
             </button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import {
   BookMarked,
@@ -14,6 +14,7 @@ import {
   X,
   FileText,
   Layers,
+  Upload,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { MaterialType } from "@prisma/client";
@@ -22,6 +23,10 @@ import {
   updateMaterialAction,
   deleteMaterialAction,
 } from "@/lib/actions/materials";
+import {
+  MaterialAttachment,
+  parseAttachments,
+} from "@/components/materials/material-card";
 
 interface MaterialItem {
   id: string;
@@ -34,6 +39,7 @@ interface MaterialItem {
   fileName?: string | null;
   fileSize?: string | null;
   tags?: string | null;
+  attachments?: string | null;
   createdAt: string | Date;
   subject?: {
     id: string;
@@ -83,6 +89,71 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
   const [formFileSize, setFormFileSize] = useState("");
   const [formTags, setFormTags] = useState("");
 
+  // Multiple documents attachments state
+  const [formAttachments, setFormAttachments] = useState<MaterialAttachment[]>([]);
+  const [showAddDocModal, setShowAddDocModal] = useState(false);
+  const [newDocName, setNewDocName] = useState("");
+  const [newDocUrl, setNewDocUrl] = useState("");
+  const [newDocSize, setNewDocSize] = useState("");
+  const docFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  function handleFilesUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      const ext = file.name.split(".").pop()?.toUpperCase() || "DOC";
+      const sizeInMB = file.size / (1024 * 1024);
+      const formattedSize =
+        sizeInMB < 0.1
+          ? `${Math.round(file.size / 1024)} KB`
+          : `${sizeInMB.toFixed(1)} MB`;
+
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        const dataUrl = (loadEvent.target?.result as string) || "";
+        setFormAttachments((prev) => [
+          ...prev,
+          {
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            name: file.name,
+            url: dataUrl,
+            size: formattedSize,
+            type: ext,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (docFileInputRef.current) {
+      docFileInputRef.current.value = "";
+    }
+  }
+
+  function handleAddLinkDoc() {
+    if (!newDocName.trim() || !newDocUrl.trim()) return;
+    const ext = newDocName.split(".").pop()?.toUpperCase() || "DOC";
+    setFormAttachments((prev) => [
+      ...prev,
+      {
+        id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        name: newDocName.trim(),
+        url: newDocUrl.trim(),
+        size: newDocSize.trim() || undefined,
+        type: ext,
+      },
+    ]);
+    setNewDocName("");
+    setNewDocUrl("");
+    setNewDocSize("");
+    setShowAddDocModal(false);
+  }
+
+  function handleRemoveAttachment(id: string) {
+    setFormAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
   const filtered = materials.filter((m) => {
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -107,6 +178,11 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
     setFormFileName("");
     setFormFileSize("");
     setFormTags("");
+    setFormAttachments([]);
+    setShowAddDocModal(false);
+    setNewDocName("");
+    setNewDocUrl("");
+    setNewDocSize("");
     setErrorMessage(null);
     setModalOpen(true);
   };
@@ -122,6 +198,11 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
     setFormFileName(item.fileName || "");
     setFormFileSize(item.fileSize || "");
     setFormTags(item.tags || "");
+    setFormAttachments(parseAttachments(item.attachments));
+    setShowAddDocModal(false);
+    setNewDocName("");
+    setNewDocUrl("");
+    setNewDocSize("");
     setErrorMessage(null);
     setModalOpen(true);
   };
@@ -131,16 +212,22 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
     setLoading(true);
     setErrorMessage(null);
 
+    const attachmentsJson = formAttachments.length > 0 ? JSON.stringify(formAttachments) : null;
+    const computedFileName = formFileName || (formAttachments[0]?.name) || null;
+    const computedFileSize = formFileSize || (formAttachments.length > 0 ? `${formAttachments.length} Dokumen` : null);
+    const computedFileUrl = formFileUrl || (formAttachments[0]?.url) || null;
+
     const payload = {
       title: formTitle,
       subjectId: formSubjectId || null,
       type: formType,
       description: formDescription || null,
-      fileUrl: formFileUrl || null,
+      fileUrl: computedFileUrl,
       externalUrl: formExternalUrl || null,
-      fileName: formFileName || null,
-      fileSize: formFileSize || null,
+      fileName: computedFileName,
+      fileSize: computedFileSize,
       tags: formTags || null,
+      attachments: attachmentsJson,
     };
 
     try {
@@ -162,11 +249,12 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                   subjectId: formSubjectId,
                   type: formType,
                   description: formDescription,
-                  fileUrl: formFileUrl,
+                  fileUrl: computedFileUrl,
                   externalUrl: formExternalUrl,
-                  fileName: formFileName,
-                  fileSize: formFileSize,
+                  fileName: computedFileName,
+                  fileSize: computedFileSize,
                   tags: formTags,
+                  attachments: attachmentsJson,
                   subject: targetSubject ? { ...targetSubject } : m.subject,
                 }
               : m
@@ -187,11 +275,12 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
           subjectId: formSubjectId,
           type: formType,
           description: formDescription,
-          fileUrl: formFileUrl,
+          fileUrl: computedFileUrl,
           externalUrl: formExternalUrl,
-          fileName: formFileName,
-          fileSize: formFileSize,
+          fileName: computedFileName,
+          fileSize: computedFileSize,
           tags: formTags,
+          attachments: attachmentsJson,
           createdAt: new Date(),
           subject: targetSubject ? { ...targetSubject } : undefined,
           uploader: { id: "admin", name: "Admin", role: "ADMIN" },
@@ -311,6 +400,16 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                         {mat.fileName} {mat.fileSize && `(${mat.fileSize})`}
                       </div>
                     )}
+                    {(() => {
+                      const atts = parseAttachments(mat.attachments);
+                      if (atts.length === 0) return null;
+                      return (
+                        <div className="mt-1 flex items-center gap-1 text-[10px] font-mono text-purple-400 light:text-purple-600 font-semibold">
+                          <Layers size={11} />
+                          <span>{atts.length} Dokumen Lampiran</span>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="py-3 px-4">
                     {mat.subject ? (
@@ -463,6 +562,150 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                   placeholder="Ringkasan poin-poin yang dibahas dalam materi ini..."
                   className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none"
                 />
+              </div>
+
+              {/* Dokumen & Lampiran Materi Section */}
+              <div className="p-3.5 rounded-xl border border-cyan-500/25 light:border-slate-200 bg-[#040813]/60 light:bg-slate-50/70 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="block text-slate-200 light:text-slate-800 font-bold flex items-center gap-1.5">
+                      <Layers size={14} className="text-purple-400" />
+                      Dokumen & Lampiran Materi ({formAttachments.length})
+                    </label>
+                    <p className="text-[11px] text-slate-400 light:text-slate-500">
+                      Bisa unggah banyak file (PDF, PPT, Word, Excel) atau tambah tautan Google Drive / Cloud.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <input
+                      type="file"
+                      multiple
+                      ref={docFileInputRef}
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar"
+                      className="hidden"
+                      onChange={handleFilesUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => docFileInputRef.current?.click()}
+                      className="px-2.5 py-1.5 rounded-lg bg-purple-500/20 light:bg-purple-100 hover:bg-purple-500/30 text-purple-300 light:text-purple-700 font-bold text-xs flex items-center gap-1 border border-purple-500/30 light:border-purple-200 transition-colors shadow-xs"
+                    >
+                      <Upload size={12} />
+                      <span>Unggah File</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddDocModal((prev) => !prev)}
+                      className="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 light:bg-blue-100 hover:bg-cyan-500/30 text-cyan-300 light:text-blue-700 font-bold text-xs flex items-center gap-1 border border-cyan-500/30 light:border-blue-200 transition-colors shadow-xs"
+                    >
+                      <Plus size={12} />
+                      <span>Tambah Link</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Attached documents list */}
+                {formAttachments.length > 0 ? (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {formAttachments.map((att) => (
+                      <div
+                        key={att.id}
+                        className="flex items-center justify-between p-2.5 rounded-lg bg-black/40 light:bg-white border border-cyan-500/20 light:border-slate-200 text-xs gap-2"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className="px-1.5 py-0.5 rounded font-mono font-bold text-[9px] uppercase bg-cyan-500/20 light:bg-blue-100 text-cyan-300 light:text-blue-700 shrink-0">
+                            {att.type || "DOC"}
+                          </span>
+                          <span className="font-semibold text-white light:text-slate-900 truncate" title={att.name}>
+                            {att.name}
+                          </span>
+                          {att.size && (
+                            <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                              ({att.size})
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {att.url && (
+                            <a
+                              href={att.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1 rounded text-slate-400 hover:text-cyan-300 light:hover:text-blue-600"
+                              title="Buka / Cek"
+                            >
+                              <ExternalLink size={13} />
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAttachment(att.id)}
+                            className="p-1 rounded text-slate-400 hover:text-rose-400"
+                            title="Hapus Dokumen"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 text-center rounded-lg border border-dashed border-slate-700 light:border-slate-300 text-[11px] text-slate-400">
+                    Belum ada lampiran berkas dokumen. Klik <b>"Unggah File"</b> untuk memilih berkas dari komputer (bisa banyak file sekaligus) atau <b>"Tambah Link"</b> untuk memasukkan link Google Drive/Cloud.
+                  </div>
+                )}
+
+                {/* Inline Add Link Form if toggled */}
+                {showAddDocModal && (
+                  <div className="p-3 rounded-lg bg-black/60 light:bg-white border border-cyan-400/30 light:border-blue-200 space-y-2">
+                    <div className="font-bold text-xs text-cyan-300 light:text-blue-700">
+                      Tambah Dokumen via URL / Google Drive
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Nama Dokumen (misal: Slide Pertemuan 02.pptx)"
+                        value={newDocName}
+                        onChange={(e) => setNewDocName(e.target.value)}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 text-xs"
+                      />
+                      <input
+                        type="url"
+                        placeholder="Tautan URL / Drive: https://..."
+                        value={newDocUrl}
+                        onChange={(e) => setNewDocUrl(e.target.value)}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 text-xs"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <input
+                        type="text"
+                        placeholder="Perkiraan Ukuran (opsional, misal: 2.1 MB)"
+                        value={newDocSize}
+                        onChange={(e) => setNewDocSize(e.target.value)}
+                        className="w-1/2 px-2.5 py-1.5 rounded-lg bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 text-xs"
+                      />
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddDocModal(false)}
+                          className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white light:hover:text-slate-900 text-xs"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAddLinkDoc}
+                          disabled={!newDocName.trim() || !newDocUrl.trim()}
+                          className="px-3 py-1 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xs disabled:opacity-50"
+                        >
+                          Simpan Dokumen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

@@ -20,6 +20,15 @@ const optionalUrl = z
   .optional()
   .nullable();
 
+const optionalPhotoUrl = z
+  .string()
+  .trim()
+  .refine((val) => val === "" || /^https?:\/\/.+/i.test(val) || /^data:image\/.+/i.test(val) || val.startsWith("/"), {
+    message: "Must be a valid URL or image",
+  })
+  .optional()
+  .nullable();
+
 // 1. Auth Schemas
 export const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
@@ -63,13 +72,14 @@ export const studentSchema = z.object({
     .nullable()
     .transform((val) => (val === "" ? null : val)),
   major: z.string().trim().min(2, "Major is required"),
-  photoUrl: optionalUrl,
+  photoUrl: optionalPhotoUrl,
   bio: z.string().trim().max(1000).optional().nullable(),
   dream: z.string().trim().max(255).optional().nullable(),
   motivation: z.string().trim().max(1000).optional().nullable(),
   githubUrl: optionalUrl,
   linkedinUrl: optionalUrl,
   portfolioUrl: optionalUrl,
+  instagramUrl: optionalUrl,
 });
 export type StudentInput = z.infer<typeof studentSchema>;
 
@@ -152,6 +162,7 @@ export const materialSchema = z.object({
   fileName: z.string().trim().max(255).optional().nullable(),
   fileSize: z.string().trim().max(50).optional().nullable(),
   tags: z.string().trim().max(255).optional().nullable(),
+  attachments: z.string().optional().nullable(),
 });
 export type MaterialInput = z.infer<typeof materialSchema>;
 

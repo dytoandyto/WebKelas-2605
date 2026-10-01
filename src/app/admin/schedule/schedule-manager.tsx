@@ -1,7 +1,21 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, User, Loader2, AlertTriangle } from "lucide-react";
+import React, { useState, useTransition, useMemo } from "react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  Loader2,
+  AlertTriangle,
+  Search,
+  LayoutGrid,
+  List as ListIcon,
+  X,
+} from "lucide-react";
 import { Modal } from "@/components/admin/modal";
 import { DeleteDialog } from "@/components/admin/delete-dialog";
 import {
@@ -69,6 +83,8 @@ const DAY_LABELS: Record<DayOfWeek, string> = {
 export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerProps) {
   const [schedules, setSchedules] = useState<ScheduleItem[]>(initialSchedules);
   const [selectedDay, setSelectedDay] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [isPending, startTransition] = useTransition();
 
   // Form modal state
@@ -107,7 +123,6 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
   const conflictingSlots = schedules.filter((s) => {
     if (editingSchedule && s.id === editingSchedule.id) return false;
     if (s.dayOfWeek !== formData.dayOfWeek) return false;
-    // Check overlap: startA < endB && endA > startB
     return formData.startTime < s.endTime && formData.endTime > s.startTime;
   });
 
@@ -158,15 +173,15 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
     setFormError(null);
 
     if (!formData.subjectId) {
-      setFormError("Please select a subject.");
+      setFormError("Pilih mata kuliah.");
       return;
     }
     if (!formData.room.trim()) {
-      setFormError("Room/Location is required.");
+      setFormError("Ruangan / Lokasi harus diisi.");
       return;
     }
     if (formData.startTime >= formData.endTime) {
-      setFormError("Start time must be earlier than end time.");
+      setFormError("Jam mulai harus lebih awal dari jam selesai.");
       return;
     }
 
@@ -174,7 +189,7 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
       if (editingSchedule) {
         const res = await updateScheduleAction(editingSchedule.id, formData);
         if (!res.success) {
-          setFormError(res.error || "Failed to update schedule.");
+          setFormError(res.error || "Gagal memperbarui jadwal.");
         } else {
           const selectedSub = subjects.find((s) => s.id === formData.subjectId) || null;
           setSchedules((prev) =>
@@ -193,7 +208,7 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
       } else {
         const res = await createScheduleAction(formData);
         if (!res.success) {
-          setFormError(res.error || "Failed to create schedule.");
+          setFormError(res.error || "Gagal menambahkan jadwal.");
         } else {
           const selectedSub = subjects.find((s) => s.id === formData.subjectId) || null;
           const newSchedule: ScheduleItem = {
@@ -216,30 +231,55 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
     }
   }
 
-  const filteredSchedules = schedules.filter((s) => {
-    if (selectedDay === "ALL") return true;
-    return s.dayOfWeek === selectedDay;
-  });
+  // Filtered schedules with day and search query
+  const filteredSchedules = useMemo(() => {
+    return schedules
+      .filter((s) => {
+        if (selectedDay !== "ALL" && s.dayOfWeek !== selectedDay) {
+          return false;
+        }
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const matchSub = s.subject?.name.toLowerCase().includes(q);
+          const matchCode = s.subject?.code.toLowerCase().includes(q);
+          const matchRoom = s.room.toLowerCase().includes(q);
+          const matchLect = (s.lecturerName || "").toLowerCase().includes(q);
+          const matchClass = (s.className || "").toLowerCase().includes(q);
+          if (!matchSub && !matchCode && !matchRoom && !matchLect && !matchClass) {
+            return false;
+          }
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const dayOrder = DAYS.indexOf(a.dayOfWeek) - DAYS.indexOf(b.dayOfWeek);
+        if (dayOrder !== 0) return dayOrder;
+        return a.startTime.localeCompare(b.startTime);
+      });
+  }, [schedules, selectedDay, searchQuery]);
 
   return (
-    <div className="space-y-6">
-      {/* Top Controls: Day Tabs + Add button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Day Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+    <div className="space-y-4 sm:space-y-5">
+      {/* Action Bar: Day Segmented Tabs, Search & Action Button */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+        {/* Compact Segmented Day Navigation */}
+        <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-900/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setSelectedDay("ALL")}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
+              "px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer",
               selectedDay === "ALL"
-                ? "bg-brand-600 text-white shadow-xs"
-                : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
+                ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             )}
           >
-            Semua Hari ({schedules.length})
+            <span>All</span>
+            <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+              {schedules.length}
+            </span>
           </button>
-          {DAYS.map((day) => {
+          {DAYS.filter((d) => d !== "SUNDAY").map((day) => {
             const count = schedules.filter((s) => s.dayOfWeek === day).length;
             return (
               <button
@@ -247,110 +287,244 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
                 type="button"
                 onClick={() => setSelectedDay(day)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
+                  "px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer",
                   selectedDay === day
-                    ? "bg-brand-600 text-white shadow-xs"
-                    : "bg-surface text-text-secondary border border-border hover:bg-surface-elevated"
+                    ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 )}
               >
-                {DAY_LABELS[day]} {count > 0 && `(${count})`}
+                <span>{DAY_LABELS[day]}</span>
+                <span
+                  className={cn(
+                    "text-[11px] font-mono",
+                    count > 0
+                      ? "text-slate-500 dark:text-slate-400 font-medium"
+                      : "text-slate-400 dark:text-slate-600"
+                  )}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm self-start sm:self-auto"
-        >
-          <Plus size={16} />
-          <span>Add Schedule</span>
-        </button>
+        {/* Right Controls: Search, View Switcher & Primary Action */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 sm:w-72 md:w-80">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder="Search subjects, rooms, lecturers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9.5 pl-8.5 pr-8 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors shadow-2xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                title="Clear search"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-900/80 rounded-lg border border-slate-200/80 dark:border-slate-800 shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "p-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer",
+                viewMode === "table"
+                  ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+              )}
+              title="Table View"
+            >
+              <ListIcon size={15} />
+              <span className="hidden sm:inline text-xs font-semibold">Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "p-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer",
+                viewMode === "grid"
+                  ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+              )}
+              title="Weekly Timetable Grid"
+            >
+              <LayoutGrid size={15} />
+              <span className="hidden sm:inline text-xs font-semibold">Timetable</span>
+            </button>
+          </div>
+
+          {/* Add Schedule Button */}
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="h-9.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
+          >
+            <Plus size={16} />
+            <span>Add Schedule</span>
+          </button>
+        </div>
       </div>
 
-      {/* Schedules List / Table */}
-      <div className="card border border-border bg-card shadow-xs overflow-hidden">
-        {filteredSchedules.length === 0 ? (
-          <div className="p-12 text-center">
-            <Calendar className="w-10 h-10 text-text-muted mx-auto mb-3 opacity-40" />
-            <p className="text-sm font-semibold text-text-primary">No schedules found</p>
-            <p className="text-xs text-text-muted mt-1">
-              {selectedDay === "ALL"
-                ? "Click 'Add Schedule' to create class slots."
-                : `No class schedule for ${DAY_LABELS[selectedDay as DayOfWeek] || selectedDay}.`}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-text-secondary">
-              <thead className="bg-surface text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border">
-                <tr>
-                  <th className="py-3.5 px-6">Hari & Jam</th>
-                  <th className="py-3.5 px-6">Mata Kuliah</th>
-                  <th className="py-3.5 px-6">Ruangan & Kelas</th>
-                  <th className="py-3.5 px-6">Dosen Pengampu</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border bg-card">
+      {/* Main View Area */}
+      {viewMode === "table" ? (
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1427] shadow-2xs overflow-hidden">
+          {filteredSchedules.length === 0 ? (
+            <div className="p-12 text-center">
+              <Calendar className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                No schedule slots found
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                {searchQuery
+                  ? `Tidak ditemukan jadwal yang cocok dengan kata kunci "${searchQuery}".`
+                  : selectedDay === "ALL"
+                  ? "Belum ada jadwal yang didaftarkan. Klik 'Add Schedule' untuk membuat sesi kelas baru."
+                  : `Tidak ada jadwal perkuliahan untuk hari ${DAY_LABELS[selectedDay as DayOfWeek] || selectedDay}.`}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50/90 dark:bg-slate-900/60 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                      <th className="py-3 px-6">DAY & TIME</th>
+                      <th className="py-3 px-6">SUBJECT</th>
+                      <th className="py-3 px-6">ROOM & VENUE</th>
+                      <th className="py-3 px-6">LECTURER</th>
+                      <th className="py-3 px-6 text-right">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                    {filteredSchedules.map((schedule) => (
+                      <tr
+                        key={schedule.id}
+                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                      >
+                        {/* Day & Time */}
+                        <td className="py-4.5 px-6 whitespace-nowrap">
+                          <div className="font-semibold text-sm text-slate-900 dark:text-white">
+                            {DAY_LABELS[schedule.dayOfWeek]}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono font-medium">
+                            <Clock size={13} className="shrink-0 text-slate-400" />
+                            <span>
+                              {schedule.startTime} &ndash; {schedule.endTime}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-sans font-normal">
+                              WIB
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Subject Title, Code & SKS */}
+                        <td className="py-4.5 px-6">
+                          <div className="font-semibold text-sm text-slate-900 dark:text-white leading-snug">
+                            {schedule.subject?.name || "Unknown Subject"}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              {schedule.subject?.code}
+                            </span>
+                            {schedule.subject?.sks && (
+                              <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                                · {schedule.subject.sks} SKS
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Room, Class & Notes */}
+                        <td className="py-4.5 px-6">
+                          <div className="flex items-center gap-1.5 font-semibold text-sm text-slate-900 dark:text-white font-mono">
+                            <MapPin size={14} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                            <span>{schedule.room}</span>
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                            {schedule.className || "JS1SI-26-REG-05"}
+                          </div>
+                          {schedule.notes && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 max-w-xs">
+                              {schedule.notes}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Lecturer & Semester */}
+                        <td className="py-4.5 px-6">
+                          <div className="font-medium text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <User size={14} className="text-slate-400 shrink-0" />
+                            <span>{schedule.lecturerName || "Belum ditentukan"}</span>
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            {schedule.semester || "Semester Ganjil 2026/2027"}
+                          </div>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-4.5 px-6 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(schedule)}
+                              className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 dark:text-slate-400 dark:hover:text-blue-400 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-colors cursor-pointer"
+                              title="Edit Schedule"
+                              aria-label="Edit"
+                            >
+                              <Edit2 size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDeleteDialog(schedule)}
+                              className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-colors cursor-pointer"
+                              title="Delete Schedule"
+                              aria-label="Delete"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Responsive Cards */}
+              <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/80">
                 {filteredSchedules.map((schedule) => (
-                  <tr key={schedule.id} className="hover:bg-surface/50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="font-semibold text-text-primary">
-                        {DAY_LABELS[schedule.dayOfWeek]}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-text-muted mt-0.5 font-mono">
-                        <Clock size={12} />
-                        <span>
-                          {schedule.startTime} &ndash; {schedule.endTime} WIB
+                  <div key={schedule.id} className="p-4 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-900 dark:text-white">
+                          {DAY_LABELS[schedule.dayOfWeek]}
+                        </span>
+                        <span className="text-slate-300 dark:text-slate-700">·</span>
+                        <span className="text-xs font-mono font-medium text-blue-600 dark:text-blue-400">
+                          {schedule.startTime} - {schedule.endTime} WIB
                         </span>
                       </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="font-semibold text-text-primary">
-                        {schedule.subject?.name || "Unknown Subject"}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-                          {schedule.subject?.code}
-                        </span>
-                        {schedule.subject?.sks && (
-                          <span className="text-[11px] text-text-muted">
-                            {schedule.subject.sks} SKS
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-1.5 text-text-primary font-medium">
-                        <MapPin size={14} className="text-brand-500 shrink-0" />
-                        <span className="truncate font-mono">{schedule.room}</span>
-                      </div>
-                      <p className="text-[11px] text-text-muted mt-0.5">
-                        {schedule.className || "JS1SI-26-REG-05"}
-                      </p>
-                      {schedule.notes && (
-                        <p className="text-xs text-text-muted mt-0.5 truncate max-w-xs italic">
-                          {schedule.notes}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-1.5 text-text-primary">
-                        <User size={14} className="text-text-muted shrink-0" />
-                        <span>{schedule.lecturerName || "Belum ditentukan"}</span>
-                      </div>
-                      <p className="text-[11px] text-text-muted mt-0.5">
-                        {schedule.semester || "Semester Ganjil 2026/2027"}
-                      </p>
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() => openEditModal(schedule)}
-                          className="p-1.5 rounded-lg text-text-muted hover:text-brand-500 hover:bg-surface transition-colors"
+                          className="p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           title="Edit"
                         >
                           <Edit2 size={15} />
@@ -358,20 +532,119 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
                         <button
                           type="button"
                           onClick={() => openDeleteDialog(schedule)}
-                          className="p-1.5 rounded-lg text-text-muted hover:text-rose-500 hover:bg-surface transition-colors"
+                          className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           title="Delete"
                         >
                           <Trash2 size={15} />
                         </button>
                       </div>
-                    </td>
-                  </tr>
+                    </div>
+
+                    <div>
+                      <div className="font-semibold text-sm text-slate-900 dark:text-white">
+                        {schedule.subject?.name || "Unknown Subject"}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                          {schedule.subject?.code}
+                        </span>
+                        {schedule.subject?.sks && (
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            · {schedule.subject.sks} SKS
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                      <div className="flex items-center gap-1 font-mono text-slate-700 dark:text-slate-300">
+                        <MapPin size={13} className="text-blue-600 shrink-0" />
+                        <span>{schedule.room}</span>
+                        <span className="text-slate-400">({schedule.className || "JS1SI-26-REG-05"})</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User size={13} className="text-slate-400 shrink-0" />
+                        <span>{schedule.lecturerName || "Belum ditentukan"}</span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        /* Weekly Timetable Grid View */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+          {DAYS.filter((d) => d !== "SUNDAY").map((day) => {
+            const daySchedules = schedules
+              .filter((s) => s.dayOfWeek === day)
+              .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+            return (
+              <div
+                key={day}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1427] p-3.5 flex flex-col min-h-[220px] shadow-2xs"
+              >
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+                  <span className="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">
+                    {DAY_LABELS[day]}
+                  </span>
+                  <span className="text-[11px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                    {daySchedules.length}
+                  </span>
+                </div>
+
+                {daySchedules.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center text-xs text-slate-400 dark:text-slate-600">
+                    Tidak ada jadwal
+                  </div>
+                ) : (
+                  <div className="space-y-2 flex-1">
+                    {daySchedules.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 hover:border-blue-300 dark:hover:border-blue-700/60 transition-colors group relative"
+                      >
+                        <div className="flex items-center justify-between text-[11px] font-mono font-medium text-blue-600 dark:text-blue-400">
+                          <span>
+                            {item.startTime} - {item.endTime}
+                          </span>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(item)}
+                              className="p-0.5 text-slate-400 hover:text-blue-600"
+                              title="Edit"
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDeleteDialog(item)}
+                              className="p-0.5 text-slate-400 hover:text-rose-600"
+                              title="Delete"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="font-semibold text-xs text-slate-900 dark:text-white mt-1 line-clamp-2">
+                          {item.subject?.name}
+                        </div>
+                        <div className="flex items-center justify-between mt-1 text-[10px] text-slate-500 font-mono">
+                          <span>📍 {item.room}</span>
+                          <span>{item.subject?.sks} SKS</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Create / Edit Modal */}
       <Modal
@@ -383,15 +656,15 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
       >
         <form onSubmit={handleFormSubmit} className="space-y-4">
           {formError && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-600 dark:text-red-400">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-lg text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
           {conflictingSlots.length > 0 && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-700 dark:text-amber-400 space-y-1">
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-lg text-xs text-amber-800 dark:text-amber-300 space-y-1">
               <div className="flex items-center gap-1.5 font-semibold">
-                <AlertTriangle size={14} className="shrink-0" />
+                <AlertTriangle size={14} className="shrink-0 text-amber-600 dark:text-amber-400" />
                 <span>Peringatan Konflik Jadwal:</span>
               </div>
               <ul className="list-disc list-inside text-[11px] space-y-0.5 pl-1">
@@ -401,15 +674,17 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
                   </li>
                 ))}
               </ul>
-              <p className="text-[10px] text-text-muted mt-1">
+              <p className="text-[10px] text-amber-600 dark:text-amber-400/80 mt-1">
                 * Anda tetap dapat menyimpan jadwal ini jika kelas paralel atau asistensi bersamaan.
               </p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Subject *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Subject <span className="text-rose-500">*</span>
+              </label>
               <select
                 value={formData.subjectId}
                 onChange={(e) => {
@@ -421,7 +696,7 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
                     lecturerName: found?.lecturerName || formData.lecturerName,
                   });
                 }}
-                className="form-select text-sm w-full bg-surface border-border text-text-primary"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors cursor-pointer"
                 required
               >
                 {subjects.map((sub) => (
@@ -433,13 +708,15 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
             </div>
 
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Hari (Day of the Week) *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Hari (Day of the Week) <span className="text-rose-500">*</span>
+              </label>
               <select
                 value={formData.dayOfWeek}
                 onChange={(e) =>
                   setFormData({ ...formData, dayOfWeek: e.target.value as DayOfWeek })
                 }
-                className="form-select text-sm w-full bg-surface border-border text-text-primary"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors cursor-pointer"
                 required
               >
                 {DAYS.map((day) => (
@@ -451,87 +728,101 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Jam Mulai (WIB) *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Jam Mulai (WIB) <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full font-mono focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
                 required
               />
             </div>
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Jam Selesai (WIB) *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Jam Selesai (WIB) <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full font-mono focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
                 required
               />
             </div>
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Ruangan / Lokasi *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Ruangan / Lokasi <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="text"
                 placeholder="e.g. RLC.KJ.05.001"
                 value={formData.room}
                 onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full font-mono focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
                 required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Dosen Pengampu</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Dosen Pengampu
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Nama Dosen / Asisten"
                 value={formData.lecturerName}
                 onChange={(e) => setFormData({ ...formData, lecturerName: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Kelas</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Kelas
+              </label>
               <input
                 type="text"
                 value={formData.className}
                 onChange={(e) => setFormData({ ...formData, className: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary font-mono"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full font-mono focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Semester & Periode</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Semester & Periode
+              </label>
               <input
                 type="text"
                 value={formData.semester}
                 onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
-                className="form-input text-sm w-full bg-surface border-border text-text-primary"
+                className="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Catatan / Keterangan (Opsional)</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Catatan / Keterangan (Opsional)
+            </label>
             <textarea
               placeholder="e.g. Praktikum di Lab Pemrograman, bawa laptop terinstall IDE..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="form-textarea text-sm w-full bg-surface border-border text-text-primary"
+              className="min-h-[80px] p-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               rows={2}
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="h-9.5 px-4 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
               disabled={isPending}
             >
               Cancel
@@ -539,10 +830,10 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="h-9.5 px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingSchedule ? "Save Changes" : "Create Slot"}
+              <span>{editingSchedule ? "Save Changes" : "Create Slot"}</span>
             </button>
           </div>
         </form>
@@ -564,4 +855,3 @@ export function ScheduleManager({ initialSchedules, subjects }: ScheduleManagerP
     </div>
   );
 }
-

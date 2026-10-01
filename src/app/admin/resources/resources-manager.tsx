@@ -327,27 +327,31 @@ export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
         description="Share reference websites, course drives, syllabus docs, or tools."
         maxWidth="md"
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
           <div>
-            <label className="form-label">Resource Title *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Resource Title <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. Official Class Google Drive"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Category *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Category <span className="text-rose-500">*</span>
+            </label>
             <select
               value={formData.category}
               onChange={(e) =>
@@ -356,7 +360,7 @@ export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
                   category: e.target.value as ResourceCategory,
                 })
               }
-              className="form-select text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors cursor-pointer"
             >
               {Object.keys(ResourceCategory).map((cat) => (
                 <option key={cat} value={cat}>
@@ -367,35 +371,39 @@ export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
           </div>
 
           <div>
-            <label className="form-label">URL Destination *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              URL Destination <span className="text-rose-500">*</span>
+            </label>
             <input
               type="url"
               placeholder="https://drive.google.com/..."
               value={formData.url}
               onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Description (Optional)</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Description (Optional)
+            </label>
             <textarea
               placeholder="Brief explanation of how to use this resource..."
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="form-textarea text-sm w-full"
+              className="min-h-[90px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               rows={2}
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
               disabled={isPending}
             >
               Cancel
@@ -403,10 +411,10 @@ export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingResource ? "Save Changes" : "Add Link"}
+              <span>{editingResource ? "Save Changes" : "Add Link"}</span>
             </button>
           </div>
         </form>

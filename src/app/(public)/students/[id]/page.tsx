@@ -11,7 +11,7 @@ import {
   Star,
   User,
 } from "lucide-react";
-import { GithubIcon, LinkedinIcon } from "@/components/icons";
+import { GithubIcon, LinkedinIcon, InstagramIcon } from "@/components/icons";
 import { getStudentById } from "@/lib/data";
 import { formatDate, cn } from "@/lib/utils";
 import { AchievementCategory } from "@prisma/client";
@@ -154,6 +154,18 @@ export default async function StudentDetailPage({
                   >
                     <Globe size={14} />
                     <span>Portfolio</span>
+                  </a>
+                )}
+                {(student as any).instagramUrl && (
+                  <a
+                    href={(student as any).instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-pink-500 hover:text-pink-600 hover:border-pink-500 text-xs font-semibold transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <InstagramIcon size={14} />
+                    <span>Instagram</span>
                   </a>
                 )}
               </div>

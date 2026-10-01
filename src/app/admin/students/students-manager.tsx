@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -11,7 +11,10 @@ import {
   ExternalLink,
   Loader2,
   Star,
+  Upload,
+  X,
 } from "lucide-react";
+import { InstagramIcon } from "@/components/icons";
 import { Modal } from "@/components/admin/modal";
 import { DeleteDialog } from "@/components/admin/delete-dialog";
 import {
@@ -33,6 +36,7 @@ interface StudentItem {
   githubUrl?: string | null;
   linkedinUrl?: string | null;
   portfolioUrl?: string | null;
+  instagramUrl?: string | null;
   achievements?: any[];
 }
 
@@ -50,6 +54,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentItem | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     studentNumber: "",
@@ -61,8 +66,32 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
     githubUrl: "",
     linkedinUrl: "",
     portfolioUrl: "",
+    instagramUrl: "",
   });
   const [formError, setFormError] = useState<string | null>(null);
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setFormError("Ukuran file foto maksimal 2MB.");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setFormError("File harus berupa gambar (JPG, PNG, WebP, dll).");
+      return;
+    }
+
+    setFormError(null);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setFormData((prev) => ({ ...prev, photoUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  }
 
   // Delete State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -81,7 +110,9 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
       githubUrl: "",
       linkedinUrl: "",
       portfolioUrl: "",
+      instagramUrl: "",
     });
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setFormError(null);
     setModalOpen(true);
   }
@@ -99,7 +130,9 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
       githubUrl: student.githubUrl || "",
       linkedinUrl: student.linkedinUrl || "",
       portfolioUrl: student.portfolioUrl || "",
+      instagramUrl: student.instagramUrl || "",
     });
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setFormError(null);
     setModalOpen(true);
   }
@@ -134,6 +167,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
         githubUrl: formData.githubUrl.trim() || null,
         linkedinUrl: formData.linkedinUrl.trim() || null,
         portfolioUrl: formData.portfolioUrl.trim() || null,
+        instagramUrl: formData.instagramUrl.trim() || null,
       };
 
       if (editingStudent) {
@@ -207,7 +241,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
           </div>
 
           {/* Major Select */}
-          {majors.length > 0 && (
+          {/* {majors.length > 0 && (
             <select
               value={selectedMajor}
               onChange={(e) => setSelectedMajor(e.target.value)}
@@ -220,7 +254,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
                 </option>
               ))}
             </select>
-          )}
+          )} */}
         </div>
 
         <button
@@ -310,6 +344,17 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {st.instagramUrl && (
+                          <a
+                            href={st.instagramUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn btn-ghost btn-icon p-1.5 text-pink-500 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-950/30"
+                            title="Instagram"
+                          >
+                            <InstagramIcon size={15} />
+                          </a>
+                        )}
                         <Link
                           href={`/students/${st.id}`}
                           target="_blank"
@@ -352,136 +397,215 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
         description="Fill in academic background, personal bio, and social links."
         maxWidth="lg"
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label">Full Name *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Full Name <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Alex Pratama"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
                 required
               />
             </div>
 
             <div>
-              <label className="form-label">Student ID / NIM (Optional)</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Student ID / NIM (Optional)
+              </label>
               <input
                 type="text"
                 placeholder="e.g. 220601201"
                 value={formData.studentNumber}
                 onChange={(e) => setFormData({ ...formData, studentNumber: e.target.value })}
-                className="form-input text-sm font-mono w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 font-mono text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label">Major / Department *</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Major / Department <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Computer Science or Information Systems"
                 value={formData.major}
                 onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
                 required
               />
             </div>
 
             <div>
-              <label className="form-label">Profile Photo URL (Optional)</label>
-              <input
-                type="url"
-                placeholder="https://..."
-                value={formData.photoUrl}
-                onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                className="form-input text-sm w-full"
-              />
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Foto Profil (Opsional)
+              </label>
+              <div className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0 border-2 border-white dark:border-slate-800 shadow-xs">
+                  {formData.photoUrl ? (
+                    <img
+                      src={formData.photoUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Users size={22} className="text-white/80" />
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-xs"
+                    >
+                      <Upload size={13} />
+                      <span>{formData.photoUrl ? "Ganti Foto" : "Pilih File Foto"}</span>
+                    </button>
+                    {formData.photoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, photoUrl: "" }));
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 flex items-center gap-1 transition-colors"
+                      >
+                        <X size={13} />
+                        <span>Hapus</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Bisa unggah file (JPG/PNG/WebP maks 2MB) atau masukkan URL foto di bawah.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-2">
+                <input
+                  type="url"
+                  placeholder="Atau masukkan URL foto langsung: https://..."
+                  value={formData.photoUrl.startsWith("data:") ? "" : formData.photoUrl}
+                  onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+                  className="h-9 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+                />
+              </div>
             </div>
           </div>
 
           <div>
-            <label className="form-label">Bio & Background</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Bio & Background
+            </label>
             <textarea
               placeholder="Tell about background, tech stack interests, or hobbies..."
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="form-textarea text-sm w-full"
+              className="min-h-[85px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               rows={2}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="form-label">Career Dream / Aspiration</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Career Dream / Aspiration
+              </label>
               <input
                 type="text"
                 placeholder="e.g. AI Research Scientist"
                 value={formData.dream}
                 onChange={(e) => setFormData({ ...formData, dream: e.target.value })}
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="form-label">Personal Motto / Motivation</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Personal Motto / Motivation
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Keep pushing boundaries every day"
                 value={formData.motivation}
                 onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
-                className="form-input text-sm w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <div>
-              <label className="form-label">GitHub URL</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5 flex items-center gap-1.5">
+                <InstagramIcon size={14} className="text-pink-500" />
+                Instagram URL
+              </label>
+              <input
+                type="url"
+                placeholder="https://instagram.com/..."
+                value={formData.instagramUrl}
+                onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">GitHub URL</label>
               <input
                 type="url"
                 placeholder="https://github.com/..."
                 value={formData.githubUrl}
                 onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                className="form-input text-xs w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="form-label">LinkedIn URL</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">LinkedIn URL</label>
               <input
                 type="url"
                 placeholder="https://linkedin.com/in/..."
                 value={formData.linkedinUrl}
                 onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                className="form-input text-xs w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="form-label">Portfolio URL</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">Portfolio URL</label>
               <input
                 type="url"
                 placeholder="https://mywebsite.dev"
                 value={formData.portfolioUrl}
                 onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
-                className="form-input text-xs w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
               disabled={isPending}
             >
               Cancel
@@ -489,10 +613,10 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingStudent ? "Save Changes" : "Add Student"}
+              <span>{editingStudent ? "Save Changes" : "Add Student"}</span>
             </button>
           </div>
         </form>

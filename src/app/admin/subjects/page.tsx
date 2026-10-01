@@ -4,20 +4,20 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { SubjectsManager } from "./subjects-manager";
 
 export const metadata: Metadata = {
-  title: "Subjects & Courses Management",
-  description: "Manage curriculum subjects, lecturers, and courses.",
+  title: "Course Subjects Management",
+  description: "Manage university curriculum modules, SKS credits, and lecturer leads.",
 };
 
 export default async function AdminSubjectsPage() {
   const { subjects } = await getSubjectsData();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary">
+    <div className="space-y-6">
       <AdminHeader
-        title="Subjects & Courses"
-        description="Configure academic subjects, syllabus descriptions, and lecturer assignments."
+        title="Subjects & Modules"
+        description="Configure academic coursework modules, credit values, syllabus goals, and professors."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <SubjectsManager initialSubjects={subjects} />
       </div>
     </div>

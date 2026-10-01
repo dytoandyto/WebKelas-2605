@@ -12,12 +12,12 @@ export default async function AdminAnnouncementsPage() {
   const { announcements } = await getAnnouncementsData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="space-y-6">
       <AdminHeader
         title="Class Announcements"
         description="Draft, publish, and broadcast notices to all enrolled students and visitors."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <AnnouncementsManager initialAnnouncements={announcements} />
       </div>
     </div>

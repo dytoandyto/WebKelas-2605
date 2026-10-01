@@ -209,22 +209,25 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Controls Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Role Filters */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+        {/* Role Segmented Tabs */}
+        <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-900/80 rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setRoleFilter("ALL")}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
+              "px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer",
               roleFilter === "ALL"
-                ? "bg-brand-600 text-white shadow-xs"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             )}
           >
-            All Users ({users.length})
+            <span>All Users</span>
+            <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+              {users.length}
+            </span>
           </button>
           {Object.entries(ROLE_BADGE).map(([roleKey, badge]) => {
             const count = users.filter((u) => u.role === roleKey).length;
@@ -234,35 +237,43 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
                 type="button"
                 onClick={() => setRoleFilter(roleKey)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
+                  "px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer",
                   roleFilter === roleKey
-                    ? "bg-brand-600 text-white shadow-xs"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 )}
               >
-                {badge.label} {count > 0 && `(${count})`}
+                <span>{badge.label}</span>
+                <span
+                  className={cn(
+                    "text-[11px] font-mono",
+                    count > 0 ? "text-slate-500 dark:text-slate-400 font-medium" : "text-slate-400 dark:text-slate-600"
+                  )}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-auto w-full sm:w-auto">
+        <div className="flex items-center gap-2.5 sm:gap-3 self-end sm:self-auto w-full sm:w-auto">
           {/* Search Box */}
-          <div className="relative flex-1 sm:w-60">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative flex-1 sm:w-64">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input text-xs pl-8 pr-3 py-1.5 w-full"
+              className="h-10 pl-8.5 pr-3 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors shadow-2xs"
             />
           </div>
 
           <button
             type="button"
             onClick={openCreateModal}
-            className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm whitespace-nowrap"
+            className="h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <Plus size={16} />
             <span>Create User</span>
@@ -271,28 +282,28 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
       </div>
 
       {/* Users Table */}
-      <div className="card border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1427] shadow-xs overflow-hidden">
         {filteredUsers.length === 0 ? (
           <div className="p-12 text-center">
-            <UserCog className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-600">No users found</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <UserCog className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-3 opacity-60" />
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">No users found</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Create an administrative, lecturer, or assistant account.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50/90 dark:bg-slate-900/60 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="py-3.5 px-6">Name & Email</th>
-                  <th className="py-3.5 px-6">System Role</th>
-                  <th className="py-3.5 px-6">Status</th>
-                  <th className="py-3.5 px-6">Created</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
+                  <th className="py-3 px-6">NAME & EMAIL</th>
+                  <th className="py-3 px-6">SYSTEM ROLE</th>
+                  <th className="py-3 px-6">STATUS</th>
+                  <th className="py-3 px-6">CREATED</th>
+                  <th className="py-3 px-6 text-right">ACTIONS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70 bg-white dark:bg-[#0c1427]">
                 {filteredUsers.map((user) => {
                   const roleBadge = ROLE_BADGE[user.role] || {
                     label: user.role,
@@ -300,22 +311,22 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
                   };
 
                   return (
-                    <tr key={user.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={user.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-xs">
+                          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-xs">
                             {user.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-900 leading-snug">
+                            <div className="font-semibold text-slate-900 dark:text-white leading-snug">
                               {user.name}
                             </div>
-                            <div className="text-xs text-slate-400 mt-0.5">{user.email}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={cn("badge text-xs", roleBadge.className)}>
+                        <span className={cn("px-2 py-0.5 rounded text-[11px] font-medium border", roleBadge.className)}>
                           {roleBadge.label}
                         </span>
                       </td>
@@ -327,19 +338,19 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
                           title={user.isActive ? "Click to deactivate" : "Click to activate"}
                         >
                           {user.isActive ? (
-                            <span className="badge badge-green text-xs flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50 flex items-center gap-1">
                               <CheckCircle size={11} />
                               Active
                             </span>
                           ) : (
-                            <span className="badge badge-gray text-xs flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 flex items-center gap-1">
                               <XCircle size={11} />
                               Inactive
                             </span>
                           )}
                         </button>
                       </td>
-                      <td className="py-4 px-6 whitespace-nowrap text-xs text-slate-400">
+                      <td className="py-4 px-6 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400">
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="py-4 px-6 text-right whitespace-nowrap">
@@ -347,7 +358,7 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
                           <button
                             type="button"
                             onClick={() => openEditModal(user)}
-                            className="btn btn-ghost btn-icon p-1.5 text-slate-500 hover:text-brand-600"
+                            className="h-8.5 w-8.5 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
                             title="Edit"
                           >
                             <Edit2 size={15} />
@@ -355,7 +366,7 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
                           <button
                             type="button"
                             onClick={() => openDeleteDialog(user)}
-                            className="btn btn-ghost btn-icon p-1.5 text-slate-500 hover:text-red-600"
+                            className="h-8.5 w-8.5 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 size={15} />
@@ -379,59 +390,65 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
         description="Configure account permissions, role levels, and password."
         maxWidth="md"
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
           <div>
-            <label className="form-label">Full Name *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Full Name <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. Maya Indah"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Email Address *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Email Address <span className="text-rose-500">*</span>
+            </label>
             <input
               type="email"
               placeholder="e.g. maya@classhub.edu"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">
-              {editingUser ? "New Password (Leave blank to keep unchanged)" : "Password *"}
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              {editingUser ? "New Password (Leave blank to keep unchanged)" : "Password"} {!editingUser && <span className="text-rose-500">*</span>}
             </label>
             <input
               type="password"
               placeholder={editingUser ? "••••••••" : "Minimum 8 characters"}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required={!editingUser}
             />
           </div>
 
           <div>
-            <label className="form-label">Role Permission Level *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Role Permission Level <span className="text-rose-500">*</span>
+            </label>
             <select
               value={formData.role}
               onChange={(e) =>
                 setFormData({ ...formData, role: e.target.value as UserRole })
               }
-              className="form-select text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors cursor-pointer"
             >
               <option value={UserRole.ADMIN}>ADMIN (Full system access & user management)</option>
               <option value={UserRole.CLASS_ADMIN}>CLASS_ADMIN (Manage schedules, tasks, content)</option>
@@ -440,25 +457,25 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
             </select>
           </div>
 
-          <div className="pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+          <div className="pt-1">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={formData.isActive}
                 onChange={(e) =>
                   setFormData({ ...formData, isActive: e.target.checked })
                 }
-                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <span>Account is Active (can sign in)</span>
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
               disabled={isPending}
             >
               Cancel
@@ -466,10 +483,10 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingUser ? "Save Changes" : "Create Account"}
+              <span>{editingUser ? "Save Changes" : "Create Account"}</span>
             </button>
           </div>
         </form>

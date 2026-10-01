@@ -36,6 +36,7 @@ export async function createStudentAction(input: StudentInput): Promise<ActionRe
         githubUrl: data.githubUrl || null,
         linkedinUrl: data.linkedinUrl || null,
         portfolioUrl: data.portfolioUrl || null,
+        instagramUrl: data.instagramUrl || null,
       },
     });
 
@@ -85,6 +86,7 @@ export async function updateStudentAction(id: string, input: StudentInput): Prom
         githubUrl: data.githubUrl || null,
         linkedinUrl: data.linkedinUrl || null,
         portfolioUrl: data.portfolioUrl || null,
+        instagramUrl: data.instagramUrl || null,
       },
     });
 

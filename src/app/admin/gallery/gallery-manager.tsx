@@ -263,77 +263,180 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={editingPhoto ? "Edit Photo Details" : "Upload to Gallery"}
-        description="Share class memories, hackathons, and gatherings."
-        maxWidth="md"
+        description={
+          editingPhoto
+            ? "Modify the photo title, event date, or caption."
+            : "Share class memories, activities, and important moments."
+        }
+        maxWidth="lg"
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
+          {/* Photo Title */}
           <div>
-            <label className="form-label">Photo Title *</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Photo Title <span className="text-rose-500">*</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. National Hackathon Team Pitch"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               required
             />
           </div>
 
+          {/* Image Source & Upload Area */}
           <div>
-            <label className="form-label">Image URL *</label>
-            <input
-              type="url"
-              placeholder="https://images.unsplash.com/... or hosted image"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="form-input text-sm w-full"
-              required
-            />
-            {formData.imageUrl && (
-              <div className="mt-2 h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-                <img
-                  src={formData.imageUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+                Image <span className="text-rose-500">*</span>
+              </label>
+            </div>
+
+            {formData.imageUrl ? (
+              /* Preview with Replace / Remove Actions */
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50/70 dark:bg-slate-900/50">
+                <div className="relative h-44 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-3 px-1">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[280px]">
+                    Image selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer">
+                      <span>Replace</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                              if (evt.target?.result) {
+                                setFormData({ ...formData, imageUrl: evt.target.result as string });
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, imageUrl: "" })}
+                      className="text-xs font-semibold text-rose-500 hover:text-rose-600 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Modern Dropzone & URL Input Option */
+              <div className="space-y-3">
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 cursor-pointer transition-all text-center group">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center mb-2 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition-transform">
+                    <ImageIcon size={20} />
+                  </div>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Upload your image
+                  </span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    PNG, JPG, WebP up to 5MB
+                  </span>
+                  <span className="mt-3 inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:border-slate-300">
+                    Choose Image
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                          if (evt.target?.result) {
+                            setFormData({ ...formData, imageUrl: evt.target.result as string });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+
+                {/* Secondary URL Input Option */}
+                <div>
+                  <div className="relative flex items-center my-1.5">
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                    <span className="shrink-0 px-2.5 text-[10px] uppercase font-semibold text-slate-400 font-mono">
+                      or use URL
+                    </span>
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                  </div>
+                  <input
+                    type="url"
+                    placeholder="https://images.unsplash.com/... or hosted image"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    className="h-10 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+                  />
+                </div>
               </div>
             )}
           </div>
 
+          {/* Event Date */}
           <div>
-            <label className="form-label">Event Date</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Event Date
+            </label>
             <input
               type="date"
               value={formData.eventDate}
               onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-              className="form-input text-sm w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
             />
           </div>
 
+          {/* Description */}
           <div>
-            <label className="form-label">Description & Caption</label>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Description & Caption
+            </label>
             <textarea
               placeholder="Describe this moment, location, or participants..."
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="form-textarea text-sm w-full"
-              rows={2}
+              className="min-h-[100px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
+              rows={3}
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          {/* Form Actions Footer */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary text-sm"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
               disabled={isPending}
             >
               Cancel
@@ -341,10 +444,10 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="btn btn-primary text-sm flex items-center gap-2"
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
             >
               {isPending && <Loader2 size={15} className="animate-spin" />}
-              {editingPhoto ? "Save Changes" : "Upload Photo"}
+              <span>{editingPhoto ? "Save Changes" : "Upload Photo"}</span>
             </button>
           </div>
         </form>

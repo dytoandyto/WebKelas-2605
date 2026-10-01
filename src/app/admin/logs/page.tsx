@@ -12,12 +12,12 @@ export default async function AdminLogsPage() {
   const { logs } = await getActivityLogsData();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="space-y-6">
       <AdminHeader
         title="Activity Logs & Audit Trail"
         description="Immutable chronological record of administrative actions, content updates, and permission activities."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <LogsViewer initialLogs={logs} />
       </div>
     </div>

@@ -12,12 +12,12 @@ export default async function AdminSettingsPage() {
   const settings = await getSettings();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950/40 text-text-primary">
+    <div className="space-y-6">
       <AdminHeader
         title="Class Configuration"
         description="Update class information, cohort details, branding motto, and social channel links."
       />
-      <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
+      <div>
         <SettingsForm initialSettings={settings} />
       </div>
     </div>

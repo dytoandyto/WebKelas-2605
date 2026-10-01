@@ -347,16 +347,16 @@ export function EventsManager({ initialEvents }: EventsManagerProps) {
         title={editingEvent ? "Edit Class Event" : "Create New Class Event"}
         description="Fill out event details. Non-recurring events appear on the public class calendar."
       >
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4.5">
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs text-rose-600 dark:text-rose-400">
               {formError}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Event Title <span className="text-red-500">*</span>
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+              Event Title <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -364,12 +364,12 @@ export function EventsManager({ initialEvents }: EventsManagerProps) {
               placeholder="e.g. COMPFEST Hackathon Ideation Session"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="input w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
               Description / Itinerary
             </label>
             <textarea
@@ -377,45 +377,45 @@ export function EventsManager({ initialEvents }: EventsManagerProps) {
               placeholder="Brief details about the event, objectives, or activities..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="input w-full"
+              className="min-h-[90px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Event Date <span className="text-red-500">*</span>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
+                Event Date <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
                 required
                 value={formData.eventDate}
                 onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                className="input w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Start Time</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">Start Time</label>
               <input
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="input w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full font-mono focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">End Time</label>
+              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">End Time</label>
               <input
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="input w-full"
+                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full font-mono focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
               Location / Venue / Virtual Link
             </label>
             <input
@@ -423,12 +423,12 @@ export function EventsManager({ initialEvents }: EventsManagerProps) {
               placeholder="e.g. Software Lab 3 / Campus Convention Center / Zoom"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="input w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
               Banner Image URL (Optional)
             </label>
             <input
@@ -436,21 +436,25 @@ export function EventsManager({ initialEvents }: EventsManagerProps) {
               placeholder="https://..."
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="input w-full"
+              className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="btn btn-secondary"
+              className="btn btn-secondary text-sm font-medium px-4 py-2"
             >
               Cancel
             </button>
-            <button type="submit" disabled={isPending} className="btn btn-primary">
-              {isPending && <Loader2 size={16} className="animate-spin" />}
-              {editingEvent ? "Save Changes" : "Create Event"}
+            <button
+              type="submit"
+              disabled={isPending}
+              className="btn btn-primary text-sm font-medium px-5 py-2 flex items-center gap-2"
+            >
+              {isPending && <Loader2 size={15} className="animate-spin" />}
+              <span>{editingEvent ? "Save Changes" : "Create Event"}</span>
             </button>
           </div>
         </form>
