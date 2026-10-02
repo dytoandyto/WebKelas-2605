@@ -175,6 +175,142 @@ export default async function AdminDashboardPage() {
           />
         </div>
 
+        {/* Workspace Initial Setup Progress Card (Sections 15 & 16) */}
+        {stats.studentsCount === 0 && (
+          <div className="card p-6 border border-brand-500/30 bg-brand-500/5 rounded-2xl shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/60">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h3 className="text-base font-bold text-text-primary">
+                    Welcome to ClassHub — Initial Setup
+                  </h3>
+                </div>
+                <p className="text-xs text-text-muted mt-1">
+                  Your class workspace is ready. Complete the initial setup to start organizing your class.
+                </p>
+              </div>
+              <Link
+                href="/admin/students"
+                className="btn btn-primary btn-sm flex items-center gap-1.5 self-start md:self-auto"
+              >
+                <Plus size={15} />
+                <span>+ Add First Student</span>
+              </Link>
+            </div>
+
+            <div className="mt-4">
+              <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+                Setup Progress
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs font-bold shrink-0">✓</span>
+                  <span>Subjects ({stats.subjectsCount} ready)</span>
+                </div>
+                <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs font-bold shrink-0">✓</span>
+                  <span>Schedule (Active)</span>
+                </div>
+                <Link
+                  href="/admin/students"
+                  className={cn(
+                    "flex items-center gap-2.5 p-2.5 rounded-xl bg-card border transition-colors font-medium",
+                    stats.studentsCount > 0
+                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "border-border hover:border-brand-500/40 text-text-muted hover:text-text-primary"
+                  )}
+                >
+                  <span className={cn(
+                    "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                    stats.studentsCount > 0 ? "bg-emerald-500/20 text-emerald-600" : "bg-muted text-text-muted"
+                  )}>
+                    {stats.studentsCount > 0 ? "✓" : "○"}
+                  </span>
+                  <span>Students ({stats.studentsCount} added)</span>
+                </Link>
+                <Link
+                  href="/admin/tasks"
+                  className={cn(
+                    "flex items-center gap-2.5 p-2.5 rounded-xl bg-card border transition-colors font-medium",
+                    stats.upcomingTasksCount > 0
+                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "border-border hover:border-brand-500/40 text-text-muted hover:text-text-primary"
+                  )}
+                >
+                  <span className={cn(
+                    "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                    stats.upcomingTasksCount > 0 ? "bg-emerald-500/20 text-emerald-600" : "bg-muted text-text-muted"
+                  )}>
+                    {stats.upcomingTasksCount > 0 ? "✓" : "○"}
+                  </span>
+                  <span>Tasks ({stats.upcomingTasksCount} added)</span>
+                </Link>
+                <Link
+                  href="/admin/materials"
+                  className={cn(
+                    "flex items-center gap-2.5 p-2.5 rounded-xl bg-card border transition-colors font-medium",
+                    ((stats as any).materialsCount || 0) > 0
+                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "border-border hover:border-brand-500/40 text-text-muted hover:text-text-primary"
+                  )}
+                >
+                  <span className={cn(
+                    "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                    ((stats as any).materialsCount || 0) > 0 ? "bg-emerald-500/20 text-emerald-600" : "bg-muted text-text-muted"
+                  )}>
+                    {((stats as any).materialsCount || 0) > 0 ? "✓" : "○"}
+                  </span>
+                  <span>Materials ({((stats as any).materialsCount || 0)} uploaded)</span>
+                </Link>
+                <Link
+                  href="/admin/daily-notes"
+                  className={cn(
+                    "flex items-center gap-2.5 p-2.5 rounded-xl bg-card border transition-colors font-medium",
+                    ((stats as any).dailyNotesCount || 0) > 0
+                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "border-border hover:border-brand-500/40 text-text-muted hover:text-text-primary"
+                  )}
+                >
+                  <span className={cn(
+                    "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                    ((stats as any).dailyNotesCount || 0) > 0 ? "bg-emerald-500/20 text-emerald-600" : "bg-muted text-text-muted"
+                  )}>
+                    {((stats as any).dailyNotesCount || 0) > 0 ? "✓" : "○"}
+                  </span>
+                  <span>Daily Notes ({((stats as any).dailyNotesCount || 0)} recorded)</span>
+                </Link>
+                <Link
+                  href="/admin/achievements"
+                  className={cn(
+                    "flex items-center gap-2.5 p-2.5 rounded-xl bg-card border transition-colors font-medium",
+                    stats.achievementsCount > 0
+                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "border-border hover:border-brand-500/40 text-text-muted hover:text-text-primary"
+                  )}
+                >
+                  <span className={cn(
+                    "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                    stats.achievementsCount > 0 ? "bg-emerald-500/20 text-emerald-600" : "bg-muted text-text-muted"
+                  )}>
+                    {stats.achievementsCount > 0 ? "✓" : "○"}
+                  </span>
+                  <span>Achievements ({stats.achievementsCount} recorded)</span>
+                </Link>
+                <Link
+                  href="/admin/resources"
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-border hover:border-brand-500/40 text-text-muted hover:text-text-primary transition-colors font-medium"
+                >
+                  <span className="w-5 h-5 rounded-full bg-muted text-text-muted flex items-center justify-center text-xs font-bold shrink-0">
+                    ○
+                  </span>
+                  <span>Campus Resources</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Metric Cards Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
           {statCards.map((card) => {

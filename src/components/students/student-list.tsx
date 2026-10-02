@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Trophy, ArrowRight, ExternalLink } from "lucide-react";
+import { Trophy, ArrowRight, ExternalLink, Users } from "lucide-react";
 import { StudentData } from "./student-card";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -23,8 +23,9 @@ export function StudentList({
   if (students.length === 0) {
     return (
       <EmptyState
+        icon={<Users className="w-6 h-6 text-cyan-400" />}
         title="Tidak Ada Profil Mahasiswa"
-        description="Tidak ada profil yang ditemukan."
+        description="Tidak ada profil mahasiswa yang ditemukan."
         className={className}
       />
     );

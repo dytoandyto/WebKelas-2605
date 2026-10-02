@@ -13,6 +13,8 @@ export interface StudentShowcaseProps {
 }
 
 export function StudentShowcase({ students, className }: StudentShowcaseProps) {
+  if (!students || students.length === 0) return null;
+
   const displayStudents = students.slice(0, 4);
 
   return (

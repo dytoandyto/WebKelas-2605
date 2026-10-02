@@ -20,6 +20,7 @@ import {
 } from "@/lib/actions/resources";
 import { ResourceCategory } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ResourceItem {
   id: string;
@@ -241,14 +242,28 @@ export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
 
       {/* Resources Table */}
       <div className="card border border-slate-200/80 shadow-xs overflow-hidden">
-        {filteredResources.length === 0 ? (
-          <div className="p-12 text-center">
-            <FolderOpen className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-600">No resources found</p>
-            <p className="text-xs text-slate-400 mt-1">
-              Add links to class drives, GitHub classrooms, textbooks, or tools.
-            </p>
-          </div>
+        {resources.length === 0 ? (
+          <EmptyState
+            icon={<FolderOpen className="w-7 h-7 stroke-[1.75]" />}
+            title="No campus resources yet"
+            description="Add useful links and campus resources for the class."
+            action={
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
+              >
+                <Plus size={16} />
+                <span>+ Add Resource</span>
+              </button>
+            }
+          />
+        ) : filteredResources.length === 0 ? (
+          <EmptyState
+            icon={<FolderOpen className="w-7 h-7 stroke-[1.75]" />}
+            title="No resources found"
+            description="No resources match your search or filter."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">

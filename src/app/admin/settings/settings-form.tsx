@@ -11,6 +11,7 @@ import {
   Building,
   UserCheck,
   BookOpen,
+  ImageIcon,
 } from "lucide-react";
 import { updateSettingsAction } from "@/lib/actions/settings";
 import { GithubIcon, InstagramIcon, DiscordIcon, LinkedinIcon } from "@/components/icons";
@@ -87,16 +88,16 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* Section 1: Institution & Academic Program */}
       <div className="card p-6 border border-border bg-card shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-border">
-          <div className="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center">
-            <Building size={18} />
+        <div className="pb-3.5 border-b border-border space-y-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+              <Building size={16} />
+            </div>
+            <h3 className="text-base font-bold text-text-primary leading-none">Institution & Faculty Identity</h3>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-text-primary">Institution & Faculty Identity</h3>
-            <p className="text-xs text-text-muted">
-              Campus, institution, and study program naming.
-            </p>
-          </div>
+          <p className="text-xs text-text-muted pl-[38px]">
+            Campus, institution, and study program naming.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -149,16 +150,16 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* Section 2: Class Cohort Identity */}
       <div className="card p-6 border border-border bg-card shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-border">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
-            <GraduationCap size={18} />
+        <div className="pb-3.5 border-b border-border space-y-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+              <GraduationCap size={16} />
+            </div>
+            <h3 className="text-base font-bold text-text-primary leading-none">Class Cohort & Period</h3>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-text-primary">Class Cohort & Period</h3>
-            <p className="text-xs text-text-muted">
-              Class identifier, academic period, and public branding slogans.
-            </p>
-          </div>
+          <p className="text-xs text-text-muted pl-[38px]">
+            Class identifier, academic period, and public branding slogans.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -246,47 +247,81 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Logo Image URL</label>
-            <input
-              type="url"
-              placeholder="https://..."
-              value={formData.logoUrl}
-              onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-              className="form-input text-xs w-full bg-surface border-border text-text-primary"
-            />
+            <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+              <ImageIcon size={14} className="text-text-muted shrink-0" />
+              <span>Logo Image URL</span>
+            </label>
+            <div className="flex items-center gap-2.5">
+              {formData.logoUrl ? (
+                <div className="w-8 h-8 rounded-lg border border-border bg-surface p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={formData.logoUrl}
+                    alt="Logo"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.currentTarget.parentElement as HTMLElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              ) : null}
+              <input
+                type="url"
+                placeholder="https://..."
+                value={formData.logoUrl}
+                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                className="form-input text-xs w-full bg-surface border-border text-text-primary"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 block">Hero Banner Image URL</label>
-            <input
-              type="url"
-              placeholder="https://..."
-              value={formData.heroImageUrl}
-              onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
-              className="form-input text-xs w-full bg-surface border-border text-text-primary"
-            />
+            <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+              <ImageIcon size={14} className="text-text-muted shrink-0" />
+              <span>Hero Banner Image URL</span>
+            </label>
+            <div className="flex items-center gap-2.5">
+              {formData.heroImageUrl ? (
+                <div className="w-8 h-8 rounded-lg border border-border bg-surface p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={formData.heroImageUrl}
+                    alt="Hero"
+                    className="w-full h-full object-cover rounded"
+                    onError={(e) => {
+                      (e.currentTarget.parentElement as HTMLElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              ) : null}
+              <input
+                type="url"
+                placeholder="https://..."
+                value={formData.heroImageUrl}
+                onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
+                className="form-input text-xs w-full bg-surface border-border text-text-primary"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Section 3: Contact & Social Channels */}
       <div className="card p-6 border border-border bg-card shadow-xs space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-border">
-          <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-            <Globe size={18} />
+        <div className="pb-3.5 border-b border-border space-y-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+              <Globe size={16} />
+            </div>
+            <h3 className="text-base font-bold text-text-primary leading-none">Contact & Social Channels</h3>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-text-primary">Contact & Social Channels</h3>
-            <p className="text-xs text-text-muted">
-              Direct community and contact links shown in the site footer.
-            </p>
-          </div>
+          <p className="text-xs text-text-muted pl-[38px]">
+            Direct community and contact links shown in the site footer.
+          </p>
         </div>
 
         <div>
-          <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
-            <Mail size={13} className="text-text-muted" />
-            Official Contact Email
+          <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+            <Mail size={14} className="text-text-muted shrink-0" />
+            <span>Official Contact Email</span>
           </label>
           <input
             type="email"
@@ -299,9 +334,9 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
-              <GithubIcon size={13} className="text-text-muted" />
-              GitHub Org
+            <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+              <GithubIcon size={14} className="text-text-muted shrink-0" />
+              <span>GitHub Org</span>
             </label>
             <input
               type="url"
@@ -313,9 +348,9 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
 
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
-              <LinkedinIcon size={13} className="text-text-muted" />
-              LinkedIn Page
+            <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+              <LinkedinIcon size={14} className="text-text-muted shrink-0" />
+              <span>LinkedIn Page</span>
             </label>
             <input
               type="url"
@@ -327,9 +362,9 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
 
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
-              <InstagramIcon size={13} className="text-text-muted" />
-              Instagram Profile
+            <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+              <InstagramIcon size={14} className="text-text-muted shrink-0" />
+              <span>Instagram Profile</span>
             </label>
             <input
               type="url"
@@ -341,9 +376,9 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
 
           <div>
-            <label className="form-label text-xs font-semibold text-text-primary mb-1 flex items-center gap-1.5">
-              <DiscordIcon size={13} className="text-text-muted" />
-              Discord Community
+            <label className="text-xs font-semibold text-text-primary mb-1.5 flex items-center gap-2">
+              <DiscordIcon size={14} className="text-text-muted shrink-0" />
+              <span>Discord Community</span>
             </label>
             <input
               type="url"

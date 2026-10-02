@@ -21,6 +21,7 @@ import {
   deleteAnnouncementAction,
 } from "@/lib/actions/announcements";
 import { formatDate, cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface AnnouncementItem {
   id: string;
@@ -251,14 +252,28 @@ export function AnnouncementsManager({ initialAnnouncements }: AnnouncementsMana
 
       {/* Announcements Table */}
       <div className="card border border-slate-200/80 shadow-xs overflow-hidden">
-        {filteredAnnouncements.length === 0 ? (
-          <div className="p-12 text-center">
-            <Megaphone className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-600">No announcements found</p>
-            <p className="text-xs text-slate-400 mt-1">
-              Broadcast schedule updates, exam alerts, or class meetings.
-            </p>
-          </div>
+        {announcements.length === 0 ? (
+          <EmptyState
+            icon={<Megaphone className="w-7 h-7 stroke-[1.75]" />}
+            title="No announcements yet"
+            description="Important class announcements will appear here."
+            action={
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm whitespace-nowrap"
+              >
+                <Plus size={16} />
+                <span>+ Add Announcement</span>
+              </button>
+            }
+          />
+        ) : filteredAnnouncements.length === 0 ? (
+          <EmptyState
+            icon={<Megaphone className="w-7 h-7 stroke-[1.75]" />}
+            title="No announcements found"
+            description="No announcements match your search or filter."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">

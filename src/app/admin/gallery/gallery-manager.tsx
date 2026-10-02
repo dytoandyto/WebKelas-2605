@@ -19,6 +19,7 @@ import {
   deleteGalleryAction,
 } from "@/lib/actions/gallery";
 import { formatDate } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface GalleryItem {
   id: string;
@@ -182,14 +183,28 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
       </div>
 
       {/* Photo Grid */}
-      {filteredGallery.length === 0 ? (
-        <div className="card p-16 text-center border border-slate-200/80">
-          <ImageIcon className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-sm font-semibold text-slate-600">No photos in gallery</p>
-          <p className="text-xs text-slate-400 mt-1">
-            Upload pictures from workshops, campus hangouts, or hackathons.
-          </p>
-        </div>
+      {gallery.length === 0 ? (
+        <EmptyState
+          icon={<ImageIcon className="w-7 h-7 stroke-[1.75]" />}
+          title="No photos yet"
+          description="Start documenting your class activities."
+          action={
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
+            >
+              <Plus size={16} />
+              <span>Upload Photo</span>
+            </button>
+          }
+        />
+      ) : filteredGallery.length === 0 ? (
+        <EmptyState
+          icon={<ImageIcon className="w-7 h-7 stroke-[1.75]" />}
+          title="No photos found"
+          description={`No photos match "${searchQuery}".`}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {filteredGallery.map((photo) => (

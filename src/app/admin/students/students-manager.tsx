@@ -23,6 +23,7 @@ import {
   deleteStudentAction,
 } from "@/lib/actions/students";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface StudentItem {
   id: string;
@@ -269,14 +270,28 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
 
       {/* Students Table */}
       <div className="card border border-slate-200/80 shadow-xs overflow-hidden">
-        {filteredStudents.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-600">No students found</p>
-            <p className="text-xs text-slate-400 mt-1">
-              Add new student profiles to populate the class directory.
-            </p>
-          </div>
+        {students.length === 0 ? (
+          <EmptyState
+            icon={<Users className="w-7 h-7 stroke-[1.75]" />}
+            title="No students yet"
+            description="Start building your class directory by adding the first student."
+            action={
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
+              >
+                <Plus size={16} />
+                <span>+ Add Student</span>
+              </button>
+            }
+          />
+        ) : filteredStudents.length === 0 ? (
+          <EmptyState
+            icon={<Users className="w-7 h-7 stroke-[1.75]" />}
+            title="No students found"
+            description="No students match your search filter."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">

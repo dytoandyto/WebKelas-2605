@@ -34,6 +34,7 @@ import { DeadlineBadge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { SearchInput } from "@/components/ui/search-input";
 import { useToast } from "@/components/ui/toast";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TaskItem {
   id: string;
@@ -593,22 +594,32 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
 
       {/* 2. Tasks Table Container */}
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1427] shadow-xs overflow-hidden transition-colors">
-        {filteredTasks.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500">
-              <CheckSquare size={24} />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                Tidak ada tugas ditemukan
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                {hasActiveFilters
-                  ? "Coba atur ulang filter deadline, kata kunci pencarian, atau mata kuliah."
-                  : "Belum ada penugasan akademik yang terdaftar. Klik 'Create Task' untuk menambahkan."}
-              </p>
-            </div>
-          </div>
+        {tasks.length === 0 ? (
+          <EmptyState
+            icon={<CheckSquare className="w-7 h-7 stroke-[1.75]" />}
+            title="No tasks yet"
+            description="Add assignments and deadlines to keep the class organized."
+            action={
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="btn btn-primary btn-sm flex items-center gap-1.5"
+              >
+                <Plus size={14} />
+                <span>+ Add Task</span>
+              </button>
+            }
+          />
+        ) : filteredTasks.length === 0 ? (
+          <EmptyState
+            icon={<CheckSquare className="w-7 h-7 stroke-[1.75]" />}
+            title="No tasks found"
+            description={
+              hasActiveFilters
+                ? "Try resetting your search query, subject, or deadline filter."
+                : "No tasks found matching your filter."
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">

@@ -21,6 +21,7 @@ import {
   deleteEventAction,
 } from "@/lib/actions/events";
 import { formatDate, cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ClassEventItem {
   id: string;
@@ -221,22 +222,28 @@ export function EventsManager({ initialEvents }: EventsManagerProps) {
       </div>
 
       {/* Events Grid */}
-      {filteredEvents.length === 0 ? (
-        <div className="card p-12 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center justify-center mx-auto mb-4 text-cyan-600">
-            <CalendarDays size={26} />
-          </div>
-          <h3 className="font-bold text-slate-900 text-lg mb-1">No class events found</h3>
-          <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
-            {searchQuery
+      {events.length === 0 ? (
+        <EmptyState
+          icon={<CalendarDays className="w-7 h-7 stroke-[1.75]" />}
+          title="No upcoming events"
+          description="Class events will appear here once they are added."
+          action={
+            <button onClick={openCreateModal} className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm">
+              <Plus size={16} />
+              <span>+ Add Event</span>
+            </button>
+          }
+        />
+      ) : filteredEvents.length === 0 ? (
+        <EmptyState
+          icon={<CalendarDays className="w-7 h-7 stroke-[1.75]" />}
+          title="No class events found"
+          description={
+            searchQuery
               ? `No events match "${searchQuery}". Try adjusting your search keyword.`
-              : "No activities have been scheduled yet. Plan a hackathon, workshop, or class trip!"}
-          </p>
-          <button onClick={openCreateModal} className="btn btn-primary inline-flex">
-            <Plus size={16} />
-            Create First Event
-          </button>
-        </div>
+              : "No events match the selected filter."
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((ev) => {

@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { MoreVertical, Copy, Trash2, Eye, ExternalLink } from "lucide-react";
+import { MoreVertical, Copy, Trash2, Eye, ExternalLink, CheckSquare } from "lucide-react";
 import { TaskCardData } from "./task-card";
 import { DataTable, Column } from "@/components/ui/data-table";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   TaskTypeBadge,
   DeadlineBadge,
@@ -188,6 +189,13 @@ export function TaskTable({
       sortDirection={sortDirection}
       onSort={handleSort}
       className={className}
+      emptyState={
+        <EmptyState
+          icon={<CheckSquare className="w-6 h-6 text-cyan-400" />}
+          title="Tidak Ada Tugas Akademik"
+          description="Belum ada penugasan atau tugas yang ditambahkan."
+        />
+      }
     />
   );
 }

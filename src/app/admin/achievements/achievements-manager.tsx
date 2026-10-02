@@ -22,6 +22,7 @@ import {
 } from "@/lib/actions/achievements";
 import { AchievementCategory } from "@prisma/client";
 import { formatDate, cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface StudentOption {
   id: string;
@@ -310,14 +311,28 @@ export function AchievementsManager({
 
       {/* Achievements Table */}
       <div className="card border border-slate-200/80 shadow-xs overflow-hidden">
-        {filteredAchievements.length === 0 ? (
-          <div className="p-12 text-center">
-            <Trophy className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-600">No achievements found</p>
-            <p className="text-xs text-slate-400 mt-1">
-              Record competition wins, academic milestones, or leadership awards.
-            </p>
-          </div>
+        {achievements.length === 0 ? (
+          <EmptyState
+            icon={<Trophy className="w-7 h-7 stroke-[1.75]" />}
+            title="No achievements yet"
+            description="Class achievements will appear here once they are added."
+            action={
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm whitespace-nowrap"
+              >
+                <Plus size={16} />
+                <span>+ Add Achievement</span>
+              </button>
+            }
+          />
+        ) : filteredAchievements.length === 0 ? (
+          <EmptyState
+            icon={<Trophy className="w-7 h-7 stroke-[1.75]" />}
+            title="No achievements found"
+            description="No achievements match your search or filter."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">

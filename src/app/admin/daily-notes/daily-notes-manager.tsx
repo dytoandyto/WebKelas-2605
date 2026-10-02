@@ -21,6 +21,7 @@ import {
   updateDailyNoteAction,
   deleteDailyNoteAction,
 } from "@/lib/actions/daily-notes";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface DailyNoteItem {
   id: string;
@@ -266,87 +267,105 @@ export function DailyNotesManager({ initialNotes, subjects }: DailyNotesManagerP
 
       {/* Daily Notes Table */}
       <div className="rounded-2xl bg-[#08152e]/85 light:bg-white border border-cyan-500/25 light:border-slate-200 backdrop-blur-xl shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-cyan-500/20 light:border-slate-200 bg-[#040914]/80 light:bg-slate-50 text-cyan-300 light:text-blue-700 font-mono uppercase tracking-wider">
-                <th className="py-3.5 px-4 font-bold">Tanggal</th>
-                <th className="py-3.5 px-4 font-bold">Judul &amp; Ringkasan</th>
-                <th className="py-3.5 px-4 font-bold">Mata Kuliah</th>
-                <th className="py-3.5 px-4 font-bold">Penulis</th>
-                <th className="py-3.5 px-4 font-bold">Terakhir Diubah</th>
-                <th className="py-3.5 px-4 font-bold text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cyan-500/10 light:divide-slate-100">
-              {filtered.map((note) => (
-                <tr
-                  key={note.id}
-                  className="hover:bg-cyan-500/5 light:hover:bg-blue-50/50 transition-colors"
-                >
-                  <td className="py-3 px-4 font-mono font-bold text-cyan-300 light:text-blue-700 whitespace-nowrap">
-                    {formatDate(note.date)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="font-bold text-white light:text-slate-900 text-sm">{note.title}</div>
-                    <div className="text-[11px] text-slate-400 light:text-slate-600 line-clamp-1 mt-0.5">
-                      {note.summary}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    {note.subject ? (
-                      <span className="px-2 py-0.5 rounded bg-cyan-500/15 light:bg-blue-50 text-cyan-300 light:text-blue-700 font-mono font-bold text-[10px] border border-cyan-400/30 light:border-blue-200">
-                        {note.subject.code}
-                      </span>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-slate-300 light:text-slate-700">
-                    {note.author?.name || "Admin"}
-                  </td>
-                  <td className="py-3 px-4 font-mono text-slate-400 light:text-slate-500 text-[11px]">
-                    {formatDate(note.updatedAt)}
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Link
-                        href={`/daily-notes/${note.id}`}
-                        target="_blank"
-                        className="p-1.5 rounded-lg bg-cyan-500/10 light:bg-blue-50 text-cyan-400 light:text-blue-600 hover:bg-cyan-500/20"
-                        title="Buka Catatan"
-                      >
-                        <ExternalLink size={13} />
-                      </Link>
-                      <button
-                        onClick={() => openEditModal(note)}
-                        className="p-1.5 rounded-lg bg-white/5 light:bg-slate-100 text-slate-300 light:text-slate-700 hover:text-white hover:bg-cyan-500/20"
-                        title="Edit Catatan"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDeletingId(note.id);
-                          setDeleteDialogOpen(true);
-                        }}
-                        className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
-                        title="Hapus Catatan"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </td>
+        {notes.length === 0 ? (
+          <EmptyState
+            icon={<FileText className="w-7 h-7 stroke-[1.75]" />}
+            title="No daily notes yet"
+            description="Record important summaries, lessons, and class notes here."
+            action={
+              <button
+                onClick={openCreateModal}
+                className="btn btn-primary btn-sm flex items-center gap-1.5"
+              >
+                <Plus size={15} />
+                <span>+ Add Daily Note</span>
+              </button>
+            }
+          />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<FileText className="w-7 h-7 stroke-[1.75]" />}
+            title="No daily notes found"
+            description="No notes match your search or subject filter."
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-cyan-500/20 light:border-slate-200 bg-[#040914]/80 light:bg-slate-50 text-cyan-300 light:text-blue-700 font-mono uppercase tracking-wider">
+                  <th className="py-3.5 px-4 font-bold">Tanggal</th>
+                  <th className="py-3.5 px-4 font-bold">Judul &amp; Ringkasan</th>
+                  <th className="py-3.5 px-4 font-bold">Mata Kuliah</th>
+                  <th className="py-3.5 px-4 font-bold">Penulis</th>
+                  <th className="py-3.5 px-4 font-bold">Terakhir Diubah</th>
+                  <th className="py-3.5 px-4 font-bold text-right">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {filtered.length === 0 && (
-            <div className="p-8 text-center text-xs text-slate-400 light:text-slate-600">
-              Tidak ada catatan harian yang sesuai.
-            </div>
-          )}
-        </div>
+              </thead>
+              <tbody className="divide-y divide-cyan-500/10 light:divide-slate-100">
+                {filtered.map((note) => (
+                  <tr
+                    key={note.id}
+                    className="hover:bg-cyan-500/5 light:hover:bg-blue-50/50 transition-colors"
+                  >
+                    <td className="py-3 px-4 font-mono font-bold text-cyan-300 light:text-blue-700 whitespace-nowrap">
+                      {formatDate(note.date)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-white light:text-slate-900 text-sm">{note.title}</div>
+                      <div className="text-[11px] text-slate-400 light:text-slate-600 line-clamp-1 mt-0.5">
+                        {note.summary}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      {note.subject ? (
+                        <span className="px-2 py-0.5 rounded bg-cyan-500/15 light:bg-blue-50 text-cyan-300 light:text-blue-700 font-mono font-bold text-[10px] border border-cyan-400/30 light:border-blue-200">
+                          {note.subject.code}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-slate-300 light:text-slate-700">
+                      {note.author?.name || "Admin"}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-slate-400 light:text-slate-500 text-[11px]">
+                      {formatDate(note.updatedAt)}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/daily-notes/${note.id}`}
+                          target="_blank"
+                          className="p-1.5 rounded-lg bg-cyan-500/10 light:bg-blue-50 text-cyan-400 light:text-blue-600 hover:bg-cyan-500/20"
+                          title="Buka Catatan"
+                        >
+                          <ExternalLink size={13} />
+                        </Link>
+                        <button
+                          onClick={() => openEditModal(note)}
+                          className="p-1.5 rounded-lg bg-white/5 light:bg-slate-100 text-slate-300 light:text-slate-700 hover:text-white hover:bg-cyan-500/20"
+                          title="Edit Catatan"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeletingId(note.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
+                          title="Hapus Catatan"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal (Structured Note Editor) */}
