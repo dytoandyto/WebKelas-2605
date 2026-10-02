@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { ImageIcon, Calendar, Sparkles } from "lucide-react";
+import { ImageIcon, Calendar } from "lucide-react";
 import { getGalleryData } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import { PageHeader, ContentContainer, EmptyState } from "@/components/shared";
 
 export const metadata: Metadata = {
   title: "Galeri Dokumentasi | JS1SI-26-REG-05",
-  description: "Arsip foto dan dokumentasi kegiatan, praktikum, dan kebersamaan kelas JS1SI-26-REG-05 Telkom University Jakarta.",
+  description:
+    "Arsip foto dan dokumentasi kegiatan, praktikum, dan kebersamaan kelas JS1SI-26-REG-05 Telkom University Jakarta.",
 };
 
 export default async function GalleryPage() {
@@ -30,16 +31,20 @@ export default async function GalleryPage() {
 
         {gallery.length === 0 ? (
           <EmptyState
-            icon={ImageIcon}
+            icon={<ImageIcon />}
             title="Belum Ada Foto Terunggah"
             description="Dokumentasi foto kegiatan kelas akan segera dipublikasikan di galeri ini."
           />
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
             {gallery.map((photo: any) => (
-              <div key={photo.id} className="break-inside-avoid group cursor-pointer">
+              <div
+                key={photo.id}
+                className="break-inside-avoid group cursor-pointer"
+              >
                 <div className="card rounded-2xl overflow-hidden hover:border-[var(--primary)] transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
                   <div className="overflow-hidden bg-[var(--bg-muted)] relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={photo.imageUrl}
                       alt={photo.title}
@@ -48,6 +53,7 @@ export default async function GalleryPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </div>
+
                   <div className="p-4 space-y-1.5 bg-[var(--bg-card)] border-t border-[var(--border-color)]/60">
                     <p className="font-bold text-[var(--text-primary)] text-sm leading-snug line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
                       {photo.title}

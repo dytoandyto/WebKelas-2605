@@ -150,7 +150,7 @@ export default async function MaterialDetailPage({ params }: MaterialDetailPageP
               <span className="text-xs text-slate-400 light:text-slate-500 font-mono flex items-center gap-1">
                 <Tag size={12} /> Topik:
               </span>
-              {material.tags.split(",").map((tag) => (
+              {material.tags.split(",").map((tag: string) => (
                 <span
                   key={tag.trim()}
                   className="px-2.5 py-1 rounded-lg bg-cyan-500/10 light:bg-slate-100 text-cyan-300 light:text-slate-700 text-xs font-mono border border-cyan-500/20 light:border-slate-200"

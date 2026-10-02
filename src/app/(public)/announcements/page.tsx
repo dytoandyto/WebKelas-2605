@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Megaphone, Calendar, User, Bell } from "lucide-react";
 import { getAnnouncementsData } from "@/lib/data";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { PageHeader, ContentContainer, EmptyState } from "@/components/shared";
 
 export const metadata: Metadata = {
   title: "Pengumuman Kelas | JS1SI-26-REG-05",
-  description: "Warta resmi, informasi penting perkuliahan, dan pengumuman kelas JS1SI-26-REG-05 Telkom University Jakarta.",
+  description:
+    "Warta resmi, informasi penting perkuliahan, dan pengumuman kelas JS1SI-26-REG-05 Telkom University Jakarta.",
 };
 
 export default async function AnnouncementsPage() {
@@ -30,7 +31,7 @@ export default async function AnnouncementsPage() {
 
         {announcements.length === 0 ? (
           <EmptyState
-            icon={Megaphone}
+            icon={<Megaphone />}
             title="Belum Ada Pengumuman"
             description="Belum ada warta resmi atau pengumuman penting yang dipublikasikan saat ini. Periksa kembali nanti."
           />
@@ -44,6 +45,7 @@ export default async function AnnouncementsPage() {
               >
                 {ann.imageUrl && (
                   <div className="h-64 sm:h-72 overflow-hidden bg-[var(--bg-muted)] relative border-b border-[var(--border-color)]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={ann.imageUrl}
                       alt={ann.title}
@@ -51,6 +53,7 @@ export default async function AnnouncementsPage() {
                     />
                   </div>
                 )}
+
                 <div className="p-6 sm:p-8 space-y-4">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30">

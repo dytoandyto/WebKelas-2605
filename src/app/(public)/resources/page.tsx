@@ -6,7 +6,8 @@ import { PageHeader, ContentContainer, EmptyState } from "@/components/shared";
 
 export const metadata: Metadata = {
   title: "Tautan & Sumber Daya | JS1SI-26-REG-05",
-  description: "Tautan penting, repositori kurikulum, portal kampus, dan referensi akademik kelas JS1SI-26-REG-05 Telkom University Jakarta.",
+  description:
+    "Tautan penting, repositori kurikulum, portal kampus, dan referensi akademik kelas JS1SI-26-REG-05 Telkom University Jakarta.",
 };
 
 const CATEGORY_LABEL: Record<ResourceCategory, string> = {
@@ -56,7 +57,7 @@ export default async function ResourcesPage() {
 
         {resources.length === 0 ? (
           <EmptyState
-            icon={FolderOpen}
+            icon={<FolderOpen />}
             title="Belum Ada Sumber Daya"
             description="Tautan dan referensi akademik kelas akan segera ditambahkan di sini."
           />
@@ -86,11 +87,18 @@ export default async function ResourcesPage() {
                         className="card p-5 hover:border-[var(--primary)] flex items-start gap-4 group transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md"
                       >
                         <div className="w-10 h-10 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 group-hover:border-[var(--primary)] group-hover:bg-cyan-500/10 transition-colors">
-                          <ExternalLink size={16} className="text-[var(--primary)]" />
+                          <ExternalLink
+                            size={16}
+                            className="text-[var(--primary)]"
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${CATEGORY_BADGE[cat] || "badge-blue"}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                                CATEGORY_BADGE[cat] || "badge-blue"
+                              }`}
+                            >
                               {cat.replace("_", " ")}
                             </span>
                           </div>
