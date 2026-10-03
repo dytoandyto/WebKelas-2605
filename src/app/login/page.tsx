@@ -151,19 +151,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Demo credentials hint */}
-          <div className="p-3.5 bg-[var(--bg-muted)] rounded-xl border border-[var(--border-color)]/70 space-y-1.5">
-            <p className="text-[11px] font-semibold text-[var(--primary)] dark:text-cyan-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] dark:bg-cyan-400" />
-              Demo Credentials
-            </p>
-            <div className="space-y-1 text-xs text-[var(--text-secondary)] font-mono">
-              <p className="truncate">admin@classhub.edu / AdminClassHub2026!</p>
-              <p className="truncate">classadmin@classhub.edu / ClassAdmin2026!</p>
-            </div>
-          </div>
-
           <p className="text-center text-xs text-[var(--text-muted)]">
             <Link href="/" className="text-[var(--primary)] dark:text-cyan-400 hover:underline font-semibold transition-colors">
               &larr; Kembali ke Portal Publik
