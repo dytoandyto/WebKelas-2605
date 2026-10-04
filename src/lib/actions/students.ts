@@ -28,7 +28,7 @@ export async function createStudentAction(input: StudentInput): Promise<ActionRe
       data: {
         name: data.name,
         studentNumber: data.studentNumber || null,
-        major: data.major,
+        major: data.major || "Sistem Informasi",
         photoUrl: data.photoUrl || null,
         bio: data.bio || null,
         dream: data.dream || null,
@@ -78,7 +78,7 @@ export async function updateStudentAction(id: string, input: StudentInput): Prom
       data: {
         name: data.name,
         studentNumber: data.studentNumber || null,
-        major: data.major,
+        major: data.major || "Sistem Informasi",
         photoUrl: data.photoUrl || null,
         bio: data.bio || null,
         dream: data.dream || null,

@@ -9,16 +9,16 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminStudentsPage() {
-  const { students, majors } = await getStudentsData();
+  const { students } = await getStudentsData();
 
   return (
     <div className="space-y-6">
       <AdminHeader
         title="Students Directory"
-        description="Manage enrolled student records, personal portfolios, and academic majors."
+        description="Manage enrolled student records, personal portfolios, and academic profiles."
       />
       <div>
-        <StudentsManager initialStudents={students} majors={majors} />
+        <StudentsManager initialStudents={students} />
       </div>
     </div>
   );

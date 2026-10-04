@@ -19,6 +19,7 @@ import {
 import { getTaskById } from "@/lib/data";
 import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
 import { TaskStatus, TaskPriority, TaskType } from "@prisma/client";
+import { DeadlineBadge } from "@/components/ui/badge";
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
@@ -90,23 +91,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded text-xs font-mono font-bold uppercase bg-amber-500/20 text-amber-300 light:bg-amber-50 light:text-amber-700 border border-amber-500/30">
-                Prioritas: {task.priority}
-              </span>
-              <span
-                className={cn(
-                  "px-2.5 py-1 rounded text-xs font-mono font-bold uppercase",
-                  task.computedStatus === TaskStatus.DUE_SOON
-                    ? "bg-amber-500/20 text-amber-300 light:text-amber-700 border border-amber-500/30 animate-pulse"
-                    : task.computedStatus === TaskStatus.OVERDUE
-                    ? "bg-red-500/20 text-red-300 light:text-red-700 border border-red-500/30"
-                    : isCompleted
-                    ? "bg-emerald-500/20 text-emerald-300 light:text-emerald-700 border border-emerald-500/30"
-                    : "bg-cyan-500/10 text-cyan-300 light:text-blue-700 border border-cyan-500/20"
-                )}
-              >
-                {isCompleted ? "COMPLETED" : task.computedStatus ? task.computedStatus.replace("_", " ") : task.status}
-              </span>
+              <DeadlineBadge deadline={task.deadline} />
             </div>
           </div>
 

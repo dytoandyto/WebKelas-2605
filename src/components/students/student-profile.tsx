@@ -46,7 +46,7 @@ export function StudentProfile({
                 {student.name}
               </DialogTitle>
               <p className="text-sm font-semibold text-cyan-400 light:text-blue-700">
-                {student.major} &bull; {student.className || "JS1SI-26-REG-05"}
+                {student.className || "JS1SI-26-REG-05"}
               </p>
               {student.studentNumber && (
                 <p className="text-xs text-[var(--text-muted)] font-mono">

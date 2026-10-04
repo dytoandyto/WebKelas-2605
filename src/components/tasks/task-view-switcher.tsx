@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Columns3, Table2, CalendarDays, List as ListIcon } from "lucide-react";
+import { Table2, CalendarDays, List as ListIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type TaskViewMode = "board" | "table" | "calendar" | "list";
+export type TaskViewMode = "list" | "calendar" | "table";
 
 export interface TaskViewSwitcherProps {
   currentView: TaskViewMode;
@@ -39,7 +39,6 @@ export function TaskViewSwitcher({
       icon: <CalendarDays className="w-3.5 h-3.5" />,
     },
     { id: "table", label: "Tabel", icon: <Table2 className="w-3.5 h-3.5" /> },
-    { id: "board", label: "Board", icon: <Columns3 className="w-3.5 h-3.5" /> },
   ];
 
   return (

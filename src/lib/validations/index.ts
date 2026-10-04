@@ -71,7 +71,7 @@ export const studentSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val === "" ? null : val)),
-  major: z.string().trim().min(2, "Major is required"),
+  major: z.string().trim().default("Sistem Informasi").optional(),
   photoUrl: optionalPhotoUrl,
   bio: z.string().trim().max(1000).optional().nullable(),
   dream: z.string().trim().max(255).optional().nullable(),

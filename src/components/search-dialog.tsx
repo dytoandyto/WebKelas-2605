@@ -339,7 +339,7 @@ export function SearchDialog() {
                         {st.name}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        NIM: {st.studentNumber || "-"} &bull; {st.major}
+                        NIM: {st.studentNumber || "-"}
                       </div>
                     </div>
                     <ArrowRight size={13} className="text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-transform group-hover:translate-x-1" />

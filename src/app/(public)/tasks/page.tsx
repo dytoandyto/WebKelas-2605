@@ -4,15 +4,38 @@ import { getTasksData, getSettings } from "@/lib/data";
 import { TasksView } from "@/components/tasks/tasks-view";
 import { PageHeader, ContentContainer, TaskTableSkeleton } from "@/components/shared";
 
-export const metadata: Metadata = {
-  title: "Tugas & Penugasan | JS1SI-26-REG-05",
-  description:
-    "Workspace tugas akademik komprehensif untuk kelas JS1SI-26-REG-05 S1 Sistem Informasi Telkom University Jakarta — Tabel, Kanban Board, Kalender, dan List View.",
-};
+interface TasksPageProps {
+  searchParams?: Promise<{
+    tab?: string;
+    view?: string;
+    subject?: string;
+    q?: string;
+  }>;
+}
 
-export default async function TasksPage() {
-  const [{ tasks, subjects }, settings] = await Promise.all([
-    getTasksData(),
+export async function generateMetadata({
+  searchParams,
+}: TasksPageProps): Promise<Metadata> {
+  const resolved = searchParams ? await searchParams : {};
+  const isHistory = resolved.tab === "history";
+
+  return {
+    title: isHistory
+      ? "Riwayat & Arsip Tugas | JS1SI-26-REG-05"
+      : "Pengingat Tugas Akademik | JS1SI-26-REG-05",
+    description: isHistory
+      ? "Arsip penugasan akademik kelas JS1SI-26-REG-05 yang telah melewati batas waktu pengumpulan."
+      : "Sistem pengingat tugas perkuliahan, tenggat waktu LMS, dan materi penugasan kelas JS1SI-26-REG-05 Telkom University Jakarta.",
+  };
+}
+
+export default async function TasksPage({ searchParams }: TasksPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const currentTab = resolvedSearchParams.tab === "history" ? "history" : "upcoming";
+
+  // Database-level filtered query: only fetches relevant scope (Upcoming vs History)
+  const [{ tasks, subjects, upcomingCount, historyCount }, settings] = await Promise.all([
+    getTasksData({ scope: currentTab }),
     getSettings(),
   ]);
 
@@ -23,14 +46,27 @@ export default async function TasksPage() {
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       <ContentContainer>
         <PageHeader
-          badge={`ACADEMIC PLANNER • ${classCode}`}
-          title="Tugas & Penugasan"
-          description={`Lacak penugasan individu, proyek kelompok, deadline, dan progress akademik ${classCode} (${academicYear}).`}
-          breadcrumbs={[{ label: "Tugas Akademik" }]}
+          badge={`PENGINGAT TUGAS • ${classCode}`}
+          title={currentTab === "history" ? "Riwayat & Arsip Tugas" : "Tugas & Penugasan"}
+          description={
+            currentTab === "history"
+              ? `Arsip historis tugas perkuliahan ${classCode} (${academicYear}) yang telah melewati batas tenggat waktu.`
+              : `Daftar pengingat tugas kuliah aktif, instruksi pengerjaan, dan tenggat waktu pengumpulan ${classCode} (${academicYear}).`
+          }
+          breadcrumbs={[
+            { label: "Tugas Akademik", href: "/tasks" },
+            ...(currentTab === "history" ? [{ label: "Riwayat & Arsip" }] : []),
+          ]}
         />
 
-        <Suspense fallback={<TaskTableSkeleton />}>
-          <TasksView tasks={tasks as any} subjects={subjects as any} />
+        <Suspense key={currentTab} fallback={<TaskTableSkeleton />}>
+          <TasksView
+            tasks={tasks as any}
+            subjects={subjects as any}
+            currentTab={currentTab}
+            upcomingCount={upcomingCount}
+            historyCount={historyCount}
+          />
         </Suspense>
       </ContentContainer>
     </div>

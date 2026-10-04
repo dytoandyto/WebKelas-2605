@@ -1,6 +1,18 @@
-import { describe, it, expect } from "vitest";
-import { computeDynamicTaskStatus } from "./index";
+import { describe, it, expect, vi } from "vitest";
+import { computeDynamicTaskStatus, getTasksData } from "./index";
 import { TaskStatus } from "@prisma/client";
+
+vi.mock("@/lib/db", () => ({
+  default: {
+    task: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+    },
+    subject: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  },
+}));
 
 describe("Dynamic Task Status tests", () => {
   it("preserves COMPLETED status even if deadline has passed", () => {
@@ -21,5 +33,22 @@ describe("Dynamic Task Status tests", () => {
   it("leaves deadline > 3 days as UPCOMING", () => {
     const inTenDays = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
     expect(computeDynamicTaskStatus({ deadline: inTenDays, status: TaskStatus.UPCOMING })).toBe(TaskStatus.UPCOMING);
+  });
+});
+
+describe("getTasksData scope filtering", () => {
+  it("defaults to upcoming scope and returns counts", async () => {
+    const result = await getTasksData();
+    expect(result).toHaveProperty("tasks");
+    expect(result).toHaveProperty("upcomingCount");
+    expect(result).toHaveProperty("historyCount");
+    expect(typeof result.upcomingCount).toBe("number");
+    expect(typeof result.historyCount).toBe("number");
+  });
+
+  it("handles history scope query", async () => {
+    const result = await getTasksData({ scope: "history" });
+    expect(result).toHaveProperty("tasks");
+    expect(Array.isArray(result.tasks)).toBe(true);
   });
 });

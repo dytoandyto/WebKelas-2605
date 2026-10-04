@@ -14,7 +14,7 @@ export interface StudentData {
   studentNumber?: string | null;
   name: string;
   photoUrl?: string | null;
-  major: string;
+  major?: string;
   className?: string | null;
   bio?: string | null;
   dream?: string | null;
@@ -84,14 +84,16 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
           </div>
         </div>
 
-        {/* Student Name & Major */}
+        {/* Student Name & NIM */}
         <div>
           <h4 className="text-base font-bold text-[var(--text-primary)] tracking-tight line-clamp-1 hover:text-cyan-400 light:hover:text-blue-600 transition-colors">
             {student.name}
           </h4>
-          <p className="text-xs text-cyan-400 light:text-blue-700 font-medium truncate mt-0.5">
-            {student.major}
-          </p>
+          {student.studentNumber && (
+            <p className="text-xs text-[var(--text-muted)] font-mono truncate mt-0.5">
+              NIM: {student.studentNumber}
+            </p>
+          )}
         </div>
 
         {/* Motivation / Dream excerpt */}

@@ -23,7 +23,7 @@ export function UpcomingTasks({ tasks, className }: UpcomingTasksProps) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
-              // Prioritas Akademik
+              // Pengingat Akademik
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
@@ -35,10 +35,10 @@ export function UpcomingTasks({ tasks, className }: UpcomingTasksProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-cyan-400 light:text-blue-600 font-semibold"
+            className="text-xs text-cyan-400 light:text-blue-600 font-semibold cursor-pointer"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Buka Task Planner
+            Lihat Semua Tugas
           </Button>
         </Link>
       </div>
@@ -49,14 +49,20 @@ export function UpcomingTasks({ tasks, className }: UpcomingTasksProps) {
           padding="lg"
           className="text-center border-dashed space-y-2 p-8"
         >
-          <CheckSquare className="w-8 h-8 text-emerald-400 mx-auto opacity-70" />
+          <CheckSquare className="w-8 h-8 text-cyan-400 mx-auto opacity-70" />
           <h4 className="text-base font-bold text-[var(--text-primary)]">
-            Semua Tugas Terselesaikan!
+            Tidak Ada Tugas Mendatang
           </h4>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md mx-auto">
-            Tidak ada deadline tugas akademik yang mendesak saat ini. Pertahankan
-            progress belajar yang luar biasa!
+            Saat ini tidak ada tenggat tugas akademik yang aktif. Anda dapat melihat arsip penugasan yang telah lewat di halaman riwayat tugas.
           </p>
+          <div className="pt-2">
+            <Link href="/tasks?tab=history">
+              <Button variant="outline" size="sm" className="text-xs cursor-pointer">
+                Lihat Riwayat & Arsip Tugas
+              </Button>
+            </Link>
+          </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -43,13 +43,12 @@ interface StudentItem {
 
 interface StudentsManagerProps {
   initialStudents: StudentItem[];
-  majors: string[];
+  majors?: string[];
 }
 
-export function StudentsManager({ initialStudents, majors }: StudentsManagerProps) {
+export function StudentsManager({ initialStudents }: StudentsManagerProps) {
   const [students, setStudents] = useState<StudentItem[]>(initialStudents);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMajor, setSelectedMajor] = useState<string>("ALL");
   const [isPending, startTransition] = useTransition();
 
   // Modal State
@@ -59,7 +58,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
   const [formData, setFormData] = useState({
     name: "",
     studentNumber: "",
-    major: majors[0] || "Informatics",
+    major: "Sistem Informasi",
     photoUrl: "",
     bio: "",
     dream: "",
@@ -103,7 +102,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
     setFormData({
       name: "",
       studentNumber: "",
-      major: majors[0] || "Informatics",
+      major: "Sistem Informasi",
       photoUrl: "",
       bio: "",
       dream: "",
@@ -123,7 +122,7 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
     setFormData({
       name: student.name,
       studentNumber: student.studentNumber || "",
-      major: student.major,
+      major: student.major || "Sistem Informasi",
       photoUrl: student.photoUrl || "",
       bio: student.bio || "",
       dream: student.dream || "",
@@ -214,13 +213,11 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
   }
 
   const filteredStudents = students.filter((s) => {
-    if (selectedMajor !== "ALL" && s.major !== selectedMajor) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
       s.name.toLowerCase().includes(q) ||
-      (s.studentNumber && s.studentNumber.toLowerCase().includes(q)) ||
-      s.major.toLowerCase().includes(q)
+      (s.studentNumber && s.studentNumber.toLowerCase().includes(q))
     );
   });
 
@@ -298,7 +295,6 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
               <thead className="bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                 <tr>
                   <th className="py-3.5 px-6">Student</th>
-                  <th className="py-3.5 px-6">Major</th>
                   <th className="py-3.5 px-6">Bio / Dream</th>
                   <th className="py-3.5 px-6">Achievements</th>
                   <th className="py-3.5 px-6 text-right">Actions</th>
@@ -331,9 +327,6 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
                           )}
                         </div>
                       </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="badge badge-blue text-[11px]">{st.major}</span>
                     </td>
                     <td className="py-4 px-6 max-w-xs">
                       {st.bio ? (
@@ -448,21 +441,6 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Major / Department <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Computer Science or Information Systems"
-                value={formData.major}
-                onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-                className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
-                required
-              />
-            </div>
-
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
                 Foto Profil (Opsional)
@@ -527,7 +505,6 @@ export function StudentsManager({ initialStudents, majors }: StudentsManagerProp
                 />
               </div>
             </div>
-          </div>
 
           <div>
             <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">

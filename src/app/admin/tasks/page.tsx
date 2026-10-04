@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminTasksPage() {
-  const { tasks, subjects } = await getTasksData();
+  const { tasks, subjects } = await getTasksData({ scope: "all" });
 
   return (
     <div className="space-y-6">

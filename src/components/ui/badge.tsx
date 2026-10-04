@@ -191,8 +191,14 @@ export function DeadlineBadge({
 
   if (diffMs < 0) {
     return (
-      <Badge variant="red" dot className={cn("font-medium", className)}>
-        Sudah Lewat
+      <Badge
+        variant="outline"
+        className={cn(
+          "font-medium opacity-80 border-slate-600/60 text-[var(--text-muted)] light:text-slate-600 light:border-slate-300",
+          className
+        )}
+      >
+        Lewat Tenggat
       </Badge>
     );
   }

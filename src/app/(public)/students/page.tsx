@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function StudentsPage() {
-  const [{ students, majors }, settings] = await Promise.all([
+  const [{ students }, settings] = await Promise.all([
     getStudentsData(),
     getSettings(),
   ]);
@@ -29,7 +29,7 @@ export default async function StudentsPage() {
           breadcrumbs={[{ label: "Direktori Mahasiswa" }]}
         />
 
-        <StudentsDirectory initialStudents={students} majors={majors} />
+        <StudentsDirectory initialStudents={students} />
       </ContentContainer>
     </div>
   );

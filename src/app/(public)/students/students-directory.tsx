@@ -9,16 +9,14 @@ import { cn } from "@/lib/utils";
 
 interface StudentsDirectoryProps {
   initialStudents: StudentData[];
-  majors: string[];
+  majors?: string[];
 }
 
 export function StudentsDirectory({
   initialStudents,
-  majors,
 }: StudentsDirectoryProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMajor, setSelectedMajor] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<"name" | "achievements">("name");
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -30,11 +28,10 @@ export function StudentsDirectory({
         const matchesSearch =
           s.name.toLowerCase().includes(q) ||
           (s.studentNumber && s.studentNumber.toLowerCase().includes(q)) ||
-          (s.major && s.major.toLowerCase().includes(q)) ||
-          (s.motivation && s.motivation.toLowerCase().includes(q));
+          (s.motivation && s.motivation.toLowerCase().includes(q)) ||
+          (s.bio && s.bio.toLowerCase().includes(q));
 
         if (!matchesSearch) return false;
-        if (selectedMajor !== "ALL" && s.major !== selectedMajor) return false;
         return true;
       })
       .sort((a, b) => {
@@ -45,7 +42,7 @@ export function StudentsDirectory({
         }
         return a.name.localeCompare(b.name);
       });
-  }, [initialStudents, searchQuery, selectedMajor, sortBy]);
+  }, [initialStudents, searchQuery, sortBy]);
 
   const handleStudentClick = (student: StudentData) => {
     setSelectedStudent(student);
@@ -66,24 +63,8 @@ export function StudentsDirectory({
           />
         </div>
 
-        {/* Filter and Sort Options */}
+        {/* Sort Options */}
         <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-          {majors.length > 1 && (
-            <div className="w-48">
-              <Select
-                value={selectedMajor}
-                onChange={(e) => setSelectedMajor(e.target.value)}
-              >
-                <option value="ALL">Semua Program Studi</option>
-                {majors.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          )}
-
           <div className="w-44">
             <Select
               value={sortBy}

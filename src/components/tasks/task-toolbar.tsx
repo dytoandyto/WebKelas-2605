@@ -21,6 +21,7 @@ export interface TaskToolbarProps {
   currentView: TaskViewMode;
   onViewChange?: (view: TaskViewMode) => void;
   onNewTask?: () => void;
+  isHistory?: boolean;
   className?: string;
 }
 
@@ -31,6 +32,7 @@ export function TaskToolbar({
   currentView,
   onViewChange,
   onNewTask,
+  isHistory = false,
   className,
 }: TaskToolbarProps) {
   const [showFilters, setShowFilters] = React.useState(false);
@@ -114,41 +116,27 @@ export function TaskToolbar({
       {/* Filter Row: Subject & Deadline Filter */}
       <div
         className={cn(
-          "grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-[var(--border-color)]/70",
+          "grid gap-2.5 pt-3 border-t border-[var(--border-color)]/70",
+          isHistory ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2",
           !showFilters && "hidden md:grid"
         )}
       >
         {/* Subject Filter */}
-        <Select
-          value={filters.subjectId}
-          onChange={(e) => onFilterChange({ subjectId: e.target.value })}
-        >
-          <option value="ALL">Semua Mata Kuliah</option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.code}>
-              {s.code} - {s.name}
-            </option>
-          ))}
-        </Select>
-
-        {/* Deadline Filter */}
         <div className="flex items-center gap-2">
           <Select
-            value={filters.deadlineFilter}
-            onChange={(e) =>
-              onFilterChange({
-                deadlineFilter: e.target.value as TaskToolbarFilters["deadlineFilter"],
-              })
-            }
+            value={filters.subjectId}
+            onChange={(e) => onFilterChange({ subjectId: e.target.value })}
             className="flex-1"
           >
-            <option value="ALL">Semua Deadline</option>
-            <option value="DUE_SOON">Hari Ini / Besok (Mendesak)</option>
-            <option value="UPCOMING">Mendatang (Upcoming)</option>
-            <option value="PAST_DEADLINE">Lewat Deadline</option>
+            <option value="ALL">Semua Mata Kuliah</option>
+            {subjects.map((s) => (
+              <option key={s.id} value={s.code}>
+                {s.code} - {s.name}
+              </option>
+            ))}
           </Select>
 
-          {hasActiveFilters && (
+          {isHistory && hasActiveFilters && (
             <button
               type="button"
               onClick={clearFilters}
@@ -159,6 +147,36 @@ export function TaskToolbar({
             </button>
           )}
         </div>
+
+        {/* Deadline Filter (Only for Upcoming Tasks) */}
+        {!isHistory && (
+          <div className="flex items-center gap-2">
+            <Select
+              value={filters.deadlineFilter}
+              onChange={(e) =>
+                onFilterChange({
+                  deadlineFilter: e.target.value as TaskToolbarFilters["deadlineFilter"],
+                })
+              }
+              className="flex-1"
+            >
+              <option value="ALL">Semua Tenggat Mendatang</option>
+              <option value="DUE_SOON">Hari Ini / Besok (Mendesak)</option>
+              <option value="UPCOMING">Mendatang Lainnya</option>
+            </Select>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                title="Reset Filter"
+                className="p-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-muted)] hover:text-red-400 hover:border-red-500/40 transition-colors shrink-0 light:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

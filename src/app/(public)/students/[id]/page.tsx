@@ -47,7 +47,7 @@ export async function generateMetadata({
   if (!student) return { title: "Mahasiswa Tidak Ditemukan | JS1SI-26-REG-05" };
   return {
     title: `${student.name} | Mahasiswa JS1SI-26-REG-05`,
-    description: student.bio || `Profil akademik mahasiswa ${student.name} — ${student.major} Telkom University Jakarta.`,
+    description: student.bio || `Profil akademik mahasiswa ${student.name} — Telkom University Jakarta.`,
   };
 }
 
@@ -106,16 +106,13 @@ export default async function StudentDetailPage({
                     NIM: {student.studentNumber}
                   </p>
                 )}
-                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30">
-                    {student.major}
-                  </span>
-                  {(student as any).classRole && (
+                {(student as any).classRole && (
+                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                     <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30">
                       {(student as any).classRole}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Social links */}

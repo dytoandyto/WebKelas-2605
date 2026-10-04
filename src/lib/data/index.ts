@@ -17,13 +17,11 @@ import {
 } from "./initial-data";
 import {
   DayOfWeek,
-  TaskType,
   MaterialType,
   TaskPriority,
   TaskStatus,
   AchievementCategory,
   ResourceCategory,
-  UserRole,
 } from "@prisma/client";
 
 // Compute dynamic task status based on real-time deadline
@@ -66,6 +64,8 @@ export async function getHomeData() {
   try {
     const todayDayOfWeek = DAYS_MAP[new Date().getDay()] || DayOfWeek.MONDAY;
 
+    const now = new Date();
+
     const [
       studentsCount,
       achievementsCount,
@@ -86,11 +86,11 @@ export async function getHomeData() {
       prisma.student.count(),
       prisma.achievement.count(),
       prisma.subject.count(),
-      prisma.task.count({ where: { status: { not: TaskStatus.COMPLETED } } }),
+      prisma.task.count({ where: { deadline: { gte: now } } }),
       prisma.material.count(),
       prisma.dailyNote.count(),
       prisma.task.findMany({
-        where: { status: { not: TaskStatus.COMPLETED } },
+        where: { deadline: { gte: now } },
         orderBy: { deadline: "asc" },
         take: 4,
         include: { subject: true },
@@ -220,15 +220,36 @@ export async function getScheduleData(filters?: { dayOfWeek?: DayOfWeek; subject
 }
 
 // 3. Tasks Page Data
-export async function getTasksData(filters?: {
+export interface GetTasksDataFilters {
+  scope?: "upcoming" | "history" | "all";
   subjectId?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
   search?: string;
   sort?: "newest" | "deadline" | "priority";
-}) {
+}
+
+export interface GetTasksDataResult {
+  tasks: any[];
+  subjects: any[];
+  upcomingCount: number;
+  historyCount: number;
+}
+
+export async function getTasksData(filters?: GetTasksDataFilters): Promise<GetTasksDataResult> {
+  const now = new Date();
+  const scope = filters?.scope || "upcoming";
+
   try {
     const where: any = {};
+
+    // Database-level filtering by deadline
+    if (scope === "upcoming") {
+      where.deadline = { gte: now };
+    } else if (scope === "history") {
+      where.deadline = { lt: now };
+    }
+
     if (filters?.subjectId) where.subjectId = filters.subjectId;
     if (filters?.priority) where.priority = filters.priority;
     if (filters?.status) where.status = filters.status;
@@ -240,17 +261,21 @@ export async function getTasksData(filters?: {
       ];
     }
 
-    let orderBy: any = { deadline: "asc" };
+    // Default sorting: Upcoming is chronological (asc), History is most recent past first (desc)
+    let orderBy: any = scope === "history" ? { deadline: "desc" } : { deadline: "asc" };
     if (filters?.sort === "newest") orderBy = { createdAt: "desc" };
     if (filters?.sort === "priority") orderBy = { priority: "desc" };
+    if (filters?.sort === "deadline") orderBy = { deadline: scope === "history" ? "desc" : "asc" };
 
-    const [tasksRaw, subjects] = await Promise.all([
+    const [tasksRaw, subjects, upcomingCount, historyCount] = await Promise.all([
       prisma.task.findMany({
         where,
         orderBy,
         include: { subject: true, creator: { select: { id: true, name: true, role: true } } },
       }),
       prisma.subject.findMany({ orderBy: { code: "asc" } }),
+      prisma.task.count({ where: { deadline: { gte: now } } }),
+      prisma.task.count({ where: { deadline: { lt: now } } }),
     ]);
 
     const tasks = tasksRaw.map((t) => ({
@@ -258,12 +283,21 @@ export async function getTasksData(filters?: {
       computedStatus: computeDynamicTaskStatus(t),
     }));
 
-    return { tasks, subjects };
+    return { tasks, subjects, upcomingCount, historyCount };
   } catch {
     let tasks = initialTasks.map((t) => ({
       ...t,
       computedStatus: computeDynamicTaskStatus(t),
     }));
+
+    const upcomingCount = tasks.filter((t) => new Date(t.deadline).getTime() >= now.getTime()).length;
+    const historyCount = tasks.filter((t) => new Date(t.deadline).getTime() < now.getTime()).length;
+
+    if (scope === "upcoming") {
+      tasks = tasks.filter((t) => new Date(t.deadline).getTime() >= now.getTime());
+    } else if (scope === "history") {
+      tasks = tasks.filter((t) => new Date(t.deadline).getTime() < now.getTime());
+    }
 
     if (filters?.subjectId) tasks = tasks.filter((t) => t.subjectId === filters.subjectId);
     if (filters?.priority) tasks = tasks.filter((t) => t.priority === filters.priority);
@@ -280,11 +314,17 @@ export async function getTasksData(filters?: {
 
     if (filters?.sort === "newest") {
       tasks.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } else if (filters?.sort === "priority") {
+      tasks.sort((a, b) => (b.priority || "").localeCompare(a.priority || ""));
     } else {
-      tasks.sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
+      if (scope === "history") {
+        tasks.sort((a, b) => new Date(b.deadline).getTime() - new Date(a.deadline).getTime());
+      } else {
+        tasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+      }
     }
 
-    return { tasks, subjects: initialSubjects };
+    return { tasks, subjects: initialSubjects, upcomingCount, historyCount };
   }
 }
 

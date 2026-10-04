@@ -46,16 +46,14 @@ describe("Validation Schemas tests", () => {
   });
 
   it("validates student required fields and URL checks", () => {
-    expect(studentSchema.safeParse({ name: "A", major: "" }).success).toBe(false);
+    expect(studentSchema.safeParse({ name: "A" }).success).toBe(false);
     expect(studentSchema.safeParse({
       name: "Jane Doe",
-      major: "Computer Science",
       githubUrl: "not-a-url",
     }).success).toBe(false);
 
     expect(studentSchema.safeParse({
       name: "Jane Doe",
-      major: "Computer Science",
       githubUrl: "https://github.com/janedoe",
     }).success).toBe(true);
   });
