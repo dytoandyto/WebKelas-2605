@@ -62,11 +62,6 @@ ClassHub enforces granular permissions across administrative roles:
 | **ASSISTANT** | Teaching assistant: update task statuses, laboratory schedules, and assist student directory maintenance. |
 
 ### 🔑 Demo Credentials (Offline / First-Time Login)
-If database connection is not yet configured, ClassHub includes built-in fallback authentication for immediate testing:
-- **Email**: `admin@classhub.edu`
-- **Password**: `AdminClassHub2026!`
-- **Role**: `ADMIN`
-
 ---
 
 ## 🚀 Getting Started
