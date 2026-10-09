@@ -305,7 +305,7 @@ export const initialResources: any[] = [];
 export const initialUsers = [
   {
     id: "usr-admin",
-    name: "System Administrator",
+    name: "SuperAdmin",
     email: "admin@classhub.edu",
     role: UserRole.ADMIN,
     isActive: true,

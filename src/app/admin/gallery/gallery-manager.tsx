@@ -19,6 +19,7 @@ import {
   deleteGalleryAction,
 } from "@/lib/actions/gallery";
 import { formatDate } from "@/lib/utils";
+import { compressImageFile } from "@/lib/compress-image";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface GalleryItem {
@@ -49,6 +50,42 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
     eventDate: new Date().toISOString().slice(0, 10),
   });
   const [formError, setFormError] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
+
+  async function handleImageFile(file?: File) {
+    if (!file) return;
+    if (file.size > 40 * 1024 * 1024) {
+      setFormError("Ukuran file gambar maksimal 40 MB.");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setFormError("File harus berupa gambar (JPG, PNG, WebP).");
+      return;
+    }
+
+    setCompressing(true);
+    setFormError(null);
+    try {
+      const res = await compressImageFile(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.82,
+      });
+      setFormData((prev) => ({ ...prev, imageUrl: res.dataUrl }));
+      if (res.isCompressed && res.compressionRatio > 0) {
+        setCompressionInfo(
+          `Terkompresi otomatis: ${res.originalFormattedSize} → ${res.formattedSize} (Hemat ${res.compressionRatio}%)`
+        );
+      } else {
+        setCompressionInfo(`Ukuran: ${res.formattedSize}`);
+      }
+    } catch {
+      setFormError("Gagal memproses dan mengompresi gambar.");
+    } finally {
+      setCompressing(false);
+    }
+  }
 
   // Delete State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -62,6 +99,7 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
       imageUrl: "",
       eventDate: new Date().toISOString().slice(0, 10),
     });
+    setCompressionInfo(null);
     setFormError(null);
     setModalOpen(true);
   }
@@ -77,6 +115,7 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
       imageUrl: photo.imageUrl,
       eventDate: dateStr,
     });
+    setCompressionInfo(null);
     setFormError(null);
     setModalOpen(true);
   }
@@ -315,7 +354,17 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
               </label>
             </div>
 
-            {formData.imageUrl ? (
+            {compressing ? (
+              <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-blue-400 dark:border-blue-500 rounded-xl bg-blue-50/40 dark:bg-blue-950/20 text-center">
+                <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin mb-2" />
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  Mengompresi gambar otomatis...
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Mengoptimasi resolusi & WebP agar gambar tajam dan sangat ringan
+                </span>
+              </div>
+            ) : formData.imageUrl ? (
               /* Preview with Replace / Remove Actions */
               <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50/70 dark:bg-slate-900/50">
                 <div className="relative h-44 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
@@ -326,9 +375,16 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
                   />
                 </div>
                 <div className="flex items-center justify-between mt-3 px-1">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[280px]">
-                    Image selected
-                  </span>
+                  <div className="flex flex-col gap-0.5 truncate max-w-[280px]">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Gambar terpilih
+                    </span>
+                    {compressionInfo && (
+                      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                        ⚡ {compressionInfo}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <label className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer">
                       <span>Replace</span>
@@ -336,24 +392,16 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (evt) => {
-                              if (evt.target?.result) {
-                                setFormData({ ...formData, imageUrl: evt.target.result as string });
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
+                        onChange={(e) => handleImageFile(e.target.files?.[0])}
                       />
                     </label>
                     <span className="text-slate-300 dark:text-slate-600">•</span>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, imageUrl: "" })}
+                      onClick={() => {
+                        setFormData({ ...formData, imageUrl: "" });
+                        setCompressionInfo(null);
+                      }}
                       className="text-xs font-semibold text-rose-500 hover:text-rose-600 cursor-pointer"
                     >
                       Remove
@@ -372,7 +420,7 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
                     Upload your image
                   </span>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    PNG, JPG, WebP up to 5MB
+                    PNG, JPG, WebP otomatis dikompresi sistem (Maks. 40MB)
                   </span>
                   <span className="mt-3 inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:border-slate-300">
                     Choose Image
@@ -381,18 +429,7 @@ export function GalleryManager({ initialGallery }: GalleryManagerProps) {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (evt) => {
-                          if (evt.target?.result) {
-                            setFormData({ ...formData, imageUrl: evt.target.result as string });
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
+                    onChange={(e) => handleImageFile(e.target.files?.[0])}
                   />
                 </label>
 

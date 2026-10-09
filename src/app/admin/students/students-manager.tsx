@@ -23,6 +23,7 @@ import {
   deleteStudentAction,
 } from "@/lib/actions/students";
 import { cn } from "@/lib/utils";
+import { compressImageFile } from "@/lib/compress-image";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface StudentItem {
@@ -69,13 +70,15 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
     instagramUrl: "",
   });
   const [formError, setFormError] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
 
-  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setFormError("Ukuran file foto maksimal 2MB.");
+    if (file.size > 30 * 1024 * 1024) {
+      setFormError("Ukuran file foto maksimal 30 MB.");
       return;
     }
 
@@ -84,13 +87,27 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
       return;
     }
 
+    setCompressing(true);
     setFormError(null);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setFormData((prev) => ({ ...prev, photoUrl: dataUrl }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const res = await compressImageFile(file, {
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.85,
+      });
+      setFormData((prev) => ({ ...prev, photoUrl: res.dataUrl }));
+      if (res.isCompressed && res.compressionRatio > 0) {
+        setCompressionInfo(
+          `Terkompresi otomatis: ${res.originalFormattedSize} → ${res.formattedSize} (Hemat ${res.compressionRatio}%)`
+        );
+      } else {
+        setCompressionInfo(`Ukuran: ${res.formattedSize}`);
+      }
+    } catch {
+      setFormError("Gagal memproses dan mengompresi foto profil.");
+    } finally {
+      setCompressing(false);
+    }
   }
 
   // Delete State
@@ -113,6 +130,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
       instagramUrl: "",
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
+    setCompressionInfo(null);
     setFormError(null);
     setModalOpen(true);
   }
@@ -133,6 +151,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
       instagramUrl: student.instagramUrl || "",
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
+    setCompressionInfo(null);
     setFormError(null);
     setModalOpen(true);
   }
@@ -446,8 +465,10 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 Foto Profil (Opsional)
               </label>
               <div className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0 border-2 border-white dark:border-slate-800 shadow-xs">
-                  {formData.photoUrl ? (
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0 border-2 border-white dark:border-slate-800 shadow-xs relative">
+                  {compressing ? (
+                    <Loader2 size={22} className="animate-spin text-white" />
+                  ) : formData.photoUrl ? (
                     <img
                       src={formData.photoUrl}
                       alt="Preview"
@@ -469,17 +490,28 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                     />
                     <button
                       type="button"
+                      disabled={compressing}
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-60"
                     >
-                      <Upload size={13} />
-                      <span>{formData.photoUrl ? "Ganti Foto" : "Pilih File Foto"}</span>
+                      {compressing ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" />
+                          <span>Mengompresi...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={13} />
+                          <span>{formData.photoUrl ? "Ganti Foto" : "Pilih File Foto"}</span>
+                        </>
+                      )}
                     </button>
-                    {formData.photoUrl && (
+                    {formData.photoUrl && !compressing && (
                       <button
                         type="button"
                         onClick={() => {
                           setFormData((prev) => ({ ...prev, photoUrl: "" }));
+                          setCompressionInfo(null);
                           if (fileInputRef.current) fileInputRef.current.value = "";
                         }}
                         className="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 flex items-center gap-1 transition-colors"
@@ -489,9 +521,15 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Bisa unggah file (JPG/PNG/WebP maks 2MB) atau masukkan URL foto di bawah.
-                  </p>
+                  {compressionInfo ? (
+                    <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                      ⚡ {compressionInfo}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                      Bisa unggah file foto (JPG/PNG/WebP maks 30MB, otomatis dikompresi) atau tempel URL.
+                    </p>
+                  )}
                 </div>
               </div>
 

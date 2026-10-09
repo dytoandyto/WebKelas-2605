@@ -33,10 +33,10 @@ async function main() {
   const adminPassword = await bcrypt.hash("AdminClassHub2026!", 12);
 
   // 3. Create System Administrator (Single authoritative admin account)
-  console.log("Creating System Administrator account...");
+  console.log("Creating SuperAdmin account...");
   await prisma.user.create({
     data: {
-      name: "System Administrator",
+      name: "SuperAdmin",
       email: "admin@classhub.edu",
       passwordHash: adminPassword,
       role: UserRole.ADMIN,
