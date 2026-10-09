@@ -28,7 +28,7 @@ export default async function MaterialsPage({ searchParams }: MaterialsPageProps
         <PageHeader
           badge={`MATERI KULIAH • ${classCode}`}
           title="Materi Kuliah"
-          description="Temukan modul perkuliahan, slide dosen, dan bahan belajar berdasarkan mata kuliahnya."
+          description="Kumpulan berkas materi kuliah, modul praktikum, dan slide presentasi dosen semua mata kuliah."
           breadcrumbs={[{ label: "Materi Kuliah" }]}
         />
 

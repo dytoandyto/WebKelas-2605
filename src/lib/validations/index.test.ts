@@ -99,7 +99,7 @@ describe("Validation Schemas tests", () => {
     expect(additTask.success).toBe(true);
   });
 
-  it("validates material schema with various types", async () => {
+  it("validates material schema with various types and data URLs", async () => {
     const { materialSchema } = await import("./index");
     const validPdf = materialSchema.safeParse({
       title: "Modul 1 - Pengenalan Algoritma",
@@ -107,6 +107,25 @@ describe("Validation Schemas tests", () => {
       fileUrl: "https://example.com/modul1.pdf",
     });
     expect(validPdf.success).toBe(true);
+
+    // Uploaded PDF with base64 Data URL
+    const validUploadedPdf = materialSchema.safeParse({
+      title: "Slide Kuliah Pertemuan 1",
+      type: "PDF",
+      fileUrl: "data:application/pdf;base64,JVBERi0xLjQKJcTl8uXr...",
+    });
+    expect(validUploadedPdf.success).toBe(true);
+
+    // Auto-prepend https:// to external Google Drive URL
+    const validDriveLink = materialSchema.safeParse({
+      title: "Materi Kuliah di Google Drive",
+      type: "LINK",
+      externalUrl: "drive.google.com/file/d/12345/view",
+    });
+    expect(validDriveLink.success).toBe(true);
+    if (validDriveLink.success) {
+      expect(validDriveLink.data.externalUrl).toBe("https://drive.google.com/file/d/12345/view");
+    }
 
     const validLink = materialSchema.safeParse({
       title: "Dokumentasi Resmi Python",

@@ -8,28 +8,29 @@ import {
   User,
   Layers,
   Sparkles,
-  FolderOpen,
-  Filter,
-  CheckCircle2,
   GraduationCap,
   FileText,
   Download,
-  ExternalLink,
-  ChevronRight,
   Eye,
   RotateCcw,
-  Calendar,
+  X,
+  Filter,
+  FileSpreadsheet,
+  Video,
+  Link2,
 } from "lucide-react";
-import { MaterialData, getMaterialIcon, getMaterialTypeBadge } from "./material-card";
+import {
+  MaterialData,
+  getMaterialIcon,
+  getMaterialTypeBadge,
+  parseAttachments,
+} from "./material-card";
 import { MaterialDetail } from "./material-detail";
-import { MaterialSectionGroup } from "./material-section-group";
-import { MaterialRow } from "./material-row";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { formatDate, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface SubjectItem {
   id: string;
@@ -65,17 +66,17 @@ export function MaterialsView({
 
   const querySubject = searchParams.get("subject") || initialSubjectCode;
 
-  // Active category filter: "ALL" or subject code/id
+  // Active category filter: "ALL" or subject code
   const [selectedCategory, setSelectedCategory] = useState<string>(
     querySubject ? querySubject.toUpperCase() : "ALL"
   );
-  // Active material selection within the chosen subject: "ALL" or material id
+  // Active material selection: "ALL" or material id
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>("ALL");
+  // Active format type filter: "ALL", "PDF", "PPT", "DOC", "XLS", "VIDEO", "LINK"
+  const [selectedType, setSelectedType] = useState<string>("ALL");
 
   const [search, setSearch] = useState("");
-  const [selectedMaterial, setSelectedMaterial] = useState<MaterialData | null>(
-    null
-  );
+  const [selectedMaterial, setSelectedMaterial] = useState<MaterialData | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   // Sync state if URL search param changes
@@ -136,15 +137,31 @@ export function MaterialsView({
     setDetailOpen(true);
   };
 
-  // Materials belonging to the active subject (for the 2nd dropdown selector)
-  const activeSubjectMaterials = useMemo(() => {
-    if (!activeSubject) return [];
+  const handleResetAllFilters = () => {
+    setSelectedCategory("ALL");
+    setSelectedMaterialId("ALL");
+    setSelectedType("ALL");
+    setSearch("");
+    router.push("/materials", { scroll: false });
+  };
+
+  const isAnyFilterActive =
+    selectedCategory !== "ALL" ||
+    selectedMaterialId !== "ALL" ||
+    selectedType !== "ALL" ||
+    Boolean(search.trim());
+
+  // Materials available for Dropdown 2 (Pilih Materi Kuliah)
+  const availableMaterialsForSelect = useMemo(() => {
+    if (selectedCategory === "ALL") {
+      return materials;
+    }
     return materials.filter(
       (m) =>
-        m.subject?.code?.toUpperCase() === activeSubject.code.toUpperCase() ||
-        m.subject?.id === activeSubject.id
+        m.subject?.code?.toUpperCase() === selectedCategory.toUpperCase() ||
+        m.subject?.id?.toUpperCase() === selectedCategory.toUpperCase()
     );
-  }, [activeSubject, materials]);
+  }, [selectedCategory, materials]);
 
   // The spotlight material if user picked a single material in Dropdown 2
   const spotlightMaterial = useMemo(() => {
@@ -152,7 +169,7 @@ export function MaterialsView({
     return materials.find((m) => m.id === selectedMaterialId) || null;
   }, [selectedMaterialId, materials]);
 
-  // Filter materials based on category and search query
+  // Filter materials based on category (matkul), specific material, format, and search query
   const filteredMaterials = useMemo(() => {
     let result = materials;
 
@@ -167,7 +184,35 @@ export function MaterialsView({
       });
     }
 
-    // 2. Filter by search query
+    // 2. Filter by specific material ID
+    if (selectedMaterialId !== "ALL") {
+      result = result.filter((m) => m.id === selectedMaterialId);
+    }
+
+    // 3. Filter by format type
+    if (selectedType !== "ALL") {
+      result = result.filter((m) => {
+        const t = (m.type || "").toString().toUpperCase();
+        if (selectedType === "PPT") {
+          return ["PPT", "SLIDE", "PPTX", "KEY"].includes(t);
+        }
+        if (selectedType === "DOC") {
+          return ["DOC", "DOCX", "DOCUMENT", "TXT"].includes(t);
+        }
+        if (selectedType === "XLS") {
+          return ["XLS", "XLSX", "SPREADSHEET", "CSV"].includes(t);
+        }
+        if (selectedType === "VIDEO") {
+          return ["VIDEO", "MP4", "MKV", "WEBM"].includes(t);
+        }
+        if (selectedType === "LINK") {
+          return ["LINK", "G-DRIVE", "URL"].includes(t);
+        }
+        return t === selectedType.toUpperCase();
+      });
+    }
+
+    // 4. Filter by search query
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       result = result.filter((m) => {
@@ -179,172 +224,31 @@ export function MaterialsView({
         const matchSection = m.section?.title?.toLowerCase().includes(q);
         const matchTags = m.tags?.toLowerCase().includes(q);
         const matchFile = m.fileName?.toLowerCase().includes(q);
+        const matchLecturer = m.subject?.lecturerName?.toLowerCase().includes(q);
         return (
           matchTitle ||
           matchDesc ||
           matchSubject ||
           matchSection ||
           matchTags ||
-          matchFile
+          matchFile ||
+          matchLecturer
         );
       });
     }
 
     return result;
-  }, [materials, selectedCategory, search]);
-
-  // Filter subjects for the table if search query exists
-  const filteredSubjectsForTable = useMemo(() => {
-    if (!search.trim()) return subjects;
-    const q = search.toLowerCase().trim();
-    return subjects.filter(
-      (s) =>
-        s.code.toLowerCase().includes(q) ||
-        s.name.toLowerCase().includes(q) ||
-        s.lecturerName?.toLowerCase().includes(q) ||
-        s.englishName?.toLowerCase().includes(q)
-    );
-  }, [subjects, search]);
-
-  // Group materials by Submateri / Section when a single subject is selected
-  const singleSubjectSections = useMemo(() => {
-    if (!activeSubject) return [];
-
-    const dbSections = [...(activeSubject.materialSections || [])].sort(
-      (a, b) => a.sortOrder - b.sortOrder
-    );
-
-    const result: Array<{
-      id: string;
-      title: string;
-      description?: string | null;
-      materials: MaterialData[];
-    }> = [];
-
-    const assignedMaterialIds = new Set<string>();
-
-    for (const sec of dbSections) {
-      const secMaterials = filteredMaterials.filter(
-        (m) => m.sectionId === sec.id || m.section?.id === sec.id
-      );
-      secMaterials.forEach((m) => assignedMaterialIds.add(m.id));
-      if (secMaterials.length > 0) {
-        result.push({
-          id: sec.id,
-          title: sec.title,
-          description: sec.description,
-          materials: secMaterials,
-        });
-      }
-    }
-
-    // Unassigned materials or general materials
-    const generalMaterials = filteredMaterials.filter(
-      (m) => !assignedMaterialIds.has(m.id)
-    );
-
-    if (generalMaterials.length > 0) {
-      result.push({
-        id: "general",
-        title:
-          dbSections.length > 0
-            ? "Materi Tambahan & Referensi"
-            : "Bahan Ajar & Modul Perkuliahan",
-        description: "Dokumen materi pembelajaran kelas",
-        materials: generalMaterials,
-      });
-    }
-
-    return result;
-  }, [activeSubject, filteredMaterials]);
-
-  // Group materials by Subject -> Submateri when "ALL" is selected
-  const allSubjectsGrouped = useMemo(() => {
-    if (selectedCategory !== "ALL") return [];
-
-    const subjectMap = new Map<
-      string,
-      { subject: SubjectItem; materials: MaterialData[] }
-    >();
-
-    for (const sub of subjects) {
-      const subMats = filteredMaterials.filter(
-        (m) =>
-          m.subject?.code?.toUpperCase() === sub.code.toUpperCase() ||
-          m.subject?.id === sub.id
-      );
-      if (subMats.length > 0) {
-        subjectMap.set(sub.id, { subject: sub, materials: subMats });
-      }
-    }
-
-    const groups: Array<{
-      subject: SubjectItem;
-      sections: Array<{
-        id: string;
-        title: string;
-        description?: string | null;
-        materials: MaterialData[];
-      }>;
-    }> = [];
-
-    subjectMap.forEach(({ subject, materials: subMats }) => {
-      const dbSections = [...(subject.materialSections || [])].sort(
-        (a, b) => a.sortOrder - b.sortOrder
-      );
-
-      const sections: Array<{
-        id: string;
-        title: string;
-        description?: string | null;
-        materials: MaterialData[];
-      }> = [];
-
-      const assignedIds = new Set<string>();
-
-      for (const sec of dbSections) {
-        const secMats = subMats.filter(
-          (m) => m.sectionId === sec.id || m.section?.id === sec.id
-        );
-        secMats.forEach((m) => assignedIds.add(m.id));
-        if (secMats.length > 0) {
-          sections.push({
-            id: sec.id,
-            title: sec.title,
-            description: sec.description,
-            materials: secMats,
-          });
-        }
-      }
-
-      const remainder = subMats.filter((m) => !assignedIds.has(m.id));
-      if (remainder.length > 0) {
-        sections.push({
-          id: `${subject.id}-general`,
-          title:
-            dbSections.length > 0
-              ? "Materi Tambahan & Referensi"
-              : "Bahan Ajar & Modul",
-          description: null,
-          materials: remainder,
-        });
-      }
-
-      groups.push({ subject, sections });
-    });
-
-    return groups;
-  }, [selectedCategory, subjects, filteredMaterials]);
+  }, [materials, selectedCategory, selectedMaterialId, selectedType, search]);
 
   return (
-    <div className="space-y-8 text-left">
+    <div className="space-y-6 text-left">
       {/* ── 1. Search Bar & Cascading Select Controls ─────────────────────── */}
       <div className="p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-card)] space-y-4 shadow-xs">
-        {/* Search Input */}
+        {/* Search Input & Total Counter */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex-1 max-w-xl">
             <Input
-              placeholder="Cari materi kuliah, judul, topik, atau dosen..."
+              placeholder="Cari judul materi, topik kuliah, dosen pengampu, atau nama berkas..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               leftIcon={<Search className="w-4 h-4 text-cyan-400 light:text-blue-600" />}
@@ -354,12 +258,22 @@ export function MaterialsView({
           <div className="flex items-center gap-2 text-xs font-mono text-[var(--text-secondary)] self-end sm:self-auto">
             <Layers size={14} className="text-cyan-400 light:text-blue-600" />
             <span>
-              {filteredMaterials.length} dari {materials.length} Materi Kuliah
+              {filteredMaterials.length} dari {materials.length} Berkas Materi
             </span>
+            {isAnyFilterActive && (
+              <button
+                type="button"
+                onClick={handleResetAllFilters}
+                className="ml-2 text-[11px] text-cyan-400 light:text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw size={11} />
+                <span>Reset</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* 2-Step Cascading Selectors: [Select Matkul] -> [Select Materi] */}
+        {/* 2-Step Cascading Selectors: [Pilih Matkul] -> [Pilih Materi] */}
         <div className="pt-3 border-t border-[var(--border-color)]/70">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {/* Step 1: Select Mata Kuliah */}
@@ -375,7 +289,7 @@ export function MaterialsView({
                     onClick={() => handleSubjectSelect("ALL")}
                     className="text-[11px] text-cyan-400 light:text-blue-600 hover:underline cursor-pointer lowercase"
                   >
-                    reset
+                    semua matkul
                   </button>
                 )}
               </label>
@@ -385,20 +299,20 @@ export function MaterialsView({
                 icon={<BookOpen size={15} className="text-cyan-400 light:text-blue-600" />}
               >
                 <option value="ALL">
-                  Semua Mata Kuliah ({subjects.length} matkul terdaftar)
+                  Semua Mata Kuliah ({materials.length} berkas terkumpul)
                 </option>
                 {subjects.map((sub) => {
                   const count = subjectMaterialCounts[sub.code.toUpperCase()] || 0;
                   return (
                     <option key={sub.id} value={sub.code}>
-                      {sub.code} — {sub.name} ({count} materi)
+                      {sub.code} — {sub.name} ({count} berkas)
                     </option>
                   );
                 })}
               </Select>
             </div>
 
-            {/* Step 2: Select Materi Kuliah (Enabled after selecting a Matkul) */}
+            {/* Step 2: Select Materi Kuliah */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] font-mono flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
@@ -411,206 +325,73 @@ export function MaterialsView({
                     onClick={() => handleMaterialSelect("ALL")}
                     className="text-[11px] text-cyan-400 light:text-blue-600 hover:underline cursor-pointer lowercase"
                   >
-                    semua materi
+                    tampilkan semua
                   </button>
                 )}
               </label>
               <Select
                 value={selectedMaterialId}
                 onChange={(e) => handleMaterialSelect(e.target.value)}
-                disabled={selectedCategory === "ALL" || activeSubjectMaterials.length === 0}
                 icon={<Layers size={15} className="text-cyan-400 light:text-blue-600" />}
               >
-                {selectedCategory === "ALL" ? (
-                  <option value="ALL">Pilih mata kuliah terlebih dahulu</option>
-                ) : activeSubjectMaterials.length === 0 ? (
-                  <option value="ALL">Belum ada materi untuk mata kuliah ini</option>
-                ) : (
-                  <>
-                    <option value="ALL">
-                      Semua Materi di {activeSubject?.code} ({activeSubjectMaterials.length} materi)
-                    </option>
-                    {activeSubjectMaterials.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.section?.title ? `[${m.section.title}] ` : ""}
-                        {m.title} ({m.type})
-                      </option>
-                    ))}
-                  </>
-                )}
+                <option value="ALL">
+                  {selectedCategory === "ALL"
+                    ? `Semua Materi (${materials.length} berkas)`
+                    : `Semua Materi di ${activeSubject?.code || "Matkul ini"} (${availableMaterialsForSelect.length} berkas)`}
+                </option>
+                {availableMaterialsForSelect.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {selectedCategory === "ALL" && m.subject?.code
+                      ? `[${m.subject.code}] `
+                      : ""}
+                    {m.section?.title ? `${m.section.title}: ` : ""}
+                    {m.title} ({m.type})
+                  </option>
+                ))}
               </Select>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ── 2. Tabel Semua Mata Kuliah ("munculin semua matkul dalam bentuk table") */}
-      <div className="p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-card)] space-y-3.5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
-              <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-                Daftar Mata Kuliah Kelas
-              </h3>
-              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[var(--surface-primary)] border border-[var(--border-color)] text-[var(--text-muted)]">
-                {subjects.length} Matkul
-              </span>
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              Klik baris mata kuliah pada tabel untuk memilih matkul dan membuka materi kuliahnya.
-            </p>
-          </div>
+        {/* Quick Format Pills */}
+        <div className="pt-2 flex items-center gap-1.5 flex-wrap">
+          <span className="text-[11px] font-mono text-[var(--text-muted)] flex items-center gap-1 mr-1">
+            <Filter size={12} />
+            <span>Format:</span>
+          </span>
 
-          {selectedCategory !== "ALL" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSubjectSelect("ALL")}
-              className="text-xs self-start sm:self-auto cursor-pointer"
-            >
-              <RotateCcw size={13} className="mr-1.5" />
-              <span>Tampilkan Semua Matkul</span>
-            </Button>
-          )}
-        </div>
-
-        {/* Responsive Table Wrapper */}
-        <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)]/40">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr className="border-b border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] font-mono uppercase text-[11px] tracking-wider">
-                <th className="py-3 px-3.5 w-12 text-center">#</th>
-                <th className="py-3 px-3.5 w-28">Kode</th>
-                <th className="py-3 px-3.5">Mata Kuliah</th>
-                <th className="py-3 px-3.5 w-20 text-center">SKS</th>
-                <th className="py-3 px-3.5 hidden md:table-cell">Dosen Pengampu</th>
-                <th className="py-3 px-3.5 w-28 text-center hidden sm:table-cell">Submateri</th>
-                <th className="py-3 px-3.5 w-28 text-center">Materi</th>
-                <th className="py-3 px-3.5 w-28 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-color)]/70">
-              {filteredSubjectsForTable.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">
-                    Mata kuliah tidak ditemukan untuk pencarian "{search}".
-                  </td>
-                </tr>
-              ) : (
-                filteredSubjectsForTable.map((sub, idx) => {
-                  const isSelected =
-                    selectedCategory.toUpperCase() === sub.code.toUpperCase() ||
-                    selectedCategory.toUpperCase() === sub.id.toUpperCase();
-                  const count = subjectMaterialCounts[sub.code.toUpperCase()] || 0;
-                  const sectionsCount = sub.materialSections?.length || 0;
-
-                  return (
-                    <tr
-                      key={sub.id}
-                      onClick={() => handleSubjectSelect(isSelected ? "ALL" : sub.code)}
-                      className={cn(
-                        "transition-colors cursor-pointer group",
-                        isSelected
-                          ? "bg-cyan-500/10 light:bg-blue-50/90 font-medium"
-                          : "hover:bg-[var(--primary)]/5"
-                      )}
-                    >
-                      {/* # Number */}
-                      <td className="py-3 px-3.5 text-center font-mono text-[var(--text-muted)] text-xs">
-                        {idx + 1}
-                      </td>
-
-                      {/* Code Badge */}
-                      <td className="py-3 px-3.5">
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 rounded-md font-mono text-xs font-bold border",
-                            isSelected
-                              ? "bg-cyan-500/20 light:bg-blue-600 text-cyan-400 light:text-white border-cyan-400/30 light:border-blue-700"
-                              : "bg-[var(--surface-card)] text-cyan-400 light:text-blue-700 border-[var(--border-color)]"
-                          )}
-                        >
-                          {sub.code}
-                        </span>
-                      </td>
-
-                      {/* Subject Name */}
-                      <td className="py-3 px-3.5">
-                        <div className="font-semibold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors">
-                          {sub.name}
-                        </div>
-                        {sub.englishName && (
-                          <div className="text-[11px] text-[var(--text-muted)] italic hidden sm:block">
-                            {sub.englishName}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* SKS */}
-                      <td className="py-3 px-3.5 text-center font-mono text-xs text-[var(--text-secondary)]">
-                        {sub.sks || 3}
-                      </td>
-
-                      {/* Dosen */}
-                      <td className="py-3 px-3.5 hidden md:table-cell text-xs text-[var(--text-secondary)]">
-                        {sub.lecturerName ? (
-                          <span className="flex items-center gap-1.5">
-                            <User size={13} className="text-cyan-400 light:text-blue-600 shrink-0" />
-                            <span className="truncate max-w-[200px]">{sub.lecturerName}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[var(--text-muted)]">-</span>
-                        )}
-                      </td>
-
-                      {/* Submateri Count */}
-                      <td className="py-3 px-3.5 text-center hidden sm:table-cell">
-                        <span className="text-xs font-mono text-[var(--text-secondary)]">
-                          {sectionsCount > 0 ? `${sectionsCount} Bab` : "Umum"}
-                        </span>
-                      </td>
-
-                      {/* Material Count */}
-                      <td className="py-3 px-3.5 text-center">
-                        <span
-                          className={cn(
-                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold",
-                            count > 0
-                              ? "bg-cyan-500/10 light:bg-blue-50 text-cyan-400 light:text-blue-700 border border-cyan-400/20 light:border-blue-200"
-                              : "bg-slate-800/40 light:bg-slate-100 text-[var(--text-muted)]"
-                          )}
-                        >
-                          {count} Materi
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="py-3 px-3.5 text-right">
-                        {isSelected ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 light:bg-blue-600 text-cyan-300 light:text-white">
-                            <CheckCircle2 size={13} />
-                            <span className="hidden sm:inline">Terpilih</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-cyan-400 light:text-blue-600 group-hover:underline font-semibold">
-                            <span>Pilih</span>
-                            <ChevronRight size={13} />
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+          {[
+            { id: "ALL", label: "Semua Format" },
+            { id: "PDF", label: "PDF" },
+            { id: "PPT", label: "PPT / Slide" },
+            { id: "DOC", label: "Word / Dokumen" },
+            { id: "XLS", label: "Excel / Data" },
+            { id: "VIDEO", label: "Video" },
+            { id: "LINK", label: "Tautan / Drive" },
+          ].map((pill) => {
+            const isActive = selectedType === pill.id;
+            return (
+              <button
+                key={pill.id}
+                type="button"
+                onClick={() => setSelectedType(pill.id)}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border",
+                  isActive
+                    ? "bg-cyan-500/20 light:bg-blue-600 text-cyan-300 light:text-white border-cyan-400/40 light:border-blue-700 shadow-2xs"
+                    : "bg-[var(--surface-primary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-cyan-400/40 hover:text-[var(--text-primary)]"
+                )}
+              >
+                {pill.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* ── 3. Active Subject Info & Material Spotlight (When a Matkul is Selected) */}
+      {/* ── 2. Active Subject Banner (When a specific Matkul is selected) ── */}
       {activeSubject && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-[var(--surface-card)] border border-cyan-500/20 light:border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[var(--surface-card)] border border-cyan-500/25 light:border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left shadow-xs">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-lg bg-cyan-500/15 light:bg-blue-50 text-cyan-400 light:text-blue-700 font-mono text-xs font-bold border border-cyan-400/20 light:border-blue-200">
@@ -635,20 +416,21 @@ export function MaterialsView({
 
           <div className="flex items-center gap-2 self-start sm:self-center">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => handleSubjectSelect("ALL")}
               className="text-xs cursor-pointer text-cyan-400 light:text-blue-600"
             >
-              Lihat Semua Matkul &rarr;
+              <RotateCcw size={12} className="mr-1.5" />
+              <span>Tampilkan Semua Matkul</span>
             </Button>
           </div>
         </div>
       )}
 
-      {/* Spotlight Card if user specifically selected a single material from Dropdown 2 */}
+      {/* ── 3. Spotlight Card (When a single Material is selected in Step 2) ─ */}
       {spotlightMaterial && (
-        <div className="p-4 sm:p-5 rounded-2xl border-2 border-cyan-400/40 light:border-blue-400/50 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 space-y-3">
+        <div className="p-4 sm:p-5 rounded-2xl border-2 border-cyan-400/40 light:border-blue-400/50 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold flex items-center gap-1.5">
               <Sparkles size={14} />
@@ -657,19 +439,23 @@ export function MaterialsView({
             <button
               type="button"
               onClick={() => handleMaterialSelect("ALL")}
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer flex items-center gap-1"
             >
-              Tampilkan semua materi
+              <X size={12} />
+              <span>Tampilkan semua materi</span>
             </button>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start sm:items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-cyan-500/10 light:bg-blue-50 border border-cyan-400/20 light:border-blue-200 flex items-center justify-center shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-cyan-500/15 light:bg-blue-50 border border-cyan-400/20 light:border-blue-200 flex items-center justify-center shrink-0">
                 {getMaterialIcon(spotlightMaterial.type)}
               </div>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-0.5 rounded font-mono text-xs font-bold bg-cyan-500/20 text-cyan-300 light:bg-blue-100 light:text-blue-700">
+                    {spotlightMaterial.subject?.code}
+                  </span>
                   <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
                     {spotlightMaterial.title}
                   </h4>
@@ -719,82 +505,175 @@ export function MaterialsView({
         </div>
       )}
 
-      {/* ── 4. Tabel Berkas Materi Kuliah ──────────────────────────────────── */}
-      {activeSubject ? (
-        activeSubjectMaterials.length > 0 ? (
-          <div className="p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-card)] space-y-3.5 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
-                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-                    Berkas Materi {activeSubject.name}
-                  </h3>
-                  <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[var(--surface-primary)] border border-[var(--border-color)] text-[var(--text-muted)]">
-                    {activeSubjectMaterials.length} Berkas
-                  </span>
-                </div>
-                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                  Modul perkuliahan, slide presentasi dosen, dan bahan ajar yang dapat diunduh.
-                </p>
-              </div>
+      {/* ── 4. Main Aggregated Files Table (Semua Matkul Terkumpul Di Sini) ── */}
+      <div className="p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-card)] space-y-3.5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
+              <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
+                {activeSubject
+                  ? `Berkas Materi ${activeSubject.name}`
+                  : "Semua Berkas Materi Kuliah"}
+              </h3>
+              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[var(--surface-primary)] border border-[var(--border-color)] text-[var(--text-muted)]">
+                {filteredMaterials.length} Berkas
+              </span>
             </div>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+              {activeSubject
+                ? `Menampilkan materi kuliah khusus untuk ${activeSubject.name} (${activeSubject.code}).`
+                : "Seluruh modul perkuliahan, slide dosen, dan bahan ajar dari semua mata kuliah."}
+            </p>
+          </div>
 
-            <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)]/40">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] font-mono uppercase text-[11px] tracking-wider">
-                    <th className="py-3 px-3.5 w-12 text-center">#</th>
-                    <th className="py-3 px-3.5">Judul Materi</th>
-                    <th className="py-3 px-3.5 w-24 text-center">Tipe</th>
-                    <th className="py-3 px-3.5 hidden sm:table-cell">Submateri</th>
-                    <th className="py-3 px-3.5 w-24 text-center hidden md:table-cell">Ukuran</th>
-                    <th className="py-3 px-3.5 w-36 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-color)]/70">
-                  {activeSubjectMaterials.map((m, idx) => (
+          {isAnyFilterActive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetAllFilters}
+              className="text-xs self-start sm:self-auto cursor-pointer"
+            >
+              <RotateCcw size={12} className="mr-1.5" />
+              <span>Reset Semua Filter</span>
+            </Button>
+          )}
+        </div>
+
+        {/* Responsive Table Wrapper */}
+        <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)]/40">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr className="border-b border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] font-mono uppercase text-[11px] tracking-wider">
+                <th className="py-3 px-3.5 w-12 text-center">#</th>
+                <th className="py-3 px-3.5 w-28">Matkul</th>
+                <th className="py-3 px-3.5">Judul Materi</th>
+                <th className="py-3 px-3.5 w-24 text-center">Format</th>
+                <th className="py-3 px-3.5 hidden sm:table-cell">Submateri</th>
+                <th className="py-3 px-3.5 w-24 text-center hidden md:table-cell">Ukuran</th>
+                <th className="py-3 px-3.5 w-36 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border-color)]/70">
+              {filteredMaterials.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <div className="max-w-md mx-auto space-y-2">
+                      <BookOpen className="w-8 h-8 text-cyan-400 light:text-blue-600 mx-auto opacity-70" />
+                      <p className="font-semibold text-sm text-[var(--text-primary)]">
+                        Tidak ada berkas materi yang sesuai
+                      </p>
+                      <p className="text-xs text-[var(--text-secondary)]">
+                        Coba ubah kata kunci pencarian, pilih mata kuliah lain, atau reset filter.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetAllFilters}
+                        className="text-xs mt-2"
+                      >
+                        Reset Filter
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredMaterials.map((m, idx) => {
+                  const attachments = parseAttachments(m.attachments);
+                  const downloadUrl =
+                    m.fileUrl || m.externalUrl || attachments[0]?.url;
+                  const totalAttachments = attachments.length;
+
+                  return (
                     <tr
                       key={m.id}
                       onClick={() => handleOpenDetailModal(m)}
-                      className="hover:bg-[var(--primary)]/5 transition-colors group cursor-pointer"
+                      className={cn(
+                        "transition-colors group cursor-pointer",
+                        m.id === selectedMaterialId
+                          ? "bg-cyan-500/15 light:bg-blue-50/90 font-medium"
+                          : "hover:bg-[var(--primary)]/5"
+                      )}
                     >
+                      {/* # Number */}
                       <td className="py-3 px-3.5 text-center font-mono text-[var(--text-muted)] text-xs">
                         {idx + 1}
                       </td>
+
+                      {/* Matkul Badge */}
                       <td className="py-3 px-3.5">
-                        <div className="font-semibold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors">
-                          {m.title}
-                        </div>
-                        {m.description && (
-                          <div className="text-xs text-[var(--text-muted)] line-clamp-1 mt-0.5">
-                            {m.description}
-                          </div>
+                        {m.subject ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSubjectSelect(m.subject?.code || "ALL");
+                            }}
+                            className={cn(
+                              "px-2 py-0.5 rounded-md font-mono text-xs font-bold border transition-colors cursor-pointer",
+                              selectedCategory.toUpperCase() === m.subject.code.toUpperCase()
+                                ? "bg-cyan-500/25 light:bg-blue-600 text-cyan-300 light:text-white border-cyan-400/40"
+                                : "bg-cyan-500/10 light:bg-blue-50 text-cyan-400 light:text-blue-700 border-cyan-400/20 light:border-blue-200 hover:bg-cyan-500/20"
+                            )}
+                            title={`Filter materi: ${m.subject.name}`}
+                          >
+                            {m.subject.code}
+                          </button>
+                        ) : (
+                          <span className="text-xs font-mono text-[var(--text-muted)]">-</span>
                         )}
                       </td>
-                      <td className="py-3 px-3.5 text-center">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-purple-500/15 light:bg-purple-50 text-purple-300 light:text-purple-700 border border-purple-500/30 light:border-purple-200">
-                          {m.type || "PDF"}
-                        </span>
+
+                      {/* Judul & Deskripsi */}
+                      <td className="py-3 px-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <span className="shrink-0">{getMaterialIcon(m.type)}</span>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors flex items-center gap-1.5 flex-wrap">
+                              <span>{m.title}</span>
+                              {totalAttachments > 1 && (
+                                <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 light:bg-blue-100 light:text-blue-700 border border-cyan-500/30">
+                                  +{totalAttachments} file
+                                </span>
+                              )}
+                            </div>
+                            {m.description && (
+                              <p className="text-xs text-[var(--text-muted)] line-clamp-1 mt-0.5">
+                                {m.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </td>
+
+                      {/* Format Badge */}
+                      <td className="py-3 px-3.5 text-center">
+                        {getMaterialTypeBadge(m.type)}
+                      </td>
+
+                      {/* Submateri */}
                       <td className="py-3 px-3.5 hidden sm:table-cell font-mono text-xs text-[var(--text-secondary)]">
                         {m.section?.title || "-"}
                       </td>
+
+                      {/* Ukuran */}
                       <td className="py-3 px-3.5 text-center hidden md:table-cell font-mono text-xs text-[var(--text-muted)]">
                         {m.fileSize || "-"}
                       </td>
+
+                      {/* Aksi */}
                       <td className="py-3 px-3.5 text-right">
                         <div
                           className="flex items-center justify-end gap-1.5"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {(m.fileUrl || m.externalUrl) && (
+                          {downloadUrl && (
                             <a
-                              href={m.fileUrl || m.externalUrl || "#"}
+                              href={downloadUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-2xs hover:opacity-90"
-                              title="Unduh File"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-2xs hover:opacity-90 transition-opacity"
+                              title="Buka / Unduh Berkas"
                             >
                               <Download size={12} />
                               <span className="hidden sm:inline">Unduh</span>
@@ -804,7 +683,7 @@ export function MaterialsView({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenDetailModal(m)}
-                            className="text-xs text-cyan-400 light:text-blue-600 cursor-pointer"
+                            className="text-xs text-cyan-400 light:text-blue-600 hover:bg-cyan-500/10 cursor-pointer"
                           >
                             <Eye size={12} className="mr-1" />
                             <span>Detail</span>
@@ -812,120 +691,13 @@ export function MaterialsView({
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : (
-          <div className="p-6 rounded-2xl border border-dashed border-[var(--border-color)] bg-[var(--surface-card)] text-center space-y-2">
-            <BookOpen className="w-8 h-8 text-cyan-400 light:text-blue-600 mx-auto opacity-70" />
-            <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
-              Belum ada berkas materi untuk {activeSubject.name}
-            </h4>
-            <p className="text-xs text-[var(--text-secondary)] max-w-md mx-auto">
-              Dosen pengampu ({activeSubject.lecturerName || "Dosen"}) belum mengunggah modul atau slide kuliah untuk kelas ini.
-            </p>
-          </div>
-        )
-      ) : filteredMaterials.length > 0 ? (
-        <div className="p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-card)] space-y-3.5 shadow-xs">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
-                <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-                  Semua Berkas Materi Kuliah
-                </h3>
-                <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[var(--surface-primary)] border border-[var(--border-color)] text-[var(--text-muted)]">
-                  {filteredMaterials.length} Berkas
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)]/40">
-            <table className="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr className="border-b border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] font-mono uppercase text-[11px] tracking-wider">
-                  <th className="py-3 px-3.5 w-12 text-center">#</th>
-                  <th className="py-3 px-3.5 w-24">Matkul</th>
-                  <th className="py-3 px-3.5">Judul Materi</th>
-                  <th className="py-3 px-3.5 w-24 text-center">Tipe</th>
-                  <th className="py-3 px-3.5 hidden sm:table-cell">Submateri</th>
-                  <th className="py-3 px-3.5 w-24 text-center hidden md:table-cell">Ukuran</th>
-                  <th className="py-3 px-3.5 w-36 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-color)]/70">
-                {filteredMaterials.map((m, idx) => (
-                  <tr
-                    key={m.id}
-                    onClick={() => handleOpenDetailModal(m)}
-                    className="hover:bg-[var(--primary)]/5 transition-colors group cursor-pointer"
-                  >
-                    <td className="py-3 px-3.5 text-center font-mono text-[var(--text-muted)] text-xs">
-                      {idx + 1}
-                    </td>
-                    <td className="py-3 px-3.5 font-mono text-xs font-bold text-cyan-400 light:text-blue-700">
-                      {m.subject?.code}
-                    </td>
-                    <td className="py-3 px-3.5">
-                      <div className="font-semibold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors">
-                        {m.title}
-                      </div>
-                      {m.description && (
-                        <div className="text-xs text-[var(--text-muted)] line-clamp-1 mt-0.5">
-                          {m.description}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-3.5 text-center">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-purple-500/15 light:bg-purple-50 text-purple-300 light:text-purple-700 border border-purple-500/30 light:border-purple-200">
-                        {m.type || "PDF"}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3.5 hidden sm:table-cell font-mono text-xs text-[var(--text-secondary)]">
-                      {m.section?.title || "-"}
-                    </td>
-                    <td className="py-3 px-3.5 text-center hidden md:table-cell font-mono text-xs text-[var(--text-muted)]">
-                      {m.fileSize || "-"}
-                    </td>
-                    <td className="py-3 px-3.5 text-right">
-                      <div
-                        className="flex items-center justify-end gap-1.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {(m.fileUrl || m.externalUrl) && (
-                          <a
-                            href={m.fileUrl || m.externalUrl || "#"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-2xs hover:opacity-90"
-                            title="Unduh File"
-                          >
-                            <Download size={12} />
-                            <span className="hidden sm:inline">Unduh</span>
-                          </a>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleOpenDetailModal(m)}
-                          className="text-xs text-cyan-400 light:text-blue-600 cursor-pointer"
-                        >
-                          <Eye size={12} className="mr-1" />
-                          <span>Detail</span>
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-      ) : null}
+      </div>
 
       {/* ── 5. Material Detail Modal ──────────────────────────────────────── */}
       <MaterialDetail

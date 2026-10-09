@@ -10,17 +10,43 @@ import {
   ResourceCategory,
 } from "@prisma/client";
 
-// URL validation helper allowing empty strings
-const optionalUrl = z
+// URL validation helper allowing empty strings and auto-formatting domain-only URLs
+export const optionalUrl = z
   .string()
   .trim()
+  .transform((val) => {
+    if (!val) return val;
+    // Auto-prepend https:// if user pasted domain without scheme (e.g. drive.google.com/...)
+    if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/i.test(val) && !/^https?:\/\//i.test(val)) {
+      return `https://${val}`;
+    }
+    return val;
+  })
   .refine((val) => val === "" || /^https?:\/\/.+/i.test(val), {
     message: "Must be a valid URL starting with http:// or https://",
   })
   .optional()
   .nullable();
 
-const optionalPhotoUrl = z
+// File URL validation helper allowing external links, relative paths, and base64 data URLs
+export const optionalFileUrl = z
+  .string()
+  .trim()
+  .refine(
+    (val) =>
+      val === "" ||
+      /^https?:\/\/.+/i.test(val) ||
+      /^data:.+/i.test(val) ||
+      val.startsWith("/") ||
+      val.startsWith("blob:"),
+    {
+      message: "Must be a valid URL or uploaded file",
+    }
+  )
+  .optional()
+  .nullable();
+
+export const optionalPhotoUrl = z
   .string()
   .trim()
   .refine((val) => val === "" || /^https?:\/\/.+/i.test(val) || /^data:image\/.+/i.test(val) || val.startsWith("/"), {
@@ -144,7 +170,7 @@ export const taskSchema = z.object({
   status: z.nativeEnum(TaskStatus).default(TaskStatus.UPCOMING),
   groupName: z.string().trim().max(200).optional().nullable(),
   groupMembers: z.string().trim().max(1000).optional().nullable(),
-  attachmentUrl: optionalUrl,
+  attachmentUrl: optionalFileUrl,
   submissionUrl: optionalUrl,
   referenceUrl: optionalUrl,
   notes: z.string().trim().max(1000).optional().nullable(),
@@ -157,7 +183,7 @@ export const materialSchema = z.object({
   description: z.string().trim().max(2000).optional().nullable(),
   subjectId: z.string().optional().nullable(),
   type: z.nativeEnum(MaterialType).default(MaterialType.PDF),
-  fileUrl: optionalUrl,
+  fileUrl: optionalFileUrl,
   externalUrl: optionalUrl,
   fileName: z.string().trim().max(255).optional().nullable(),
   fileSize: z.string().trim().max(50).optional().nullable(),
