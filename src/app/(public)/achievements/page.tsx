@@ -6,8 +6,8 @@ import { PageHeader, ContentContainer } from "@/components/shared";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return {
-    title: `Hall of Fame & Prestasi — ${settings.className}`,
-    description: `Daftar prestasi kompetisi, publikasi ilmiah, dan kepemimpinan mahasiswa kelas ${settings.className} Telkom University Jakarta.`,
+    title: `Prestasi Kelas — ${settings.className || "JS1SI-26-REG-05"}`,
+    description: `Daftar prestasi, karya, dan kebanggaan bersama teman-teman kelas ${settings.className} Telkom University Jakarta.`,
   };
 }
 
@@ -23,9 +23,9 @@ export default async function AchievementsPage() {
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       <ContentContainer>
         <PageHeader
-          badge={`HALL OF FAME • ${classCode}`}
-          title="Prestasi & Penghargaan"
-          description={`Rekam jejak kemenangan kompetisi, inovasi teknologi, karya kreatif, dan kontribusi kepemimpinan mahasiswa ${classCode}.`}
+          badge={`PRESTASI • ${classCode}`}
+          title="Prestasi Kelas"
+          description={`Catatan prestasi, kompetisi, dan karya membanggakan yang diraih oleh teman-teman kelas ${classCode}.`}
           breadcrumbs={[{ label: "Prestasi Kelas" }]}
         />
 

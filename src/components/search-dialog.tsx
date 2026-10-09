@@ -42,7 +42,7 @@ export function SearchDialog() {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Keyboard shortcut Ctrl+K or '/'
+  // Keyboard shortcut Ctrl+K or '/' and custom event 'open-global-search'
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -59,8 +59,16 @@ export function SearchDialog() {
       }
     }
 
+    function handleOpenGlobalSearch() {
+      setOpen(true);
+    }
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("open-global-search", handleOpenGlobalSearch);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("open-global-search", handleOpenGlobalSearch);
+    };
   }, []);
 
   useEffect(() => {
@@ -137,7 +145,7 @@ export function SearchDialog() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tasks, subjects, materials, daily notes, students..."
+            placeholder="Cari teman, tugas, atau materi..."
             className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100"
           />
           {loading && <Loader2 size={16} className="animate-spin text-blue-600 dark:text-cyan-400" />}
@@ -158,9 +166,9 @@ export function SearchDialog() {
         <div className="max-h-[60vh] overflow-y-auto p-4 space-y-5">
           {query.trim().length >= 2 && totalResults === 0 && !loading && (
             <div className="text-center py-10 text-slate-500 dark:text-slate-400">
-              <p className="text-sm font-medium">No results found for &ldquo;{query}&rdquo;</p>
+              <p className="text-sm font-medium">Tidak ada hasil untuk &ldquo;{query}&rdquo;</p>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                Try searching by subject code, title, topic keyword, or student name.
+                Coba cari berdasarkan nama teman, kode mata kuliah, tugas, atau materi.
               </p>
             </div>
           )}
@@ -168,7 +176,7 @@ export function SearchDialog() {
           {query.trim().length < 2 && (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-xs">
               <Sparkles size={20} className="mx-auto mb-2 text-blue-500/60 dark:text-cyan-400/60" />
-              <span>Type at least 2 characters to search across the academic hub.</span>
+              <span>Ketik minimal 2 karakter untuk mencari di ruang kelas.</span>
             </div>
           )}
 
@@ -177,9 +185,9 @@ export function SearchDialog() {
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <BookOpen size={12} /> Subjects
+                  <BookOpen size={12} /> Mata Kuliah
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.subjects.length} results</span>
+                <span className="text-[10px] font-mono text-slate-500">{results.subjects.length} ditemukan</span>
               </div>
               <div className="space-y-1">
                 {results.subjects.map((s) => (
@@ -214,9 +222,9 @@ export function SearchDialog() {
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <CheckSquare size={12} /> Tasks & Coursework
+                  <CheckSquare size={12} /> Tugas &amp; Deadline
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.tasks.length} results</span>
+                <span className="text-[10px] font-mono text-slate-500">{results.tasks.length} ditemukan</span>
               </div>
               <div className="space-y-1">
                 {results.tasks.map((t) => (
@@ -251,9 +259,9 @@ export function SearchDialog() {
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <FileText size={12} /> Learning Materials
+                  <FileText size={12} /> Materi Kuliah
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.materials.length} results</span>
+                <span className="text-[10px] font-mono text-slate-500">{results.materials.length} ditemukan</span>
               </div>
               <div className="space-y-1">
                 {results.materials.map((m) => (
@@ -288,9 +296,9 @@ export function SearchDialog() {
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <PenTool size={12} /> Daily Notes & Class Journal
+                  <PenTool size={12} /> Catatan Kelas
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.dailyNotes.length} results</span>
+                <span className="text-[10px] font-mono text-slate-500">{results.dailyNotes.length} ditemukan</span>
               </div>
               <div className="space-y-1">
                 {results.dailyNotes.map((n) => (
@@ -322,9 +330,9 @@ export function SearchDialog() {
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <Users size={12} /> Students
+                  <Users size={12} /> Teman Satu Kelas
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.students.length} results</span>
+                <span className="text-[10px] font-mono text-slate-500">{results.students.length} ditemukan</span>
               </div>
               <div className="space-y-1">
                 {results.students.map((st) => (
@@ -354,9 +362,9 @@ export function SearchDialog() {
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <Trophy size={12} /> Achievements
+                  <Trophy size={12} /> Prestasi Kelas
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.achievements.length} results</span>
+                <span className="text-[10px] font-mono text-slate-500">{results.achievements.length} ditemukan</span>
               </div>
               <div className="space-y-1">
                 {results.achievements.map((a) => (
@@ -385,9 +393,9 @@ export function SearchDialog() {
         {/* Footer shortcuts */}
         <div className="px-4 py-2 border-t border-slate-200 dark:border-cyan-500/10 bg-slate-50/80 dark:bg-[#040914]/60 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">Ctrl + K</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">/</kbd> anywhere to open</span>
+            <span>Tekan <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">Ctrl + K</kbd> atau <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">/</kbd> di mana saja</span>
           </div>
-          <span>ClassHub Academic Search</span>
+          <span>Pencarian Ruang Kelas</span>
         </div>
       </div>
     </div>

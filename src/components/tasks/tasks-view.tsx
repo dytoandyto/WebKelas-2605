@@ -213,7 +213,7 @@ export function TasksView({
             )}
           >
             <Archive className="w-3.5 h-3.5" />
-            <span>Riwayat &amp; Arsip</span>
+            <span>Riwayat Tugas</span>
             <span
               className={cn(
                 "px-2 py-0.5 rounded-full text-xs font-mono font-bold border",
@@ -228,9 +228,9 @@ export function TasksView({
         </div>
 
         <div className="text-xs text-[var(--text-muted)] font-mono flex items-center gap-1.5 self-start sm:self-center">
-          <span>// Mode:</span>
+          <span>Status:</span>
           <span className="font-bold text-[var(--text-primary)]">
-            {isHistory ? "Arsip Historis (Lewat Deadline)" : "Pengingat Aktif (Upcoming)"}
+            {isHistory ? "Arsip Tugas" : "Tugas yang Perlu Diingat"}
           </span>
         </div>
       </div>

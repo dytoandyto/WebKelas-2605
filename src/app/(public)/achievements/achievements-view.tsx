@@ -132,8 +132,8 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
       {filtered.length === 0 ? (
         <EmptyState
           icon={<Trophy className="w-8 h-8 text-amber-400" />}
-          title="Tidak Ada Prestasi Ditemukan"
-          description="Tidak ada rekam prestasi yang sesuai dengan kriteria pencarian saat ini."
+          title="Belum ada prestasi yang tercatat"
+          description="Coba cari dengan kata kunci lain atau pilih semua kategori."
         />
       ) : viewMode === "showcase" ? (
         <div className="space-y-6">

@@ -127,7 +127,7 @@ export function DailyNoteEditor({
           Judul Catatan <span className="text-red-400">*</span>
         </label>
         <Input
-          placeholder="Contoh: Pertemuan 4: Algoritma Greedy dan Dynamic Programming"
+          placeholder="Tulis judul catatan"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           error={errors.title}
@@ -141,7 +141,7 @@ export function DailyNoteEditor({
         </label>
         <Textarea
           rows={2}
-          placeholder="Rangkuman inti materi yang dipelajari pada pertemuan ini..."
+          placeholder="Tulis ringkasan catatan..."
           value={formData.summary}
           onChange={(e) =>
             setFormData({ ...formData, summary: e.target.value })
@@ -156,7 +156,7 @@ export function DailyNoteEditor({
         </label>
         <Textarea
           rows={10}
-          placeholder="Tuliskan catatan detail penjelasan dosen, rumus, kode program, atau diskusi kelas..."
+          placeholder="Tulis catatan lengkap..."
           value={formData.content}
           onChange={(e) =>
             setFormData({ ...formData, content: e.target.value })
@@ -174,7 +174,7 @@ export function DailyNoteEditor({
           </label>
           <Textarea
             rows={3}
-            placeholder="- Konsep greedy memilih solusi lokal optimal&#10;- Waspada constraint memoization"
+            placeholder="Tulis poin-poin penting..."
             value={formData.importantPoints}
             onChange={(e) =>
               setFormData({ ...formData, importantPoints: e.target.value })
@@ -188,7 +188,7 @@ export function DailyNoteEditor({
           </label>
           <Textarea
             rows={3}
-            placeholder="- Selesaikan latihan bab 4&#10;- Siapkan materi kuis minggu depan"
+            placeholder="Tulis tindak lanjut atau rencana berikutnya..."
             value={formData.nextSteps}
             onChange={(e) =>
               setFormData({ ...formData, nextSteps: e.target.value })
@@ -203,7 +203,7 @@ export function DailyNoteEditor({
           Tags (Pisahkan dengan koma)
         </label>
         <Input
-          placeholder="algoritma, greedy, kuis, latihan"
+          placeholder="Tulis tag dipisahkan koma..."
           value={formData.tags}
           onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
         />
@@ -222,7 +222,7 @@ export function DailyNoteEditor({
           </Button>
         )}
         <Button type="submit" variant="primary" isLoading={isLoading}>
-          Simpan Catatan Jurnal
+          Simpan Catatan
         </Button>
       </div>
     </form>

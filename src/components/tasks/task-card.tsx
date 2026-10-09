@@ -110,7 +110,7 @@ export function TaskCard({
         padding="sm"
         onClick={onClick}
         className={cn(
-          "flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left p-4",
+          "flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left p-4 sm:p-5",
           className
         )}
       >

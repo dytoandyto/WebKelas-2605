@@ -21,11 +21,11 @@ export async function generateMetadata({
 
   return {
     title: isHistory
-      ? "Riwayat & Arsip Tugas | JS1SI-26-REG-05"
-      : "Pengingat Tugas Akademik | JS1SI-26-REG-05",
+      ? "Riwayat Tugas | JS1SI-26-REG-05"
+      : "Tugas & Deadline | JS1SI-26-REG-05",
     description: isHistory
-      ? "Arsip penugasan akademik kelas JS1SI-26-REG-05 yang telah melewati batas waktu pengumpulan."
-      : "Sistem pengingat tugas perkuliahan, tenggat waktu LMS, dan materi penugasan kelas JS1SI-26-REG-05 Telkom University Jakarta.",
+      ? "Arsip tugas perkuliahan kelas JS1SI-26-REG-05 yang telah selesai atau lewat tenggat."
+      : "Daftar tugas kuliah dan deadline pengumpulan kelas JS1SI-26-REG-05 Telkom University Jakarta.",
   };
 }
 
@@ -46,16 +46,16 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       <ContentContainer>
         <PageHeader
-          badge={`PENGINGAT TUGAS • ${classCode}`}
-          title={currentTab === "history" ? "Riwayat & Arsip Tugas" : "Tugas & Penugasan"}
+          badge={`TUGAS • ${classCode}`}
+          title={currentTab === "history" ? "Riwayat Tugas" : "Tugas & Deadline"}
           description={
             currentTab === "history"
-              ? `Arsip historis tugas perkuliahan ${classCode} (${academicYear}) yang telah melewati batas tenggat waktu.`
-              : `Daftar pengingat tugas kuliah aktif, instruksi pengerjaan, dan tenggat waktu pengumpulan ${classCode} (${academicYear}).`
+              ? `Arsip tugas perkuliahan ${classCode} (${academicYear}) yang telah selesai atau melewati batas tenggat.`
+              : `Tugas yang perlu diingat dan diselesaikan bersama untuk kelas ${classCode} (${academicYear}). Jangan sampai kelewatan.`
           }
           breadcrumbs={[
-            { label: "Tugas Akademik", href: "/tasks" },
-            ...(currentTab === "history" ? [{ label: "Riwayat & Arsip" }] : []),
+            { label: "Tugas & Deadline", href: "/tasks" },
+            ...(currentTab === "history" ? [{ label: "Riwayat" }] : []),
           ]}
         />
 

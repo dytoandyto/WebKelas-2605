@@ -4,12 +4,17 @@ import { MaterialsView } from "@/components/materials/materials-view";
 import { PageHeader, ContentContainer } from "@/components/shared";
 
 export const metadata: Metadata = {
-  title: "Materi Kuliah & Sumber Belajar | JS1SI-26-REG-05",
+  title: "Materi Kuliah | JS1SI-26-REG-05",
   description:
-    "Repositori materi perkuliahan, slide modul, dokumen praktikum, dan referensi akademik kelas JS1SI-26-REG-05 Telkom University Jakarta.",
+    "Bahan ajar, slide presentasi dosen, modul praktikum, dan referensi belajar kelas JS1SI-26-REG-05 Telkom University Jakarta.",
 };
 
-export default async function MaterialsPage() {
+interface MaterialsPageProps {
+  searchParams: Promise<{ subject?: string }>;
+}
+
+export default async function MaterialsPage({ searchParams }: MaterialsPageProps) {
+  const { subject } = await searchParams;
   const [{ materials, subjects }, settings] = await Promise.all([
     getMaterialsData({}),
     getSettings(),
@@ -21,13 +26,17 @@ export default async function MaterialsPage() {
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       <ContentContainer>
         <PageHeader
-          badge={`ACADEMIC REPOSITORY • ${classCode}`}
-          title="Materi & Sumber Belajar"
-          description="Repositori materi kuliah resmi, modul praktikum, slide presentasi dosen, dan tautan referensi belajar mahasiswa."
-          breadcrumbs={[{ label: "Materi Perkuliahan" }]}
+          badge={`MATERI KULIAH • ${classCode}`}
+          title="Materi Kuliah"
+          description="Temukan modul perkuliahan, slide dosen, dan bahan belajar berdasarkan mata kuliahnya."
+          breadcrumbs={[{ label: "Materi Kuliah" }]}
         />
 
-        <MaterialsView materials={materials as any} subjects={subjects as any} />
+        <MaterialsView
+          materials={materials as any}
+          subjects={subjects as any}
+          initialSubjectCode={subject}
+        />
       </ContentContainer>
     </div>
   );

@@ -22,6 +22,7 @@ import {
   TaskStatus,
   AchievementCategory,
   ResourceCategory,
+  Prisma,
 } from "@prisma/client";
 
 // Compute dynamic task status based on real-time deadline
@@ -197,7 +198,7 @@ export async function getHomeData() {
 // 2. Schedule Page Data
 export async function getScheduleData(filters?: { dayOfWeek?: DayOfWeek; subjectId?: string }) {
   try {
-    const where: any = {};
+    const where: Prisma.ScheduleWhereInput = {};
     if (filters?.dayOfWeek) where.dayOfWeek = filters.dayOfWeek;
     if (filters?.subjectId) where.subjectId = filters.subjectId;
 
@@ -229,9 +230,18 @@ export interface GetTasksDataFilters {
   sort?: "newest" | "deadline" | "priority";
 }
 
+export type TaskItem = Prisma.TaskGetPayload<{
+  include: {
+    subject: true;
+    creator: { select: { id: true; name: true; role: true } };
+  };
+}> & { computedStatus: TaskStatus };
+
+export type SubjectItem = Prisma.SubjectGetPayload<Record<string, never>>;
+
 export interface GetTasksDataResult {
-  tasks: any[];
-  subjects: any[];
+  tasks: TaskItem[];
+  subjects: SubjectItem[];
   upcomingCount: number;
   historyCount: number;
 }
@@ -241,7 +251,7 @@ export async function getTasksData(filters?: GetTasksDataFilters): Promise<GetTa
   const scope = filters?.scope || "upcoming";
 
   try {
-    const where: any = {};
+    const where: Prisma.TaskWhereInput = {};
 
     // Database-level filtering by deadline
     if (scope === "upcoming") {
@@ -262,7 +272,7 @@ export async function getTasksData(filters?: GetTasksDataFilters): Promise<GetTa
     }
 
     // Default sorting: Upcoming is chronological (asc), History is most recent past first (desc)
-    let orderBy: any = scope === "history" ? { deadline: "desc" } : { deadline: "asc" };
+    let orderBy: Prisma.TaskOrderByWithRelationInput = scope === "history" ? { deadline: "desc" } : { deadline: "asc" };
     if (filters?.sort === "newest") orderBy = { createdAt: "desc" };
     if (filters?.sort === "priority") orderBy = { priority: "desc" };
     if (filters?.sort === "deadline") orderBy = { deadline: scope === "history" ? "desc" : "asc" };
@@ -373,7 +383,7 @@ export async function getStudentsData(filters?: {
   sort?: "name_asc" | "name_desc" | "achievements";
 }) {
   try {
-    const where: any = {};
+    const where: Prisma.StudentWhereInput = {};
     if (filters?.major) where.major = filters.major;
     if (filters?.search) {
       where.OR = [
@@ -461,7 +471,7 @@ export async function getAchievementsData(filters?: {
   search?: string;
 }) {
   try {
-    const where: any = {};
+    const where: Prisma.AchievementWhereInput = {};
     if (filters?.category) where.category = filters.category;
     if (filters?.search) {
       where.OR = [
@@ -529,7 +539,7 @@ export async function getAchievementById(id: string) {
 // 8. Announcements Page Data (Public: published only!)
 export async function getAnnouncementsData(filters?: { search?: string }) {
   try {
-    const where: any = { isPublished: true };
+    const where: Prisma.AnnouncementWhereInput = { isPublished: true };
     if (filters?.search) {
       where.OR = [
         { title: { contains: filters.search, mode: "insensitive" } },
@@ -577,7 +587,7 @@ export async function getGalleryData() {
 // 10. Resources Page Data
 export async function getResourcesData(filters?: { category?: ResourceCategory }) {
   try {
-    const where: any = {};
+    const where: Prisma.ResourceWhereInput = {};
     if (filters?.category) where.category = filters.category;
 
     const resources = await prisma.resource.findMany({
@@ -871,7 +881,7 @@ export async function getMaterialsData(filters?: {
   search?: string;
 }) {
   try {
-    const where: any = {};
+    const where: Prisma.MaterialWhereInput = {};
     if (filters?.subjectId) where.subjectId = filters.subjectId;
     if (filters?.type) where.type = filters.type;
     if (filters?.search) {
@@ -889,10 +899,21 @@ export async function getMaterialsData(filters?: {
         orderBy: { createdAt: "desc" },
         include: {
           subject: true,
+          section: true,
           uploader: { select: { id: true, name: true, role: true } },
         },
       }),
-      prisma.subject.findMany({ orderBy: { code: "asc" } }),
+      prisma.subject.findMany({
+        orderBy: { code: "asc" },
+        include: {
+          _count: {
+            select: { materials: true },
+          },
+          materialSections: {
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      }),
     ]);
 
     return { materials, subjects };
@@ -925,6 +946,7 @@ export async function getMaterialById(id: string) {
             dailyNotes: { take: 3, orderBy: { date: "desc" } },
           },
         },
+        section: true,
         uploader: { select: { id: true, name: true, role: true } },
       },
     });
@@ -936,7 +958,7 @@ export async function getMaterialById(id: string) {
           NOT: { id: material.id },
         },
         take: 3,
-        include: { subject: true },
+        include: { subject: true, section: true },
       });
       return { material, relatedMaterials };
     }
@@ -969,7 +991,7 @@ export async function getDailyNotesData(filters?: {
   tag?: string;
 }) {
   try {
-    const where: any = {};
+    const where: Prisma.DailyNoteWhereInput = {};
     if (filters?.subjectId) where.subjectId = filters.subjectId;
     if (filters?.tag) where.tags = { contains: filters.tag, mode: "insensitive" };
     if (filters?.search) {
@@ -1071,9 +1093,15 @@ export async function getSubjectByCode(code: string) {
         tasks: {
           orderBy: { deadline: "asc" },
         },
+        materialSections: {
+          orderBy: { sortOrder: "asc" },
+        },
         materials: {
           orderBy: { createdAt: "desc" },
-          include: { uploader: { select: { id: true, name: true } } },
+          include: {
+            section: true,
+            uploader: { select: { id: true, name: true } },
+          },
         },
         dailyNotes: {
           orderBy: { date: "desc" },

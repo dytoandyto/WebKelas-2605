@@ -31,15 +31,15 @@ export interface NavSubjectItem {
 }
 
 const baseNavLinks = [
-  { href: "/", label: "Home" },
-  { href: "/schedule", label: "Schedule", icon: Calendar },
-  { href: "/subjects", label: "Subjects", icon: BookOpen, hasDropdown: true },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/materials", label: "Materials", icon: BookOpen },
-  { href: "/daily-notes", label: "Daily Notes", icon: FileText },
-  { href: "/students", label: "Students", icon: Users },
-  { href: "/achievements", label: "Achievements", icon: Trophy },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/", label: "Beranda" },
+  { href: "/schedule", label: "Jadwal", icon: Calendar },
+  { href: "/subjects", label: "Mata Kuliah", icon: BookOpen, hasDropdown: true },
+  { href: "/tasks", label: "Tugas", icon: CheckSquare },
+  { href: "/materials", label: "Materi", icon: BookOpen },
+  { href: "/daily-notes", label: "Catatan", icon: FileText },
+  { href: "/students", label: "Mahasiswa", icon: Users },
+  { href: "/achievements", label: "Prestasi", icon: Trophy },
+  { href: "/about", label: "Tentang", icon: Info },
 ];
 
 export interface PublicNavbarProps {
@@ -97,7 +97,7 @@ export function PublicNavbar({
               ? "border-cyan-400/40 shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(6,182,212,0.2)] light:border-blue-400/40"
               : ""
           )}
-          aria-label="Main navigation"
+          aria-label="Navigasi utama"
         >
           {/* Brand Logo & Identity */}
           <Link
@@ -119,7 +119,7 @@ export function PublicNavbar({
                 <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse" />
               </div>
               <span className="text-[10px] text-cyan-400/70 light:text-slate-500 font-mono hidden sm:block tracking-wider uppercase">
-                Telkom Univ Jkt
+                SI Tel-U JKT
               </span>
             </div>
           </Link>
@@ -225,12 +225,14 @@ export function PublicNavbar({
           <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Quick Search */}
             <button
+              type="button"
               onClick={handleOpenSearch}
               className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-900/60 light:bg-slate-100 border border-cyan-500/20 light:border-slate-300 text-xs text-slate-400 hover:text-white hover:border-cyan-400/40 transition-all cursor-pointer"
-              title="Search (Ctrl+K)"
+              title="Pencarian (Ctrl+K)"
+              aria-label="Pencarian (Ctrl+K)"
             >
               <Search size={13} className="text-cyan-400" />
-              <span className="hidden sm:inline">Search</span>
+              <span className="hidden sm:inline">Cari</span>
               <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">
                 ⌘K
               </kbd>
@@ -247,7 +249,7 @@ export function PublicNavbar({
                 className="rounded-full text-xs py-1.5 px-3 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
                 leftIcon={<LogIn size={13} />}
               >
-                Portal
+                Masuk
               </Button>
             </Link>
 
@@ -255,7 +257,7 @@ export function PublicNavbar({
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="p-1.5 rounded-full bg-slate-900/70 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 lg:hidden cursor-pointer"
-              aria-label="Toggle menu"
+              aria-label={mobileOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -265,6 +267,23 @@ export function PublicNavbar({
         {/* Mobile Dropdown Menu Drawer */}
         {mobileOpen && (
           <div className="w-full mt-2 pointer-events-auto rounded-3xl bg-[#081326]/95 backdrop-blur-2xl border border-cyan-500/30 p-4 shadow-2xl lg:hidden light:bg-white light:border-slate-200 animate-in fade-in-0 slide-in-from-top-4 duration-200">
+            {/* Mobile Search Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                handleOpenSearch();
+              }}
+              className="w-full flex items-center justify-between p-2.5 mb-3 rounded-xl text-xs font-semibold bg-cyan-500/10 text-cyan-300 light:bg-blue-50 light:text-blue-700 border border-cyan-400/20 light:border-blue-200 cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Search size={14} />
+                <span>Cari di Seluruh Kelas...</span>
+              </span>
+              <kbd className="px-1.5 py-0.2 text-[10px] font-mono rounded bg-white/10 light:bg-blue-100">
+                ⌘K
+              </kbd>
+            </button>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {baseNavLinks.map((link) => {
                 const Icon = link.icon;

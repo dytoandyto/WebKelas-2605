@@ -24,8 +24,8 @@ export function StudentList({
     return (
       <EmptyState
         icon={<Users className="w-6 h-6 text-cyan-400" />}
-        title="Tidak Ada Profil Mahasiswa"
-        description="Tidak ada profil mahasiswa yang ditemukan."
+        title="Belum ada teman yang cocok"
+        description="Coba cari dengan kata kunci nama atau NIM yang lain."
         className={className}
       />
     );

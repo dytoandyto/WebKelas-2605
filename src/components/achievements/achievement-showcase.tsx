@@ -42,7 +42,17 @@ export function AchievementShowcase({
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="absolute inset-0 cyber-grid opacity-30" />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amber-500/10 via-cyan-500/10 to-blue-600/15 light:from-amber-50 light:via-blue-50/60 light:to-sky-50">
+            <div className="absolute inset-0 cyber-grid opacity-25 light:opacity-10" />
+            <div className="relative z-0 flex flex-col items-center justify-center p-6 text-center space-y-2">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-500/15 light:bg-amber-100/90 border border-amber-400/30 light:border-amber-300 flex items-center justify-center text-amber-400 light:text-amber-600 shadow-[0_0_24px_rgba(245,158,11,0.25)] group-hover:scale-110 transition-transform duration-300">
+                <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
+              </div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300/80 light:text-amber-700 font-bold">
+                Rekam Prestasi
+              </span>
+            </div>
+          </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#060b17]/90 via-[#060b17]/40 to-transparent light:from-white/90" />
 

@@ -135,7 +135,7 @@ export async function uploadImageFile(
     const localFilePath = path.join(localDir, fileName);
     await fs.writeFile(localFilePath, buffer);
     return { url: `/uploads/${folder}/${fileName}` };
-  } catch (err) {
+  } catch {
     return { url: "", error: "Failed to store image" };
   }
 }

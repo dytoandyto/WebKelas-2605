@@ -32,7 +32,7 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
     {
       label: "Mata Kuliah",
       value: stats.subjectsCount,
-      href: "/schedule",
+      href: "/subjects",
       icon: BookOpen,
       color: "text-cyan-400",
       accentBg: "bg-cyan-500/10 border-cyan-500/20",
@@ -70,14 +70,21 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
         className
       )}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const Icon = item.icon;
         return (
-          <Link key={item.label} href={item.href} className="group">
+          <Link
+            key={item.label}
+            href={item.href}
+            className={cn(
+              "group block h-full focus-visible:outline-none",
+              index === 4 && "col-span-2 sm:col-span-1"
+            )}
+          >
             <Card
               variant="interactive"
               padding="sm"
-              className="p-3.5 sm:p-4 text-left flex items-center gap-3 transition-all duration-200"
+              className="h-full p-3.5 sm:p-4 text-left flex items-center gap-3 transition-all duration-200"
             >
               <div
                 className={cn(
@@ -87,13 +94,16 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
               >
                 <Icon className={cn("w-5 h-5", item.color)} />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="text-lg sm:text-2xl font-extrabold text-[var(--text-primary)] tracking-tight">
                   {item.value}
                 </div>
                 <div className="text-xs text-[var(--text-secondary)] truncate font-medium">
                   {item.label}
                 </div>
+              </div>
+              <div className="text-[var(--text-muted)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors shrink-0">
+                <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline mr-1">&rarr;</span>
               </div>
             </Card>
           </Link>

@@ -8,21 +8,21 @@ interface PublicFooterProps {
 
 const navSections = [
   {
-    title: "Academic Hub",
+    title: "Aktivitas Kelas",
     links: [
-      { href: "/schedule", label: "Class Timetable" },
-      { href: "/tasks", label: "Assignments & Tasks" },
-      { href: "/materials", label: "Learning Materials" },
-      { href: "/daily-notes", label: "Daily Class Journal" },
+      { href: "/schedule", label: "Jadwal Kuliah" },
+      { href: "/tasks", label: "Tugas & Deadline" },
+      { href: "/materials", label: "Materi Kuliah" },
+      { href: "/daily-notes", label: "Catatan Kelas" },
     ],
   },
   {
-    title: "Class Directory",
+    title: "Tentang Kelas",
     links: [
-      { href: "/students", label: "Student Roster" },
-      { href: "/achievements", label: "Class Achievements" },
-      { href: "/announcements", label: "Announcements" },
-      { href: "/about", label: "About Class & Advisor" },
+      { href: "/students", label: "Teman Satu Kelas" },
+      { href: "/achievements", label: "Prestasi Kelas" },
+      { href: "/subjects", label: "Mata Kuliah" },
+      { href: "/about", label: "Profil Kelas" },
     ],
   },
 ];
@@ -70,7 +70,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
             </div>
 
             <p className="text-slate-300 light:text-slate-600 text-sm max-w-md leading-relaxed">
-              Academic class hub and digital workspace for {classNameCode} — supporting unified task tracking, structured learning material vault, and daily class journaling.
+              Ruang digital kelas untuk {classNameCode} — tempat berbagi materi kuliah, pantau tugas dan deadline, serta saling terhubung setiap hari.
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -151,7 +151,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
           {navSections.map((section) => (
             <div key={section.title} className="space-y-3">
               <h3 className="text-white light:text-slate-900 text-xs font-bold tracking-widest uppercase font-mono text-cyan-400 light:text-blue-600">
-                // {section.title}
+                {section.title}
               </h3>
               <ul className="space-y-2.5">
                 {section.links.map((link) => (
@@ -174,7 +174,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
         <div className="border-t border-cyan-500/15 light:border-slate-200 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 light:text-slate-500">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
-            <span>Academic Portal &bull; Telkom University Jakarta &bull; {studyProgram}</span>
+            <span>Academic Class Hub &bull; Telkom University Jakarta &bull; {studyProgram}</span>
           </div>
           <span>
             &copy; 2026 {classNameCode} &mdash; Academic Class Hub

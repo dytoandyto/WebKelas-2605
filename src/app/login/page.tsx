@@ -57,13 +57,13 @@ export default function LoginPage() {
             </div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[11px] font-mono font-semibold text-[var(--primary)] dark:text-cyan-400 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] dark:bg-cyan-400 animate-pulse" />
-              <span>JS1SI-26-REG-05 &bull; Admin</span>
+              <span>JS1SI-26-REG-05 &bull; Portal Pengurus</span>
             </div>
             <h1 className="text-2xl font-black font-display text-[var(--text-primary)] tracking-tight">
-              Control Terminal
+              Portal Pengurus
             </h1>
             <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-1">
-              Autentikasi kredensial untuk mengakses dashboard manajemen kelas
+              Masuk untuk mengelola informasi dan materi kelas
             </p>
           </div>
 
@@ -82,13 +82,13 @@ export default function LoginPage() {
             {/* Email Field */}
             <div className="space-y-1.5">
               <label htmlFor="email" className="block text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider font-mono">
-                Operator Email
+                Email
               </label>
               <input
                 id="email"
                 type="email"
                 className="input w-full px-4 py-2.5 text-sm rounded-xl"
-                placeholder="admin@classhub.edu"
+                placeholder="Masukkan email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -100,14 +100,14 @@ export default function LoginPage() {
             {/* Password Field */}
             <div className="space-y-1.5">
               <label htmlFor="password" className="block text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider font-mono">
-                Access Key
+                Password
               </label>
               <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   className="input w-full px-4 py-2.5 pr-10 text-sm rounded-xl"
-                  placeholder="••••••••"
+                  placeholder="Masukkan password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -141,19 +141,19 @@ export default function LoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                     />
                   </svg>
-                  <span>Mengautentikasi...</span>
+                  <span>Memverifikasi...</span>
                 </>
               ) : (
                 <>
                   <LogIn size={16} />
-                  <span>Masuk Terminal Admin</span>
+                  <span>Masuk Portal Pengurus</span>
                 </>
               )}
             </button>
           </form>
           <p className="text-center text-xs text-[var(--text-muted)]">
             <Link href="/" className="text-[var(--primary)] dark:text-cyan-400 hover:underline font-semibold transition-colors">
-              &larr; Kembali ke Portal Publik
+              &larr; Kembali ke Beranda Kelas
             </Link>
           </p>
         </div>

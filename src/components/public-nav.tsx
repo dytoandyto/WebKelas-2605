@@ -21,14 +21,15 @@ import { cn } from "@/lib/utils";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/schedule", label: "Schedule", icon: Calendar },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/materials", label: "Materials", icon: BookOpen },
-  { href: "/daily-notes", label: "Daily Notes", icon: FileText },
-  { href: "/students", label: "Students", icon: Users },
-  { href: "/achievements", label: "Achievements", icon: Trophy },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/", label: "Beranda" },
+  { href: "/schedule", label: "Jadwal", icon: Calendar },
+  { href: "/subjects", label: "Mata Kuliah", icon: BookOpen },
+  { href: "/tasks", label: "Tugas", icon: CheckSquare },
+  { href: "/materials", label: "Materi", icon: FileText },
+  { href: "/daily-notes", label: "Catatan", icon: Layers },
+  { href: "/students", label: "Mahasiswa", icon: Users },
+  { href: "/achievements", label: "Prestasi", icon: Trophy },
+  { href: "/about", label: "Tentang", icon: Info },
 ];
 
 interface PublicNavProps {
@@ -124,12 +125,12 @@ export function PublicNav({ className }: PublicNavProps) {
             {/* Search Trigger */}
             <button
               onClick={handleOpenSearch}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs bg-slate-900/60 light:bg-slate-100 border border-cyan-500/20 light:border-slate-200 text-slate-300 light:text-slate-600 hover:border-cyan-400/50 light:hover:border-blue-400 transition-colors"
-              aria-label="Search class hub"
-              title="Search (Ctrl + K)"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs bg-slate-900/60 light:bg-slate-100 border border-cyan-500/20 light:border-slate-200 text-slate-300 light:text-slate-600 hover:border-cyan-400/50 light:hover:border-blue-400 transition-colors cursor-pointer"
+              aria-label="Cari di ruang kelas"
+              title="Cari (Ctrl + K)"
             >
               <Search size={13} className="text-cyan-400 light:text-blue-600" />
-              <span className="hidden md:inline text-[11px] text-slate-400">Search</span>
+              <span className="hidden md:inline text-[11px] text-slate-400">Cari</span>
               <kbd className="hidden md:inline-block px-1.5 py-0.5 text-[9px] bg-slate-800 light:bg-slate-200 rounded border border-slate-700 light:border-slate-300 text-slate-400 light:text-slate-600 font-mono">
                 ⌘K
               </kbd>
@@ -138,25 +139,25 @@ export function PublicNav({ className }: PublicNavProps) {
             {/* Theme Switcher */}
             <ThemeSwitcher variant="pill" className="hidden sm:inline-flex" />
 
-            {/* Admin Login Button */}
+            {/* Class Portal Button */}
             <Link
               href="/login"
               className={cn(
                 "inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold tracking-wide",
                 "bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-white",
                 "border border-cyan-300/40 shadow-[0_0_15px_rgba(6,182,212,0.35)]",
-                "hover:shadow-[0_0_25px_rgba(6,182,212,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                "hover:shadow-[0_0_25px_rgba(6,182,212,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
               )}
             >
               <LogIn size={13} />
-              <span>Login</span>
+              <span>Portal</span>
             </Link>
 
             {/* Mobile Hamburger Toggle */}
             <button
-              className="lg:hidden p-2 rounded-full text-slate-300 light:text-slate-700 hover:text-cyan-300 light:hover:text-blue-600 hover:bg-white/5 light:hover:bg-slate-100 transition-colors focus:outline-none"
+              className="lg:hidden p-2 rounded-full text-slate-300 light:text-slate-700 hover:text-cyan-300 light:hover:text-blue-600 hover:bg-white/5 light:hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
               onClick={() => setMobileOpen((v) => !v)}
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={mobileOpen}
             >
               {mobileOpen ? <X size={20} className="text-cyan-400 light:text-blue-600" /> : <Menu size={20} />}
@@ -172,10 +173,10 @@ export function PublicNav({ className }: PublicNavProps) {
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-cyan-500/20 light:border-slate-200">
                 <button
                   onClick={handleOpenSearch}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs bg-slate-900/60 light:bg-slate-100 border border-cyan-500/20 light:border-slate-200 text-slate-300 light:text-slate-700"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs bg-slate-900/60 light:bg-slate-100 border border-cyan-500/20 light:border-slate-200 text-slate-300 light:text-slate-700 cursor-pointer"
                 >
                   <Search size={13} className="text-cyan-400 light:text-blue-600" />
-                  <span>Search Hub...</span>
+                  <span>Cari teman, tugas, materi...</span>
                 </button>
                 <ThemeSwitcher variant="pill" />
               </div>
@@ -209,7 +210,7 @@ export function PublicNav({ className }: PublicNavProps) {
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]"
               >
                 <LogIn size={14} />
-                <span>Login to Admin Portal</span>
+                <span>Masuk Portal Kelas</span>
               </Link>
             </div>
           </div>

@@ -51,27 +51,32 @@ export default async function MaterialDetailPage({ params }: MaterialDetailPageP
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Back Link */}
         <Link
-          href="/materials"
+          href={subject ? `/materials?subject=${encodeURIComponent(subject.code)}` : "/materials"}
           className="inline-flex items-center gap-2 text-xs font-semibold text-cyan-400 light:text-blue-600 hover:text-cyan-300 light:hover:text-blue-700 transition-colors"
         >
           <ArrowLeft size={14} />
-          <span>Kembali ke Repositori Materi</span>
+          <span>Kembali ke Materi Kuliah</span>
         </Link>
 
         {/* Study Page Header Card */}
         <div className="card p-6 sm:p-10 bg-[#08152e]/90 light:bg-white border-cyan-500/25 light:border-slate-200 backdrop-blur-xl shadow-xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase bg-purple-500/15 light:bg-purple-50 text-purple-300 light:text-purple-700 border border-purple-500/30">
                 {material.type}
               </span>
               {subject && (
                 <Link
-                  href={`/subjects/${subject.code}`}
+                  href={`/materials?subject=${encodeURIComponent(subject.code)}`}
                   className="px-3 py-1 rounded-lg bg-cyan-500/15 light:bg-blue-50 border border-cyan-400/30 light:border-blue-200 text-cyan-300 light:text-blue-700 font-mono text-xs font-bold hover:bg-cyan-500/25 transition-colors"
                 >
                   {subject.code} &mdash; {subject.name}
                 </Link>
+              )}
+              {(material as any).section && (
+                <span className="px-3 py-1 rounded-lg bg-emerald-500/15 light:bg-emerald-50 border border-emerald-500/30 light:border-emerald-200 text-emerald-300 light:text-emerald-700 font-mono text-xs font-bold">
+                  {(material as any).section.title}
+                </span>
               )}
             </div>
 
@@ -136,7 +141,7 @@ export default async function MaterialDetailPage({ params }: MaterialDetailPageP
           {material.description && (
             <div className="space-y-3 pt-4 border-t border-cyan-500/15 light:border-slate-100">
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 light:text-blue-700">
-                // Ikhtisar &amp; Ringkasan Materi
+                // Catatan &amp; Ringkasan Materi
               </h3>
               <div className="p-5 rounded-2xl bg-[#040813]/50 light:bg-slate-50 border border-cyan-500/15 light:border-slate-200 text-sm text-slate-200 light:text-slate-800 leading-relaxed whitespace-pre-wrap">
                 {material.description}

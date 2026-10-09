@@ -73,7 +73,7 @@ export default async function AboutPage() {
         <div className="card p-8 sm:p-12 bg-[#08152e]/90 light:bg-white border-cyan-500/25 light:border-slate-200 backdrop-blur-xl shadow-xl space-y-6 text-center relative overflow-hidden">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 light:bg-blue-50 border border-cyan-400/30 light:border-blue-200 text-cyan-300 light:text-blue-700 text-xs sm:text-sm font-semibold tracking-wider uppercase font-mono">
             <Sparkles size={14} className="text-cyan-400 light:text-blue-600" />
-            <span>Class Academic Hub &bull; {academicYear}</span>
+            <span>Ruang Digital Kelas &bull; {academicYear}</span>
           </div>
 
           <div className="space-y-2">
@@ -91,13 +91,13 @@ export default async function AboutPage() {
               <strong className="text-white light:text-slate-900 font-bold">{waliDosen}</strong>
             </div>
             <div className="px-4 py-2 rounded-xl bg-[#040813]/60 light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-xs sm:text-sm text-slate-300 light:text-slate-700 font-mono">
-              Short: <strong className="text-cyan-400 light:text-blue-600 font-bold">SI &bull; 26-05</strong>
+              Kelas: <strong className="text-cyan-400 light:text-blue-600 font-bold">SI &bull; 26-05</strong>
             </div>
           </div>
 
           <p className="text-sm sm:text-base text-slate-300 light:text-slate-600 max-w-2xl mx-auto leading-relaxed">
             {settings.classDescription ||
-              "Wadah kolaboratif akademik mahasiswa S1 Sistem Informasi Telkom University Jakarta angkatan 2026 kelas 05 untuk saling bertumbuh, berbagi catatan kuliah, dan menyelesaikan proyek perkuliahan secara terstruktur."}
+              "Rumah digital dan wadah kolaboratif mahasiswa S1 Sistem Informasi Telkom University Jakarta kelas JS1SI-26-REG-05 untuk saling bertumbuh, berbagi materi, dan belajar bersama setiap hari."}
           </p>
 
           {/* Social Links */}

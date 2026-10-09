@@ -403,7 +403,7 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
             </label>
             <input
               type="text"
-              placeholder="e.g. Maya Indah"
+              placeholder="Masukkan nama"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -417,7 +417,7 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
             </label>
             <input
               type="email"
-              placeholder="e.g. maya@classhub.edu"
+              placeholder="Masukkan email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -431,7 +431,7 @@ export function UsersManager({ initialUsers }: UsersManagerProps) {
             </label>
             <input
               type="password"
-              placeholder={editingUser ? "••••••••" : "Minimum 8 characters"}
+              placeholder={editingUser ? "••••••••" : "Masukkan password"}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"

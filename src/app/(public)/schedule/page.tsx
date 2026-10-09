@@ -4,9 +4,9 @@ import { ScheduleView } from "@/components/schedule/schedule-view";
 import { PageHeader, ContentContainer } from "@/components/shared";
 
 export const metadata: Metadata = {
-  title: "Jadwal Perkuliahan | JS1SI-26-REG-05",
+  title: "Jadwal Kuliah | JS1SI-26-REG-05",
   description:
-    "Jadwal perkuliahan Semester Ganjil 2026/2027 kelas JS1SI-26-REG-05 S1 Sistem Informasi Telkom University Jakarta — Timetable Grid, List View, dan Jadwal Hari Ini.",
+    "Jadwal kuliah mingguan kelas JS1SI-26-REG-05 S1 Sistem Informasi Telkom University Jakarta.",
 };
 
 export default async function SchedulePage() {
@@ -24,10 +24,10 @@ export default async function SchedulePage() {
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       <ContentContainer>
         <PageHeader
-          badge={`TIMETABLE • ${classCode}`}
-          title="Jadwal Perkuliahan"
-          description={`Jadwal perkuliahan resmi ${classCode} (${studyProgram}, ${institutionName}) — ${schedules.length} mata kuliah terjadwal.`}
-          breadcrumbs={[{ label: "Jadwal Perkuliahan" }]}
+          badge={`JADWAL • ${classCode}`}
+          title="Jadwal Kuliah"
+          description={`Jadwal perkuliahan mingguan ${classCode} (${studyProgram}, ${institutionName}) — pantau waktu kelas dan ruang belajarmu.`}
+          breadcrumbs={[{ label: "Jadwal Kuliah" }]}
         />
 
         <ScheduleView

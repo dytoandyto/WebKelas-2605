@@ -528,7 +528,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                   required
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="Contoh: Modul Algoritma & Flowchart Week 01"
+                  placeholder="Tulis judul materi"
                   className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none focus:border-cyan-400"
                 />
               </div>
@@ -684,14 +684,14 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
                         type="text"
-                        placeholder="Nama Dokumen (misal: Slide Pertemuan 02.pptx)"
+                        placeholder="Nama dokumen"
                         value={newDocName}
                         onChange={(e) => setNewDocName(e.target.value)}
                         className="w-full px-2.5 py-1.5 rounded-lg bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 text-xs"
                       />
                       <input
                         type="url"
-                        placeholder="Tautan URL / Drive: https://..."
+                        placeholder="Masukkan URL dokumen"
                         value={newDocUrl}
                         onChange={(e) => setNewDocUrl(e.target.value)}
                         className="w-full px-2.5 py-1.5 rounded-lg bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 text-xs"
@@ -700,7 +700,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     <div className="flex items-center justify-between gap-2 pt-1">
                       <input
                         type="text"
-                        placeholder="Perkiraan Ukuran (opsional, misal: 2.1 MB)"
+                        placeholder="Ukuran file (opsional)"
                         value={newDocSize}
                         onChange={(e) => setNewDocSize(e.target.value)}
                         className="w-1/2 px-2.5 py-1.5 rounded-lg bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 text-xs"
@@ -736,7 +736,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     type="url"
                     value={formExternalUrl}
                     onChange={(e) => setFormExternalUrl(e.target.value)}
-                    placeholder="https://drive.google.com/..."
+                    placeholder="Masukkan URL materi atau Google Drive"
                     className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none"
                   />
                 </div>
@@ -749,7 +749,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     type="text"
                     value={formFileUrl}
                     onChange={(e) => setFormFileUrl(e.target.value)}
-                    placeholder="/materials/sample.pdf"
+                    placeholder="Masukkan URL file langsung"
                     className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none"
                   />
                 </div>
@@ -764,7 +764,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     type="text"
                     value={formFileName}
                     onChange={(e) => setFormFileName(e.target.value)}
-                    placeholder="Pertemuan-01.pdf"
+                    placeholder="Masukkan nama file"
                     className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none"
                   />
                 </div>
@@ -777,7 +777,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     type="text"
                     value={formFileSize}
                     onChange={(e) => setFormFileSize(e.target.value)}
-                    placeholder="Contoh: 2.4 MB"
+                    placeholder="Ukuran file (misal: 2.4 MB)"
                     className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none"
                   />
                 </div>
@@ -791,7 +791,7 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                   type="text"
                   value={formTags}
                   onChange={(e) => setFormTags(e.target.value)}
-                  placeholder="algorithm, flowchart, week1"
+                  placeholder="Tulis topik atau tag..."
                   className="w-full px-3 py-2 rounded-xl bg-[#040813] light:bg-slate-50 border border-cyan-500/20 light:border-slate-200 text-slate-100 light:text-slate-900 focus:outline-none"
                 />
               </div>

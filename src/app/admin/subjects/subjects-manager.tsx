@@ -324,7 +324,7 @@ export function SubjectsManager({ initialSubjects }: SubjectsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. BKK1AAB4"
+                placeholder="Masukkan kode mata kuliah"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 uppercase font-mono text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -377,7 +377,7 @@ export function SubjectsManager({ initialSubjects }: SubjectsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Algoritma dan Pemrograman"
+                placeholder="Masukkan nama mata kuliah"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -391,7 +391,7 @@ export function SubjectsManager({ initialSubjects }: SubjectsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Algorithms and Programming"
+                placeholder="Masukkan nama dalam Bahasa Inggris"
                 value={formData.englishName}
                 onChange={(e) => setFormData({ ...formData, englishName: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -406,7 +406,7 @@ export function SubjectsManager({ initialSubjects }: SubjectsManagerProps) {
             </label>
             <input
               type="text"
-              placeholder="e.g. Dosen Pengampu S1 SI"
+              placeholder="Masukkan nama dosen pengampu"
               value={formData.lecturerName}
               onChange={(e) => setFormData({ ...formData, lecturerName: e.target.value })}
               className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -419,7 +419,7 @@ export function SubjectsManager({ initialSubjects }: SubjectsManagerProps) {
               Description
             </label>
             <textarea
-              placeholder="Gambaran umum materi kuliah, capaian pembelajaran, dan silabus..."
+              placeholder="Tulis deskripsi atau silabus mata kuliah..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="min-h-[110px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"

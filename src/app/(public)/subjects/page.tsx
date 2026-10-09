@@ -5,7 +5,7 @@ import { getSubjectsData, getSettings } from "@/lib/data";
 import { PageHeader, ContentContainer } from "@/components/shared";
 
 export const metadata: Metadata = {
-  title: "Mata Kuliah Kurikulum | JS1SI-26-REG-05",
+  title: "Mata Kuliah | JS1SI-26-REG-05",
   description:
     "Daftar mata kuliah kurikulum S1 Sistem Informasi Semester Ganjil 2026/2027 kelas JS1SI-26-REG-05 Telkom University Jakarta.",
 };
@@ -23,9 +23,9 @@ export default async function SubjectsPage() {
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
       <ContentContainer>
         <PageHeader
-          badge={`CURRICULUM • ${classCode}`}
-          title="Mata Kuliah Kurikulum"
-          description={`Daftar mata kuliah resmi kurikulum Telkom University Jakarta (${academicYear}) untuk kelas ${classCode}.`}
+          badge={`MATA KULIAH • ${classCode}`}
+          title="Mata Kuliah"
+          description={`Daftar mata kuliah semester ini untuk kelas ${classCode}. Pilih mata kuliah untuk melihat detail, silabus, dan materi terkait.`}
           breadcrumbs={[{ label: "Mata Kuliah" }]}
         />
 
@@ -85,7 +85,7 @@ export default async function SubjectsPage() {
                   href={`/subjects/${sub.code}`}
                   className="text-xs font-bold text-[var(--primary)] dark:text-cyan-400 hover:underline flex items-center gap-1"
                 >
-                  <span>Buka Hub</span>
+                  <span>Lihat detail</span>
                   <ChevronRight size={13} />
                 </Link>
               </div>

@@ -3,17 +3,19 @@ import { getHomeData, getScheduleData } from "@/lib/data";
 import {
   HeroSection,
   AcademicStats,
+  QuickLinks,
   TodaySchedule,
   UpcomingTasks,
+  HomeMaterialsPreview,
   FeaturedAchievements,
   StudentShowcase,
   GalleryShowcase,
 } from "@/components/home";
 
 export const metadata: Metadata = {
-  title: "JS1SI-26-REG-05 | S1 Sistem Informasi Telkom University Jakarta",
+  title: "Ruang Kelas Digital | JS1SI-26-REG-05",
   description:
-    "Academic class hub for S1 Sistem Informasi Telkom University Jakarta class JS1SI-26-REG-05 — schedules, coursework, learning materials, daily journal, cohort directory, and achievements.",
+    "Ruang digital kelas S1 Sistem Informasi Telkom University Jakarta (JS1SI-26-REG-05) — jadwal kuliah, tugas & deadline, materi kuliah, dan kabar teman sekelas.",
 };
 
 export default async function HomePage() {
@@ -28,6 +30,7 @@ export default async function HomePage() {
     latestAchievements,
     featuredStudents,
     galleryPreview,
+    latestMaterials,
     settings,
     todayDayOfWeek,
   } = data;
@@ -43,29 +46,48 @@ export default async function HomePage() {
         majorName={settings.studyProgram || "S1 Sistem Informasi"}
         institutionName={settings.institutionName || "Telkom University Jakarta"}
         academicYear={settings.academicYear || "Semester Ganjil 2026/2027"}
+        waliDosen={settings.waliDosen || "Muhammad Ardiansyah"}
       />
 
       {/* Main Composed Sections Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 sm:space-y-20 pb-24">
-        {/* 2. Academic Quick Statistics */}
+        {/* 2. Statistik Akademik */}
         <AcademicStats stats={stats} />
 
-        {/* 3. Today's Timetable / Schedule */}
-        <TodaySchedule
-          schedules={schedules as any}
-          todayDayOfWeek={todayDayOfWeek}
-        />
+        {/* 3. Jadwal Kuliah Hari Ini & Akses Cepat Kampus */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-8 items-start">
+          {/* Kolom Kiri: Jadwal Kuliah Hari Ini */}
+          <div className="lg:col-span-8">
+            <TodaySchedule
+              schedules={schedules as any}
+              todayDayOfWeek={todayDayOfWeek}
+            />
+          </div>
 
-        {/* 4. Upcoming Tasks & Deadlines */}
+          {/* Kolom Kanan: Panel Utilitas Vertikal Quick Links */}
+          <div className="lg:col-span-4">
+            <QuickLinks />
+          </div>
+        </div>
+
+        {/* 4. Tugas & Deadline (Memanjang di Bawah Quick Links & Jadwal) */}
         <UpcomingTasks tasks={upcomingTasks as any} />
 
-        {/* 5. Featured Achievements & Hall of Excellence */}
+        {/* 5. Materi Kuliah Preview */}
+        {/* <HomeMaterialsPreview
+          materials={latestMaterials as any}
+          totalCount={stats.materialsCount}
+        /> */}
+
+        {/* 6. Akses Cepat Kampus (MyTelU, iGracias, LMS Tel-U) */}
+
+        {/* 7. Prestasi Kelas */}
         <FeaturedAchievements achievements={latestAchievements as any} />
 
-        {/* 6. Student Cohort Showcase */}
+        {/* 8. Teman Satu Kelas Showcase */}
         <StudentShowcase students={featuredStudents as any} />
 
-        {/* 7. Asymmetric Editorial Gallery */}
+        {/* 9. Galeri Kegiatan Kelas */}
         <GalleryShowcase items={galleryPreview as any} />
       </div>
     </div>

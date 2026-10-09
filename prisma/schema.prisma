@@ -139,10 +139,11 @@ model Subject {
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  schedules  Schedule[]
-  tasks      Task[]
-  materials  Material[]
-  dailyNotes DailyNote[]
+  schedules        Schedule[]
+  tasks            Task[]
+  materials        Material[]
+  materialSections MaterialSection[]
+  dailyNotes       DailyNote[]
 
   @@map("subjects")
 }
@@ -200,11 +201,29 @@ model Task {
   @@index([taskType])
 }
 
+model MaterialSection {
+  id          String   @id @default(cuid())
+  subjectId   String   @map("subject_id")
+  title       String
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  materials Material[]
+
+  @@map("material_sections")
+  @@index([subjectId])
+  @@index([sortOrder])
+}
+
 model Material {
   id          String       @id @default(cuid())
   title       String
   description String?
   subjectId   String?      @map("subject_id")
+  sectionId   String?      @map("section_id")
   type        MaterialType @default(PDF)
   fileUrl     String?      @map("file_url")
   externalUrl String?      @map("external_url")
@@ -217,11 +236,13 @@ model Material {
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
   subject    Subject?            @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  section    MaterialSection?    @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   uploader   User                @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
   dailyNotes DailyNoteMaterial[]
 
   @@map("materials")
   @@index([subjectId])
+  @@index([sectionId])
   @@index([type])
   @@index([createdAt])
 }

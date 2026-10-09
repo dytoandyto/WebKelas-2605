@@ -5,11 +5,8 @@ import Link from "next/link";
 import {
   Calendar,
   CheckSquare,
-  Users,
-  ArrowRight,
-  Sparkles,
   BookOpen,
-  Award,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,6 +17,7 @@ export interface HeroSectionProps {
   majorName?: string;
   institutionName?: string;
   academicYear?: string;
+  waliDosen?: string;
   className?: string;
 }
 
@@ -29,18 +27,19 @@ export function HeroSection({
   majorName = "S1 Sistem Informasi",
   institutionName = "Telkom University Jakarta",
   academicYear = "Semester Ganjil 2026/2027",
+  waliDosen = "Muhammad Ardiansyah",
   className,
 }: HeroSectionProps) {
   return (
     <section
       className={cn(
-        "relative min-h-[85vh] flex items-center justify-center pt-28 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden text-center",
+        "relative flex items-center justify-center pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden text-center",
         className
       )}
     >
       {/* Ambient Lighting & Glows */}
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[400px] rounded-full pointer-events-none opacity-30 light:opacity-10 blur-[130px]"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[380px] rounded-full pointer-events-none opacity-30 light:opacity-10 blur-[130px]"
         style={{
           background:
             "radial-gradient(circle, #2563eb 0%, #06b6d4 45%, transparent 75%)",
@@ -81,17 +80,19 @@ export function HeroSection({
             </span>
           </h1>
 
-          <p className="text-base sm:text-xl font-medium text-cyan-200/90 light:text-blue-800 font-mono tracking-wide">
+          <p className="text-base sm:text-lg font-medium text-cyan-200/90 light:text-blue-800 font-mono tracking-wide">
             {majorName} &bull; {institutionName}
           </p>
+          {waliDosen && (
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] font-mono">
+              Wali Dosen: <span className="text-[var(--text-secondary)] font-semibold">{waliDosen}</span>
+            </p>
+          )}
         </div>
 
         {/* Lead Description */}
         <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-          Pusat ekosistem digital terintegrasi untuk kelas {classCode} —
-          memfasilitasi jadwal kuliah presisi, manajemen tugas multi-view,
-          repositori materi, jurnal pembelajaran harian, serta rekam prestasi
-          mahasiswa.
+          Satu tempat untuk semua urusan kelas. Pantau jadwal, sikat deadline tugas, unduh materi, dan update info info seputar teman sekelas—semua rapi dan gampang diakses kapan aja.
         </p>
 
         {/* Interactive CTA Buttons */}
@@ -100,7 +101,7 @@ export function HeroSection({
             <Button
               variant="primary"
               size="lg"
-              className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+              className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer"
               leftIcon={<Calendar className="w-4 h-4" />}
             >
               Jadwal Kuliah
@@ -111,21 +112,32 @@ export function HeroSection({
             <Button
               variant="secondary"
               size="lg"
-              className="rounded-xl"
+              className="rounded-xl cursor-pointer"
               leftIcon={<CheckSquare className="w-4 h-4" />}
             >
-              Planner Tugas
+              Tugas & Deadline
+            </Button>
+          </Link>
+
+          <Link href="/materials">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-xl cursor-pointer"
+              leftIcon={<BookOpen className="w-4 h-4" />}
+            >
+              Materi Kuliah
             </Button>
           </Link>
 
           <Link href="/students">
             <Button
-              variant="outline"
+              variant="ghost"
               size="lg"
-              className="rounded-xl"
+              className="rounded-xl cursor-pointer text-cyan-400 light:text-blue-600"
               leftIcon={<Users className="w-4 h-4" />}
             >
-              Direktori Mahasiswa
+              Teman Satu Kelas
             </Button>
           </Link>
         </div>

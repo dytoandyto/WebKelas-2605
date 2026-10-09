@@ -105,7 +105,7 @@ export function TaskForm({
             Judul Tugas <span className="text-red-400">*</span>
           </label>
           <Input
-            placeholder="Contoh: Laporan Analisis Sistem Basis Data Bab 3"
+            placeholder="Tulis judul tugas"
             value={formData.title}
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
@@ -164,7 +164,7 @@ export function TaskForm({
       {/* ── 2. Description ─────────────────────────────── */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 light:text-blue-600 font-mono">
-          // 2. Deskripsi & Detail
+          2. Deskripsi Tugas
         </h4>
 
         <div>
@@ -173,7 +173,7 @@ export function TaskForm({
           </label>
           <Textarea
             rows={4}
-            placeholder="Instruksi pengerjaan tugas, format pengumpulan, bobot penilaian..."
+            placeholder="Ceritakan sedikit tentang tugas ini"
             value={formData.description}
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
@@ -185,7 +185,7 @@ export function TaskForm({
       {/* ── 3. Scheduling & Priority ───────────────────── */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 light:text-blue-600 font-mono">
-          // 3. Waktu & Prioritas
+          3. Waktu & Prioritas
         </h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -249,7 +249,7 @@ export function TaskForm({
       {isGroup && (
         <div className="p-4 rounded-xl border border-purple-500/30 bg-purple-500/5 space-y-4 light:bg-purple-50/50 light:border-purple-200">
           <h4 className="text-xs font-bold uppercase tracking-wider text-purple-300 light:text-purple-800 font-mono">
-            // 4. Pengaturan Tugas Kelompok
+            4. Pengaturan Tugas Kelompok
           </h4>
 
           <div>
@@ -257,7 +257,7 @@ export function TaskForm({
               Nama Kelompok <span className="text-red-400">*</span>
             </label>
             <Input
-              placeholder="Contoh: Kelompok 04 (CyberGuard)"
+              placeholder="Tulis nama kelompok"
               value={formData.groupName}
               onChange={(e) =>
                 setFormData({ ...formData, groupName: e.target.value })
@@ -272,7 +272,7 @@ export function TaskForm({
             </label>
             <Textarea
               rows={2}
-              placeholder="1. Muhammad Farhan (Ketua)&#10;2. Alya Putri&#10;3. Dimas Pratama"
+              placeholder="Tulis daftar anggota kelompok..."
               value={formData.groupMembers}
               onChange={(e) =>
                 setFormData({ ...formData, groupMembers: e.target.value })
@@ -285,7 +285,7 @@ export function TaskForm({
       {/* ── 5. Resources & Attachments ─────────────────── */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 light:text-blue-600 font-mono">
-          // 5. Tautan & Lampiran
+          5. Tautan & Lampiran
         </h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -294,7 +294,7 @@ export function TaskForm({
               URL Lampiran / Dokumen Soal
             </label>
             <Input
-              placeholder="https://drive.google.com/..."
+              placeholder="Masukkan URL tautan dokumen atau soal"
               value={formData.attachmentUrl}
               onChange={(e) =>
                 setFormData({ ...formData, attachmentUrl: e.target.value })
@@ -307,7 +307,7 @@ export function TaskForm({
               URL Pengumpulan (LMS / Form)
             </label>
             <Input
-              placeholder="https://lms.telkomuniversity.ac.id/..."
+              placeholder="Masukkan URL pengumpulan tugas"
               value={formData.submissionUrl}
               onChange={(e) =>
                 setFormData({ ...formData, submissionUrl: e.target.value })

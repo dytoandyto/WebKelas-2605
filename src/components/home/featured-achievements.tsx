@@ -29,7 +29,7 @@ export function FeaturedAchievements({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
-              // Hall of Excellence
+              // Prestasi 
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">

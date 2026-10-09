@@ -47,7 +47,7 @@ const ROUTE_TITLES: Record<string, { title: string; category: string }> = {
 };
 
 const ROLE_INFO: Record<string, { label: string; badgeVariant: "cyan" | "blue" | "emerald" | "outline" | "red" }> = {
-  ADMIN: { label: "System Administrator", badgeVariant: "red" },
+  ADMIN: { label: "Super Admin", badgeVariant: "red" },
   CLASS_ADMIN: { label: "Class Admin", badgeVariant: "blue" },
   LECTURER: { label: "Manager / Wali Dosen", badgeVariant: "cyan" },
   ASSISTANT: { label: "Teaching Assistant", badgeVariant: "emerald" },

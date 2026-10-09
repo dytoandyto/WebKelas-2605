@@ -419,7 +419,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Alex Pratama"
+                placeholder="Masukkan nama"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -433,7 +433,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 220601201"
+                placeholder="Masukkan NIM"
                 value={formData.studentNumber}
                 onChange={(e) => setFormData({ ...formData, studentNumber: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 font-mono text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -498,7 +498,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               <div className="mt-2">
                 <input
                   type="url"
-                  placeholder="Atau masukkan URL foto langsung: https://..."
+                  placeholder="Masukkan URL foto"
                   value={formData.photoUrl.startsWith("data:") ? "" : formData.photoUrl}
                   onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
                   className="h-9 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -511,7 +511,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               Bio & Background
             </label>
             <textarea
-              placeholder="Tell about background, tech stack interests, or hobbies..."
+              placeholder="Ceritakan tentang minat, keahlian, atau hobi..."
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               className="min-h-[85px] p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full resize-y focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -526,7 +526,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. AI Research Scientist"
+                placeholder="Tulis cita-cita atau aspirasi karir"
                 value={formData.dream}
                 onChange={(e) => setFormData({ ...formData, dream: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -539,7 +539,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Keep pushing boundaries every day"
+                placeholder="Tulis moto atau motivasi"
                 value={formData.motivation}
                 onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -555,7 +555,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               </label>
               <input
                 type="url"
-                placeholder="https://instagram.com/..."
+                placeholder="Masukkan URL Instagram"
                 value={formData.instagramUrl}
                 onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -565,7 +565,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">GitHub URL</label>
               <input
                 type="url"
-                placeholder="https://github.com/..."
+                placeholder="Masukkan URL GitHub"
                 value={formData.githubUrl}
                 onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -575,7 +575,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">LinkedIn URL</label>
               <input
                 type="url"
-                placeholder="https://linkedin.com/in/..."
+                placeholder="Masukkan URL LinkedIn"
                 value={formData.linkedinUrl}
                 onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -585,7 +585,7 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">Portfolio URL</label>
               <input
                 type="url"
-                placeholder="https://mywebsite.dev"
+                placeholder="Masukkan URL website atau portofolio"
                 value={formData.portfolioUrl}
                 onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
