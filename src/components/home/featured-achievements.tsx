@@ -2,25 +2,33 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Trophy, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AchievementShowcase } from "@/components/achievements/achievement-showcase";
 import { AchievementCard, AchievementData } from "@/components/achievements/achievement-card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { AchievementsSettings } from "@/lib/homepage/types";
+
 export interface FeaturedAchievementsProps {
   achievements: AchievementData[];
+  settings?: AchievementsSettings;
   className?: string;
 }
 
 export function FeaturedAchievements({
   achievements,
+  settings,
   className,
 }: FeaturedAchievementsProps) {
   if (achievements.length === 0) return null;
 
-  const topAchievement = achievements[0];
-  const secondaryAchievements = achievements.slice(1, 3);
+  const max = settings?.maxItems ?? 3;
+  const displayAchievements = achievements.slice(0, max);
+  const topAchievement = displayAchievements[0];
+  const secondaryAchievements = displayAchievements.slice(1);
+  const title = settings?.title || "Prestasi & Kebanggaan Kelas";
+  const description = settings?.description;
 
   return (
     <section className={cn("space-y-5 text-left", className)}>
@@ -29,12 +37,17 @@ export function FeaturedAchievements({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
-              // Prestasi 
+              {"// Prestasi"}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-            Prestasi & Kebanggaan Kelas
+            {title}
           </h2>
+          {description && (
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+              {description}
+            </p>
+          )}
         </div>
 
         <Link href="/achievements">

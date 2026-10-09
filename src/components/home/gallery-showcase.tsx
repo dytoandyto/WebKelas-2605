@@ -3,10 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ImageIcon, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { formatDate, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface GalleryItem {
   id: string;
@@ -17,16 +16,23 @@ export interface GalleryItem {
   eventDate?: Date | string | null;
 }
 
+import { GallerySettings } from "@/lib/homepage/types";
+
 export interface GalleryShowcaseProps {
   items: GalleryItem[];
+  settings?: GallerySettings;
   className?: string;
 }
 
-export function GalleryShowcase({ items, className }: GalleryShowcaseProps) {
+export function GalleryShowcase({ items, settings, className }: GalleryShowcaseProps) {
   if (items.length === 0) return null;
 
-  const mainItem = items[0];
-  const sideItems = items.slice(1, 4);
+  const max = settings?.maxItems ?? 4;
+  const displayItems = items.slice(0, max);
+  const mainItem = displayItems[0];
+  const sideItems = displayItems.slice(1);
+  const title = settings?.title || "Galeri Kegiatan & Kenangan";
+  const description = settings?.description;
 
   return (
     <section className={cn("space-y-4 text-left", className)}>
@@ -35,12 +41,17 @@ export function GalleryShowcase({ items, className }: GalleryShowcaseProps) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
-              // Momen & Dokumentasi
+              {"// Momen & Dokumentasi"}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-            Galeri Kegiatan & Kenangan
+            {title}
           </h2>
+          {description && (
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+              {description}
+            </p>
+          )}
         </div>
 
         <Link href="/gallery">

@@ -424,3 +424,20 @@ model ActivityLog {
   @@index([createdAt])
   @@index([entityType])
 }
+
+model HomepageConfiguration {
+  id               String    @id @default("default-homepage")
+  pageKey          String    @unique @default("home") @map("page_key")
+  draftConfig      Json      @map("draft_config")
+  publishedConfig  Json      @map("published_config")
+  draftVersion     Int       @default(1) @map("draft_version")
+  publishedVersion Int       @default(1) @map("published_version")
+  updatedBy        String?   @map("updated_by")
+  publishedBy      String?   @map("published_by")
+  publishedAt      DateTime? @map("published_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("homepage_configurations")
+}
+

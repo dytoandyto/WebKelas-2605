@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { HeroSettings } from "@/lib/homepage/types";
 
 export interface HeroSectionProps {
   classCode?: string;
@@ -18,6 +19,7 @@ export interface HeroSectionProps {
   institutionName?: string;
   academicYear?: string;
   waliDosen?: string;
+  settings?: HeroSettings;
   className?: string;
 }
 
@@ -28,8 +30,18 @@ export function HeroSection({
   institutionName = "Telkom University Jakarta",
   academicYear = "Semester Ganjil 2026/2027",
   waliDosen = "Muhammad Ardiansyah",
+  settings,
   className,
 }: HeroSectionProps) {
+  // Use CMS settings if provided, else fallback
+  const effectiveClassCode = settings?.title || classCode;
+  const effectiveEyebrow = settings?.eyebrow || "Ruang Digital Kelas";
+  const effectiveAcademicYear = settings?.academicYear || academicYear;
+  const effectiveSubtitle = settings?.subtitle || `${classNameTitle || majorName} • ${institutionName}`;
+  const effectiveDescription =
+    settings?.description ||
+    "Satu tempat untuk semua urusan kelas. Pantau jadwal, sikat deadline tugas, unduh materi, dan update info seputar teman sekelas—semua rapi dan gampang diakses kapan aja.";
+
   return (
     <section
       className={cn(
@@ -64,26 +76,29 @@ export function HeroSection({
       {/* Hero Content Container */}
       <div className="max-w-4xl mx-auto relative z-10 space-y-6 sm:space-y-8">
         {/* Eyebrow Pill: Class Identity */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-cyan-500/10 light:bg-blue-50 border border-cyan-400/30 light:border-blue-200 text-cyan-300 light:text-blue-700 text-xs sm:text-sm font-semibold tracking-wider uppercase font-mono shadow-[0_0_20px_rgba(6,182,212,0.2)] light:shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
-          <span>
-            {classCode} &bull; {academicYear}
-          </span>
-        </div>
+        {(settings?.showBadges ?? true) && (
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-cyan-500/10 light:bg-blue-50 border border-cyan-400/30 light:border-blue-200 text-cyan-300 light:text-blue-700 text-xs sm:text-sm font-semibold tracking-wider uppercase font-mono shadow-[0_0_20px_rgba(6,182,212,0.2)] light:shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
+            <span>
+              {effectiveEyebrow} &bull; {effectiveAcademicYear}
+            </span>
+          </div>
+        )}
 
         {/* Display Headline */}
         <div className="space-y-3">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-[var(--text-primary)]">
             Academic Class Hub{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 light:from-blue-600 light:via-cyan-600 light:to-blue-800">
-              {classCode}
+              {effectiveClassCode}
             </span>
           </h1>
 
           <p className="text-base sm:text-lg font-medium text-cyan-200/90 light:text-blue-800 font-mono tracking-wide">
-            {majorName} &bull; {institutionName}
+            {effectiveSubtitle}
           </p>
-          {waliDosen && (
+
+          {(settings?.showClassPills ?? true) && waliDosen && (
             <p className="text-xs sm:text-sm text-[var(--text-muted)] font-mono">
               Wali Dosen: <span className="text-[var(--text-secondary)] font-semibold">{waliDosen}</span>
             </p>
@@ -92,54 +107,108 @@ export function HeroSection({
 
         {/* Lead Description */}
         <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-          Satu tempat untuk semua urusan kelas. Pantau jadwal, sikat deadline tugas, unduh materi, dan update info info seputar teman sekelas—semua rapi dan gampang diakses kapan aja.
+          {effectiveDescription}
         </p>
 
         {/* Interactive CTA Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Link href="/schedule">
-            <Button
-              variant="primary"
-              size="lg"
-              className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer"
-              leftIcon={<Calendar className="w-4 h-4" />}
-            >
-              Jadwal Kuliah
-            </Button>
-          </Link>
+          {settings ? (
+            <>
+              {settings.primaryButtonVisible && (
+                <Link href={settings.primaryButtonUrl || "/schedule"}>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer"
+                    leftIcon={<Calendar className="w-4 h-4" />}
+                  >
+                    {settings.primaryButtonText || "Jadwal Perkuliahan"}
+                  </Button>
+                </Link>
+              )}
 
-          <Link href="/tasks">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="rounded-xl cursor-pointer"
-              leftIcon={<CheckSquare className="w-4 h-4" />}
-            >
-              Tugas & Deadline
-            </Button>
-          </Link>
+              {settings.secondaryButtonVisible && (
+                <Link href={settings.secondaryButtonUrl || "/tasks"}>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="rounded-xl cursor-pointer"
+                    leftIcon={<CheckSquare className="w-4 h-4" />}
+                  >
+                    {settings.secondaryButtonText || "Tugas & Deadline"}
+                  </Button>
+                </Link>
+              )}
 
-          <Link href="/materials">
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-xl cursor-pointer"
-              leftIcon={<BookOpen className="w-4 h-4" />}
-            >
-              Materi Kuliah
-            </Button>
-          </Link>
+              <Link href="/materials">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-xl cursor-pointer"
+                  leftIcon={<BookOpen className="w-4 h-4" />}
+                >
+                  Materi Kuliah
+                </Button>
+              </Link>
 
-          <Link href="/students">
-            <Button
-              variant="ghost"
-              size="lg"
-              className="rounded-xl cursor-pointer text-cyan-400 light:text-blue-600"
-              leftIcon={<Users className="w-4 h-4" />}
-            >
-              Teman Satu Kelas
-            </Button>
-          </Link>
+              <Link href="/students">
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="rounded-xl cursor-pointer text-cyan-400 light:text-blue-600"
+                  leftIcon={<Users className="w-4 h-4" />}
+                >
+                  Teman Satu Kelas
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/schedule">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer"
+                  leftIcon={<Calendar className="w-4 h-4" />}
+                >
+                  Jadwal Kuliah
+                </Button>
+              </Link>
+
+              <Link href="/tasks">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="rounded-xl cursor-pointer"
+                  leftIcon={<CheckSquare className="w-4 h-4" />}
+                >
+                  Tugas & Deadline
+                </Button>
+              </Link>
+
+              <Link href="/materials">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-xl cursor-pointer"
+                  leftIcon={<BookOpen className="w-4 h-4" />}
+                >
+                  Materi Kuliah
+                </Button>
+              </Link>
+
+              <Link href="/students">
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="rounded-xl cursor-pointer text-cyan-400 light:text-blue-600"
+                  leftIcon={<Users className="w-4 h-4" />}
+                >
+                  Teman Satu Kelas
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </section>

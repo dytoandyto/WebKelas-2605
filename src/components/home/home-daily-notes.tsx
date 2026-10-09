@@ -2,26 +2,31 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CheckSquare, ArrowRight } from "lucide-react";
-import { TaskCard, TaskCardData } from "@/components/tasks/task-card";
+import { StickyNote, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DailyNoteCard, DailyNoteData } from "@/components/daily-notes/daily-note-card";
+import { DailyNotesSettings } from "@/lib/homepage/types";
 import { cn } from "@/lib/utils";
 
-import { TasksSettings } from "@/lib/homepage/types";
-
-export interface UpcomingTasksProps {
-  tasks: TaskCardData[];
-  settings?: TasksSettings;
+export interface HomeDailyNotesProps {
+  notes?: DailyNoteData[];
+  settings?: DailyNotesSettings;
   className?: string;
 }
 
-export function UpcomingTasks({ tasks, settings, className }: UpcomingTasksProps) {
-  const max = settings?.maxItems ?? 4;
-  const activeTasks = tasks.slice(0, max);
-  const title = settings?.title || "Tugas & Deadline";
-  const description = settings?.description || "Jangan sampai kelewatan.";
-  const buttonLabel = settings?.buttonText || "Lihat Semua Tugas";
+export function HomeDailyNotes({
+  notes = [],
+  settings,
+  className,
+}: HomeDailyNotesProps) {
+  const max = settings?.maxItems ?? 3;
+  const displayNotes = notes.slice(0, max);
+  const title = settings?.title || "Catatan & Rangkuman Kelas";
+  const description =
+    settings?.description ||
+    "Rangkuman kuliah dan catatan penting yang dibagikan teman sekelas.";
+  const buttonLabel = settings?.buttonText || "Lihat Semua Catatan";
 
   return (
     <section className={cn("space-y-4 text-left", className)}>
@@ -30,7 +35,7 @@ export function UpcomingTasks({ tasks, settings, className }: UpcomingTasksProps
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
-              {"// Pengingat"}
+              {"// Arsip Belajar"}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
@@ -41,7 +46,7 @@ export function UpcomingTasks({ tasks, settings, className }: UpcomingTasksProps
           </p>
         </div>
 
-        <Link href="/tasks">
+        <Link href="/daily-notes">
           <Button
             variant="ghost"
             size="sm"
@@ -53,43 +58,31 @@ export function UpcomingTasks({ tasks, settings, className }: UpcomingTasksProps
         </Link>
       </div>
 
-      {activeTasks.length === 0 ? (
+      {displayNotes.length === 0 ? (
         <div className="max-w-xl mx-auto w-full">
           <Card
-            variant="default"
-            padding="lg"
-            className="text-center border-dashed space-y-3 p-6 sm:p-8"
+            variant="interactive"
+            padding="md"
+            className="text-center border-dashed p-6 sm:p-8 space-y-3"
           >
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center mx-auto text-cyan-400 light:text-blue-600">
-              <CheckSquare className="w-6 h-6" />
+              <StickyNote className="w-6 h-6" />
             </div>
             <div className="space-y-1">
               <h4 className="text-base font-bold text-[var(--text-primary)]">
-                Belum ada tugas yang perlu diingat.
+                Belum ada catatan harian
               </h4>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md mx-auto">
-                Semua tugas sudah beres atau belum ada tugas baru yang aktif.
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+                Nanti setelah kuliah ada yang rangkum bareng di sini, ya.
               </p>
-            </div>
-            <div className="pt-2">
-              <Link href="/tasks?tab=history">
-                <Button variant="outline" size="sm" className="text-xs cursor-pointer">
-                  Lihat Riwayat Tugas
-                </Button>
-              </Link>
             </div>
           </Card>
         </div>
       ) : (
-        <div className="space-y-3 sm:space-y-3.5">
-          {activeTasks.map((task) => (
-            <Link
-              key={task.id}
-              href={`/tasks/${task.id}`}
-              className="block group cursor-pointer focus-visible:outline-none"
-              aria-label={`Tugas ${task.title}. Tenggat ${task.deadline}`}
-            >
-              <TaskCard task={task} variant="list" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayNotes.map((note) => (
+            <Link key={note.id} href={`/daily-notes/${note.id}`} className="block h-full">
+              <DailyNoteCard note={note} className="h-full" />
             </Link>
           ))}
         </div>

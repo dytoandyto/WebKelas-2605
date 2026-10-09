@@ -2,23 +2,47 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { BookOpen, ArrowRight, FileText, Calendar, Paperclip } from "lucide-react";
+import { BookOpen, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatDate, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+
+import { MaterialsSettings } from "@/lib/homepage/types";
+
+export interface HomeMaterialItem {
+  id: string;
+  title: string;
+  type?: string | null;
+  description?: string | null;
+  fileSize?: string | null;
+  subject?: {
+    code?: string;
+    name?: string;
+  } | null;
+}
 
 export interface HomeMaterialsPreviewProps {
-  materials?: any[];
+  materials?: HomeMaterialItem[];
   totalCount?: number;
+  settings?: MaterialsSettings;
   className?: string;
 }
 
 export function HomeMaterialsPreview({
   materials = [],
   totalCount = 0,
+  settings,
   className,
 }: HomeMaterialsPreviewProps) {
-  const displayMaterials = materials.slice(0, 3);
+  const max = settings?.maxItems ?? 3;
+  const displayMaterials = materials.slice(0, max);
+  const title = settings?.title || "Materi Kuliah";
+  const defaultDesc =
+    totalCount > 0
+      ? `${totalCount} materi tersedia untuk dipelajari.`
+      : "Temukan modul dan bahan ajar berdasarkan mata kuliahnya.";
+  const description = settings?.description || defaultDesc;
+  const buttonLabel = settings?.buttonText || "Lihat Semua Materi";
 
   return (
     <section className={cn("space-y-4 text-left", className)}>
@@ -27,16 +51,14 @@ export function HomeMaterialsPreview({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
-              // Bahan Belajar
+              {"// Bahan Belajar"}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-            Materi Kuliah
+            {title}
           </h2>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
-            {totalCount > 0
-              ? `${totalCount} materi tersedia untuk dipelajari.`
-              : "Temukan modul dan bahan ajar berdasarkan mata kuliahnya."}
+            {description}
           </p>
         </div>
 
@@ -47,7 +69,7 @@ export function HomeMaterialsPreview({
             className="text-xs text-cyan-400 light:text-blue-600 font-semibold cursor-pointer"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Lihat Semua Materi
+            {buttonLabel}
           </Button>
         </Link>
       </div>

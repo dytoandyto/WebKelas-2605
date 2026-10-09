@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Clock, Calendar, ArrowRight } from "lucide-react";
+import { Clock, ArrowRight } from "lucide-react";
 import { ScheduleBlock } from "@/components/schedule/schedule-block";
 import { ScheduleItem } from "@/components/schedule/schedule-grid";
 import { ScheduleDetailDialog } from "@/components/schedule/schedule-detail-dialog";
@@ -10,9 +10,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { ScheduleSettings } from "@/lib/homepage/types";
+
 export interface TodayScheduleProps {
   schedules: ScheduleItem[];
   todayDayOfWeek?: string;
+  settings?: ScheduleSettings;
   className?: string;
 }
 
@@ -24,6 +27,7 @@ function timeToMinutes(timeStr: string): number {
 export function TodaySchedule({
   schedules,
   todayDayOfWeek,
+  settings,
   className,
 }: TodayScheduleProps) {
   const [selectedSchedule, setSelectedSchedule] =
@@ -32,29 +36,34 @@ export function TodaySchedule({
 
   // Filter for today
   const todaySchedules = React.useMemo(() => {
-    return schedules
+    const filtered = schedules
       .filter((s) => s.dayOfWeek === todayDayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [schedules, todayDayOfWeek]);
+    if (settings?.maxItems && settings.maxItems > 0) {
+      return filtered.slice(0, settings.maxItems);
+    }
+    return filtered;
+  }, [schedules, todayDayOfWeek, settings]);
+
+  const title = settings?.title || "Jadwal Kuliah Hari Ini";
+  const description = settings?.description;
 
   // Compute status: CURRENT, NEXT, COMPLETED, UPCOMING
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  let nextFound = false;
+  const nextItemIndex = todaySchedules.findIndex((item) => {
+    const startMin = timeToMinutes(item.startTime);
+    return currentMinutes < startMin;
+  });
 
-  const schedulesWithStatus = todaySchedules.map((item) => {
+  const schedulesWithStatus = todaySchedules.map((item, index) => {
     const startMin = timeToMinutes(item.startTime);
     const endMin = timeToMinutes(item.endTime);
 
     const isCurrent = currentMinutes >= startMin && currentMinutes < endMin;
     const isCompleted = currentMinutes >= endMin;
-    let isNext = false;
-
-    if (!isCompleted && !isCurrent && !nextFound && currentMinutes < startMin) {
-      isNext = true;
-      nextFound = true;
-    }
+    const isNext = !isCompleted && !isCurrent && index === nextItemIndex;
 
     return {
       ...item,
@@ -76,12 +85,17 @@ export function TodaySchedule({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
-              // Hari Ini
+              {"// Hari Ini"}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-            Jadwal Kuliah Hari Ini
+            {title}
           </h2>
+          {description && (
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+              {description}
+            </p>
+          )}
         </div>
 
         <Link href="/schedule">

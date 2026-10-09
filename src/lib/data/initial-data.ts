@@ -29,6 +29,52 @@ export const initialSettings = {
   instagramUrl: "https://instagram.com",
   discordUrl: "https://discord.gg",
   classMotto: "LEARN. BUILD. GROW. TOGETHER.",
+  aboutVision:
+    "Mewujudkan kelas JS1SI-26-REG-05 sebagai lingkungan akademik yang solid, inovatif, dan berdaya saing tinggi, dengan penguasaan mendalam di bidang sistem enterprise, arsitektur data, dan rekayasa perangkat lunak modern.",
+  aboutMission:
+    "Membangun atmosfer belajar yang kolaboratif, memperkuat keterampilan teknis dan soft skill, serta aktif berpartisipasi dalam kompetisi akademik dan inovasi digital.",
+  aboutValues: JSON.stringify([
+    {
+      title: "Integritas Akademik",
+      description: "Kejujuran dalam setiap penugasan, ujian, dan riset kelompok.",
+    },
+    {
+      title: "Kolaborasi Terbuka",
+      description: "Berbagi wawasan, modul, dan pendampingan sebaya tanpa membeda-bedakan.",
+    },
+    {
+      title: "Adaptif & Visioner",
+      description: "Cepat beradaptasi dengan perkembangan teknologi industri dan kecerdasan buatan.",
+    },
+  ]),
+  aboutLeaders: JSON.stringify([
+    {
+      role: "Ketua Kelas (Class President)",
+      name: "Sigma Pratama",
+      studentId: "stu-1",
+      description:
+        "Bertanggung jawab atas koordinasi angkatan, narahubung utama dosen pengampu, dan pergerakan kegiatan kelas.",
+      color: "from-cyan-500 to-blue-600",
+    },
+    {
+      role: "Wakil & Sekretaris",
+      name: "Davina Aurelia",
+      studentId: "stu-2",
+      description:
+        "Mengelola dokumentasi akademik, arsip jadwal perkuliahan, pengumuman tugas, dan notulensi kelas.",
+      color: "from-blue-600 to-indigo-600",
+    },
+    {
+      role: "Koordinator Akademik & Lab",
+      name: "Ibrahim Rasyid",
+      studentId: "stu-3",
+      description:
+        "Mengkoordinasikan kelompok belajar mandiri, praktikum laboratorium, dan tim kompetisi pemrograman.",
+      color: "from-indigo-600 to-purple-600",
+    },
+  ]),
+  aboutWaliDosenMessage:
+    "Selamat datang di ruang digital kelas JS1SI-26-REG-05. Mari bersama kita bangun atmosfer perkuliahan yang saling mendukung, penuh integritas, dan siap menjadi talenta sistem informasi unggul untuk masa depan bangsa.",
 };
 
 export const initialSubjects = [

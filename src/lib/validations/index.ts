@@ -265,5 +265,47 @@ export const settingsSchema = z.object({
   instagramUrl: optionalUrl,
   discordUrl: optionalUrl,
   classMotto: z.string().trim().max(200).optional(),
+  aboutVision: z.string().trim().max(2000).optional(),
+  aboutMission: z.string().trim().max(2000).optional(),
+  aboutValues: z.string().optional(),
+  aboutLeaders: z.string().optional(),
+  aboutWaliDosenMessage: z.string().trim().max(2000).optional(),
 });
 export type SettingsInput = z.infer<typeof settingsSchema>;
+
+// 15. About Page Schemas
+export const aboutValueItemSchema = z.object({
+  title: z.string().trim().min(1, "Judul nilai harus diisi"),
+  description: z.string().trim().min(1, "Deskripsi nilai harus diisi"),
+});
+export type AboutValueItem = z.infer<typeof aboutValueItemSchema>;
+
+export const aboutLeaderItemSchema = z.object({
+  role: z.string().trim().min(1, "Jabatan harus diisi"),
+  name: z.string().trim().min(1, "Nama pengurus harus diisi"),
+  studentId: z.string().optional().nullable(),
+  description: z.string().trim().min(1, "Deskripsi tugas harus diisi"),
+  color: z.string().optional().default("from-cyan-500 to-blue-600"),
+});
+export type AboutLeaderItem = z.infer<typeof aboutLeaderItemSchema>;
+
+export const aboutSchema = z.object({
+  classCode: z.string().trim().min(1, "Kode kelas diperlukan"),
+  studyProgram: z.string().trim().min(1, "Program studi diperlukan"),
+  institutionName: z.string().trim().min(1, "Nama institusi diperlukan"),
+  academicYear: z.string().trim().min(1, "Periode akademik diperlukan"),
+  waliDosen: z.string().trim().min(1, "Nama wali dosen diperlukan"),
+  classDescription: z.string().trim().max(2000).optional(),
+  aboutVision: z.string().trim().max(2000).optional(),
+  aboutMission: z.string().trim().max(2000).optional(),
+  aboutValues: z.array(aboutValueItemSchema).default([]),
+  aboutLeaders: z.array(aboutLeaderItemSchema).default([]),
+  aboutWaliDosenMessage: z.string().trim().max(2000).optional(),
+  contactEmail: z.string().trim().email("Must be a valid email").optional().or(z.literal("")),
+  githubUrl: optionalUrl,
+  linkedinUrl: optionalUrl,
+  instagramUrl: optionalUrl,
+  discordUrl: optionalUrl,
+});
+export type AboutInput = z.infer<typeof aboutSchema>;
+

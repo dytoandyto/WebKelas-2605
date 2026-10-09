@@ -2,24 +2,30 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Users, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { StudentCard, StudentData } from "@/components/students/student-card";
 import { StudentProfile } from "@/components/students/student-profile";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { StudentsSettings } from "@/lib/homepage/types";
+
 export interface StudentShowcaseProps {
   students: StudentData[];
+  settings?: StudentsSettings;
   className?: string;
 }
 
-export function StudentShowcase({ students, className }: StudentShowcaseProps) {
+export function StudentShowcase({ students, settings, className }: StudentShowcaseProps) {
   const [selectedStudent, setSelectedStudent] = React.useState<StudentData | null>(null);
   const [profileOpen, setProfileOpen] = React.useState(false);
 
   if (!students || students.length === 0) return null;
 
-  const displayStudents = students.slice(0, 4);
+  const max = settings?.maxItems ?? 4;
+  const displayStudents = students.slice(0, max);
+  const title = settings?.title || "Profil Mahasiswa Kelas";
+  const description = settings?.description;
 
   const handleStudentClick = (student: StudentData) => {
     setSelectedStudent(student);
@@ -33,12 +39,17 @@ export function StudentShowcase({ students, className }: StudentShowcaseProps) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
             <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
-              // Profil
+              {"// Profil"}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-            Profil Mahasiswa Kelas
+            {title}
           </h2>
+          {description && (
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+              {description}
+            </p>
+          )}
         </div>
 
         <Link href="/students">

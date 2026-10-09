@@ -8,3 +8,5 @@ export * from "./home-materials-preview";
 export * from "./featured-achievements";
 export * from "./student-showcase";
 export * from "./gallery-showcase";
+export * from "./home-daily-notes";
+export * from "./home-about-teaser";

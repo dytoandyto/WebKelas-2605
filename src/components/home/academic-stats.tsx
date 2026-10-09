@@ -6,6 +6,8 @@ import { Users, BookOpen, CheckSquare, FileText, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+import { StatsSettings } from "@/lib/homepage/types";
+
 export interface AcademicStatsData {
   studentsCount: number;
   subjectsCount: number;
@@ -16,13 +18,15 @@ export interface AcademicStatsData {
 
 export interface AcademicStatsProps {
   stats: AcademicStatsData;
+  settings?: StatsSettings;
   className?: string;
 }
 
-export function AcademicStats({ stats, className }: AcademicStatsProps) {
-  const items = [
+export function AcademicStats({ stats, settings, className }: AcademicStatsProps) {
+  const allItems = [
     {
-      label: "Mahasiswa",
+      key: "students" as const,
+      defaultLabel: "Mahasiswa",
       value: stats.studentsCount,
       href: "/students",
       icon: Users,
@@ -30,7 +34,8 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
       accentBg: "bg-blue-500/10 border-blue-500/20",
     },
     {
-      label: "Mata Kuliah",
+      key: "subjects" as const,
+      defaultLabel: "Mata Kuliah",
       value: stats.subjectsCount,
       href: "/subjects",
       icon: BookOpen,
@@ -38,7 +43,8 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
       accentBg: "bg-cyan-500/10 border-cyan-500/20",
     },
     {
-      label: "Tugas Aktif",
+      key: "tasks" as const,
+      defaultLabel: "Tugas Aktif",
       value: stats.tasksCount,
       href: "/tasks",
       icon: CheckSquare,
@@ -46,7 +52,8 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
       accentBg: "bg-amber-500/10 border-amber-500/20",
     },
     {
-      label: "Materi Kuliah",
+      key: "materials" as const,
+      defaultLabel: "Materi Kuliah",
       value: stats.materialsCount,
       href: "/materials",
       icon: FileText,
@@ -54,7 +61,8 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
       accentBg: "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: "Prestasi Kelas",
+      key: "achievements" as const,
+      defaultLabel: "Prestasi Kelas",
       value: stats.achievementsCount,
       href: "/achievements",
       icon: Trophy,
@@ -63,10 +71,26 @@ export function AcademicStats({ stats, className }: AcademicStatsProps) {
     },
   ];
 
+  const items = allItems
+    .filter((item) => {
+      if (!settings?.visibleCards) return true;
+      return settings.visibleCards[item.key] !== false;
+    })
+    .map((item) => ({
+      ...item,
+      label: item.defaultLabel,
+    }));
+
+  if (items.length === 0) return null;
+
   return (
     <div
       className={cn(
-        "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4",
+        "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4",
+        items.length === 5 && "lg:grid-cols-5",
+        items.length === 4 && "lg:grid-cols-4",
+        items.length === 3 && "lg:grid-cols-3",
+        items.length <= 2 && "lg:grid-cols-2",
         className
       )}
     >

@@ -15,10 +15,11 @@ import {
   HeartHandshake,
   Layers,
   Award,
+  Quote,
+  CheckCircle2,
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon, InstagramIcon, DiscordIcon } from "@/components/icons";
 import { getSettings, getClassEventsData, getStudentsData, getAchievementsData } from "@/lib/data";
-import { formatDate } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
@@ -28,8 +29,21 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+interface ValueItem {
+  title: string;
+  description: string;
+}
+
+interface LeaderItem {
+  role: string;
+  name: string;
+  studentId?: string | null;
+  description: string;
+  color?: string;
+}
+
 export default async function AboutPage() {
-  const [settings, { events }, { students }, { achievements }] = await Promise.all([
+  const [settings, , { students }, { achievements }] = await Promise.all([
     getSettings(),
     getClassEventsData(),
     getStudentsData(),
@@ -41,30 +55,96 @@ export default async function AboutPage() {
   const institutionName = settings.institutionName || "Telkom University Jakarta";
   const waliDosen = settings.waliDosen || "Muhammad Ardiansyah";
   const academicYear = settings.academicYear || "Semester Ganjil 2026/2027";
+  const vision =
+    settings.aboutVision ||
+    "Mewujudkan kelas JS1SI-26-REG-05 sebagai lingkungan akademik yang solid, inovatif, dan berdaya saing tinggi, dengan penguasaan mendalam di bidang sistem enterprise, arsitektur data, dan rekayasa perangkat lunak modern.";
+  const mission =
+    settings.aboutMission ||
+    "Membangun atmosfer belajar yang kolaboratif, memperkuat keterampilan teknis dan soft skill, serta aktif berpartisipasi dalam kompetisi akademik dan inovasi digital.";
+  const waliDosenMessage = settings.aboutWaliDosenMessage || "";
 
-  const leaders = [
+  // Parse Values
+  let values: ValueItem[] = [
+    {
+      title: "Integritas Akademik",
+      description: "Kejujuran dalam setiap penugasan, ujian, dan riset kelompok.",
+    },
+    {
+      title: "Kolaborasi Terbuka",
+      description: "Berbagi wawasan, modul, dan pendampingan sebaya tanpa membeda-bedakan.",
+    },
+    {
+      title: "Adaptif & Visioner",
+      description: "Cepat beradaptasi dengan perkembangan teknologi industri dan kecerdasan buatan.",
+    },
+  ];
+  if (settings.aboutValues) {
+    try {
+      const parsed = JSON.parse(settings.aboutValues);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        values = parsed;
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  // Parse Leaders
+  let leadersRaw: LeaderItem[] = [
     {
       role: "Ketua Kelas (Class President)",
-      student: students[0] || { name: "Sigma Pratama", major: "S1 Sistem Informasi" },
-      description: "Bertanggung jawab atas koordinasi angkatan, narahubung utama dosen pengampu, dan pergerakan kegiatan kelas.",
-      icon: ShieldCheck,
+      name: "Sigma Pratama",
+      studentId: "stu-1",
+      description:
+        "Bertanggung jawab atas koordinasi angkatan, narahubung utama dosen pengampu, dan pergerakan kegiatan kelas.",
       color: "from-cyan-500 to-blue-600",
     },
     {
       role: "Wakil & Sekretaris",
-      student: students[1] || { name: "Davina Aurelia", major: "S1 Sistem Informasi" },
-      description: "Mengelola dokumentasi akademik, arsip jadwal perkuliahan, pengumuman tugas, dan notulensi kelas.",
-      icon: HeartHandshake,
+      name: "Davina Aurelia",
+      studentId: "stu-2",
+      description:
+        "Mengelola dokumentasi akademik, arsip jadwal perkuliahan, pengumuman tugas, dan notulensi kelas.",
       color: "from-blue-600 to-indigo-600",
     },
     {
       role: "Koordinator Akademik & Lab",
-      student: students[2] || { name: "Ibrahim Rasyid", major: "S1 Sistem Informasi" },
-      description: "Mengkoordinasikan kelompok belajar mandiri, praktikum laboratorium, dan tim kompetisi pemrograman.",
-      icon: Code,
+      name: "Ibrahim Rasyid",
+      studentId: "stu-3",
+      description:
+        "Mengkoordinasikan kelompok belajar mandiri, praktikum laboratorium, dan tim kompetisi pemrograman.",
       color: "from-indigo-600 to-purple-600",
     },
   ];
+  if (settings.aboutLeaders) {
+    try {
+      const parsed = JSON.parse(settings.aboutLeaders);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        leadersRaw = parsed;
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  const iconOptions = [ShieldCheck, HeartHandshake, Code, Award, Layers, Users];
+
+  const leaders = leadersRaw.map((lead, idx) => {
+    const matchedStudent = lead.studentId
+      ? students.find((s) => s.id === lead.studentId)
+      : students.find((s) => s.name.toLowerCase() === lead.name.toLowerCase());
+
+    const Icon = iconOptions[idx % iconOptions.length];
+
+    return {
+      role: lead.role,
+      name: lead.name || matchedStudent?.name || "Mahasiswa",
+      student: matchedStudent || null,
+      description: lead.description,
+      icon: Icon,
+      color: lead.color || "from-cyan-500 to-blue-600",
+    };
+  });
 
   return (
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
@@ -107,7 +187,7 @@ export default async function AboutPage() {
                 href={settings.githubUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400 transition-colors"
               >
                 <GithubIcon size={14} />
                 <span>GitHub Org</span>
@@ -118,16 +198,38 @@ export default async function AboutPage() {
                 href={settings.instagramUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400 transition-colors"
               >
                 <InstagramIcon size={14} />
                 <span>Instagram</span>
               </a>
             )}
+            {settings.discordUrl && (
+              <a
+                href={settings.discordUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400 transition-colors"
+              >
+                <DiscordIcon size={14} />
+                <span>Discord</span>
+              </a>
+            )}
+            {settings.linkedinUrl && (
+              <a
+                href={settings.linkedinUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a1a2f]/80 light:bg-slate-100 border border-cyan-500/30 light:border-slate-200 text-white light:text-slate-800 text-xs font-semibold hover:border-cyan-400 transition-colors"
+              >
+                <LinkedinIcon size={14} />
+                <span>LinkedIn</span>
+              </a>
+            )}
             {settings.contactEmail && (
               <a
                 href={`mailto:${settings.contactEmail}`}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-sm hover:opacity-90 transition-opacity"
               >
                 <Mail size={14} />
                 <span>Kontak Kelas</span>
@@ -174,41 +276,68 @@ export default async function AboutPage() {
       {/* ── VISION & VALUES ────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="card p-8 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-950/60 light:bg-blue-50 border border-cyan-500/30 light:border-blue-200 flex items-center justify-center text-cyan-400 light:text-blue-600 mb-2">
+          <div className="card p-8 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-950/60 light:bg-blue-50 border border-cyan-500/30 light:border-blue-200 flex items-center justify-center text-cyan-400 light:text-blue-600">
               <Target size={24} />
             </div>
-            <h2 className="text-2xl font-bold text-white light:text-slate-900 font-display">
-              Visi Kelas
-            </h2>
-            <p className="text-slate-300 light:text-slate-600 text-sm leading-relaxed">
-              Mewujudkan kelas JS1SI-26-REG-05 sebagai lingkungan akademik yang solid, inovatif, dan berdaya saing tinggi, dengan penguasaan mendalam di bidang sistem enterprise, arsitektur data, dan rekayasa perangkat lunak modern.
-            </p>
+            <div>
+              <h2 className="text-2xl font-bold text-white light:text-slate-900 font-display">
+                Visi Kelas
+              </h2>
+              <p className="text-slate-300 light:text-slate-600 text-sm leading-relaxed mt-2">
+                {vision}
+              </p>
+            </div>
+            {mission && (
+              <div className="pt-3 border-t border-cyan-500/15 light:border-slate-200">
+                <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 light:text-blue-600 font-mono">
+                  Misi Kelas
+                </span>
+                <p className="text-slate-300 light:text-slate-600 text-xs sm:text-sm leading-relaxed mt-1">
+                  {mission}
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="card p-8 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-950/60 light:bg-blue-50 border border-blue-500/30 light:border-blue-200 flex items-center justify-center text-blue-400 light:text-blue-600 mb-2">
+          <div className="card p-8 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-950/60 light:bg-blue-50 border border-blue-500/30 light:border-blue-200 flex items-center justify-center text-blue-400 light:text-blue-600">
               <Compass size={24} />
             </div>
             <h2 className="text-2xl font-bold text-white light:text-slate-900 font-display">
               Nilai Utama Kelas
             </h2>
-            <ul className="space-y-2.5 text-slate-300 light:text-slate-600 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="text-cyan-400 light:text-blue-600 font-bold">&bull;</span>
-                <span><strong>Integritas Akademik:</strong> Kejujuran dalam setiap penugasan, ujian, dan riset kelompok.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-cyan-400 light:text-blue-600 font-bold">&bull;</span>
-                <span><strong>Kolaborasi Terbuka:</strong> Berbagi wawasan, modul, dan pendampingan sebaya tanpa membeda-bedakan.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-cyan-400 light:text-blue-600 font-bold">&bull;</span>
-                <span><strong>Adaptif &amp; Visioner:</strong> Cepat beradaptasi dengan perkembangan teknologi industri dan kecerdasan buatan.</span>
-              </li>
+            <ul className="space-y-3 text-slate-300 light:text-slate-600 text-sm">
+              {values.map((val, idx) => (
+                <li key={idx} className="flex items-start gap-2.5">
+                  <CheckCircle2 size={16} className="text-cyan-400 light:text-blue-600 mt-0.5 shrink-0" />
+                  <div>
+                    <strong className="text-white light:text-slate-900 font-semibold">{val.title}:</strong>{" "}
+                    <span>{val.description}</span>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
+
+        {/* Wali Dosen Message Card (if provided) */}
+        {waliDosenMessage && (
+          <div className="card p-8 bg-gradient-to-br from-[#0c234a]/80 to-[#08152e]/90 light:from-blue-50/70 light:to-white border-cyan-500/30 light:border-blue-200 relative overflow-hidden">
+            <Quote className="absolute top-4 right-4 w-16 h-16 text-cyan-400/10 light:text-blue-300/30" />
+            <div className="max-w-3xl space-y-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/15 light:bg-blue-100 text-cyan-300 light:text-blue-700 border border-cyan-500/30">
+                Pesan Wali Dosen
+              </span>
+              <p className="text-sm sm:text-base text-slate-200 light:text-slate-700 italic leading-relaxed">
+                &ldquo;{waliDosenMessage}&rdquo;
+              </p>
+              <div className="pt-2 text-xs text-cyan-300 light:text-blue-600 font-medium">
+                &mdash; <strong className="text-white light:text-slate-900">{waliDosen}</strong> (Wali Dosen {classCode})
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Leadership Section */}
         <div className="space-y-6">
@@ -222,18 +351,18 @@ export default async function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {leaders.map((lead) => {
+            {leaders.map((lead, idx) => {
               const Icon = lead.icon;
               return (
                 <div
-                  key={lead.role}
+                  key={`${lead.role}-${idx}`}
                   className="card p-6 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 text-center flex flex-col items-center justify-between group hover:-translate-y-1 transition-all"
                 >
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center w-full">
                     <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${lead.color} text-white flex items-center justify-center shadow-md mb-4`}>
                       <Icon size={26} />
                     </div>
-                    <h3 className="font-extrabold text-white light:text-slate-900 text-base">{lead.student.name}</h3>
+                    <h3 className="font-extrabold text-white light:text-slate-900 text-base">{lead.name}</h3>
                     <span className="inline-block px-3 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/15 light:bg-blue-50 text-cyan-300 light:text-blue-700 border border-cyan-500/30 light:border-blue-200 my-2">
                       {lead.role}
                     </span>
@@ -242,9 +371,9 @@ export default async function AboutPage() {
                     </p>
                   </div>
 
-                  {(lead.student as any).id && (
+                  {lead.student?.id && (
                     <Link
-                      href={`/students/${(lead.student as any).id}`}
+                      href={`/students/${lead.student.id}`}
                       className="mt-4 text-xs font-bold text-cyan-400 light:text-blue-600 hover:underline flex items-center gap-1"
                     >
                       <span>Lihat Profil Mahasiswa</span>

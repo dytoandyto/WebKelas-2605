@@ -22,6 +22,8 @@ import {
   Component,
   X,
   Layers,
+  Info,
+  LayoutTemplate,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/lib/actions/auth";
@@ -32,7 +34,7 @@ import { Avatar } from "@/components/ui/avatar";
 interface NavItem {
   href: string;
   label: string;
-  icon: any;
+  icon: React.ElementType;
   exact?: boolean;
   permission?: Permission;
 }
@@ -93,6 +95,23 @@ const navGroups: NavGroup[] = [
         label: "Campus Resources",
         icon: Layers,
         permission: "RESOURCES_MANAGE",
+      },
+    ],
+  },
+  {
+    label: "WEBSITE",
+    items: [
+      {
+        href: "/admin/homepage-builder",
+        label: "Homepage Builder",
+        icon: LayoutTemplate,
+        permission: "SETTINGS_MANAGE",
+      },
+      {
+        href: "/admin/about",
+        label: "Halaman Tentang",
+        icon: Info,
+        permission: "SETTINGS_MANAGE",
       },
     ],
   },
@@ -246,9 +265,15 @@ export function AdminSidebar({ user, onClose, className }: AdminSidebarProps) {
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
         {navGroups.map((group) => {
-          const visibleItems = group.items.filter((item) =>
-            item.permission ? hasPermission(user.role, item.permission) : true
-          );
+          const visibleItems = group.items.filter((item) => {
+            if (
+              user.role === "CLASS_ADMIN" &&
+              (item.href === "/admin/homepage-builder" || item.href === "/admin/about")
+            ) {
+              return true;
+            }
+            return item.permission ? hasPermission(user.role, item.permission) : true;
+          });
 
           if (visibleItems.length === 0) return null;
 
