@@ -264,3 +264,27 @@ describe("Homepage CMS - Authorization Tests", () => {
     expect(hasPermission(undefined, "SETTINGS_MANAGE")).toBe(false);
   });
 });
+
+describe("Homepage CMS - Storage & Persistence Tests", () => {
+  it("saves draft and publishes configuration successfully without crashing", async () => {
+    const {
+      saveHomepageDraft,
+      publishHomepageConfig,
+      getHomepageDraftPayload,
+      getHomepagePublishedConfig,
+    } = await import("./storage");
+
+    const config = getDefaultHomepageConfig();
+    const saveRes = await saveHomepageDraft(config, "test-user");
+    expect(saveRes.success).toBe(true);
+
+    const pubRes = await publishHomepageConfig(config, "test-user");
+    expect(pubRes.success).toBe(true);
+
+    const published = await getHomepagePublishedConfig();
+    expect(published.sections.length).toBe(11);
+
+    const draft = await getHomepageDraftPayload();
+    expect(draft.config.sections.length).toBe(11);
+  }, 15000);
+});

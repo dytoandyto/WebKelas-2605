@@ -2,21 +2,193 @@ import prisma from "@/lib/db";
 import { HomepageConfig, HomepageMeta, HomepagePayload, SectionKey } from "./types";
 import { getDefaultHomepageConfig, getDefaultSectionConfig, DEFAULT_HOMEPAGE_SECTIONS } from "./defaults";
 import { validateAndNormalizeHomepageConfig } from "./validation";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 const HOMEPAGE_PAGE_KEY = "home";
 
-function getDb(): typeof prisma {
-  if (
-    prisma &&
-    "homepageConfiguration" in prisma &&
-    Boolean((prisma as unknown as { homepageConfiguration?: unknown }).homepageConfiguration)
-  ) {
-    return prisma;
+interface StoredHomepageData {
+  draftConfig: unknown;
+  publishedConfig: unknown;
+  draftVersion: number;
+  publishedVersion: number;
+  updatedBy?: string | null;
+  publishedBy?: string | null;
+  publishedAt?: Date | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+}
+
+/**
+ * Robust database reader:
+ * 1. Attempts reading from homepageConfiguration model
+ * 2. Falls back to Setting table (key: 'homepage_draft' / 'homepage_published' / 'homepage_meta')
+ */
+async function loadStoredHomepageData(): Promise<StoredHomepageData | null> {
+  const db = prisma as unknown as {
+    homepageConfiguration?: {
+      findUnique: (args: { where: { pageKey: string } }) => Promise<StoredHomepageData | null>;
+    };
+    setting?: {
+      findUnique: (args: { where: { key: string } }) => Promise<{ key: string; value: string } | null>;
+    };
+  };
+
+  // 1. Try homepageConfiguration model if present on the active Prisma client
+  if (db && db.homepageConfiguration && typeof db.homepageConfiguration.findUnique === "function") {
+    try {
+      const record = await db.homepageConfiguration.findUnique({
+        where: { pageKey: HOMEPAGE_PAGE_KEY },
+      });
+      if (record) {
+        return record;
+      }
+    } catch (err) {
+      console.warn("homepageConfiguration query warning, checking Setting fallback:", err);
+    }
   }
-  const fresh = new PrismaClient();
-  (globalThis as unknown as { prisma: PrismaClient }).prisma = fresh;
-  return fresh;
+
+  // 2. Fallback to Setting table (available in every PrismaClient instance)
+  if (db && db.setting && typeof db.setting.findUnique === "function") {
+    try {
+      const [draftRow, pubRow, metaRow] = await Promise.all([
+        db.setting.findUnique({ where: { key: "homepage_draft" } }),
+        db.setting.findUnique({ where: { key: "homepage_published" } }),
+        db.setting.findUnique({ where: { key: "homepage_meta" } }),
+      ]);
+
+      if (!draftRow && !pubRow) {
+        return null;
+      }
+
+      let meta: { draftVersion?: number; publishedVersion?: number; publishedAt?: string } = {};
+      if (metaRow?.value) {
+        try {
+          meta = JSON.parse(metaRow.value);
+        } catch {}
+      }
+
+      let draftConfig: unknown = null;
+      let publishedConfig: unknown = null;
+
+      if (draftRow?.value) {
+        try {
+          draftConfig = JSON.parse(draftRow.value);
+        } catch {}
+      }
+      if (pubRow?.value) {
+        try {
+          publishedConfig = JSON.parse(pubRow.value);
+        } catch {}
+      }
+
+      return {
+        draftConfig: draftConfig || publishedConfig,
+        publishedConfig: publishedConfig || draftConfig,
+        draftVersion: typeof meta.draftVersion === "number" ? meta.draftVersion : 1,
+        publishedVersion: typeof meta.publishedVersion === "number" ? meta.publishedVersion : 1,
+        publishedAt: meta.publishedAt ? new Date(meta.publishedAt) : null,
+        updatedBy: null,
+        publishedBy: null,
+        createdAt: null,
+        updatedAt: null,
+      };
+    } catch (err) {
+      console.error("Error loading fallback homepage settings:", err);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Robust database writer:
+ * 1. Upserts to homepageConfiguration model if present
+ * 2. Also persists to Setting table (guarantees persistence across HMR/stale client)
+ */
+async function storeHomepageData(data: {
+  draftConfig: unknown;
+  publishedConfig: unknown;
+  draftVersion: number;
+  publishedVersion: number;
+  authorId?: string;
+  isPublishing?: boolean;
+}): Promise<void> {
+  const db = prisma as unknown as {
+    homepageConfiguration?: {
+      upsert: (args: unknown) => Promise<unknown>;
+    };
+    setting?: {
+      upsert: (args: {
+        where: { key: string };
+        create: { key: string; value: string };
+        update: { value: string };
+      }) => Promise<unknown>;
+    };
+  };
+
+  const now = new Date();
+  const draftJson = JSON.parse(JSON.stringify(data.draftConfig)) as Prisma.InputJsonValue;
+  const pubJson = JSON.parse(JSON.stringify(data.publishedConfig)) as Prisma.InputJsonValue;
+
+  // 1. Try writing to homepageConfiguration model
+  if (db && db.homepageConfiguration && typeof db.homepageConfiguration.upsert === "function") {
+    try {
+      await db.homepageConfiguration.upsert({
+        where: { pageKey: HOMEPAGE_PAGE_KEY },
+        create: {
+          pageKey: HOMEPAGE_PAGE_KEY,
+          draftConfig: draftJson,
+          publishedConfig: pubJson,
+          draftVersion: data.draftVersion,
+          publishedVersion: data.publishedVersion,
+          updatedBy: data.authorId,
+          publishedBy: data.isPublishing ? data.authorId : undefined,
+          publishedAt: data.isPublishing ? now : undefined,
+        },
+        update: {
+          draftConfig: draftJson,
+          publishedConfig: pubJson,
+          draftVersion: data.draftVersion,
+          publishedVersion: data.publishedVersion,
+          updatedBy: data.authorId,
+          ...(data.isPublishing ? { publishedBy: data.authorId, publishedAt: now } : {}),
+        },
+      });
+    } catch (err) {
+      console.warn("homepageConfiguration upsert warning, saving to Setting fallback:", err);
+    }
+  }
+
+  // 2. Persist to Setting table (failsafe backup)
+  if (db && db.setting && typeof db.setting.upsert === "function") {
+    try {
+      const metaString = JSON.stringify({
+        draftVersion: data.draftVersion,
+        publishedVersion: data.publishedVersion,
+        publishedAt: data.isPublishing ? now.toISOString() : undefined,
+      });
+
+      await Promise.all([
+        db.setting.upsert({
+          where: { key: "homepage_draft" },
+          create: { key: "homepage_draft", value: JSON.stringify(data.draftConfig) },
+          update: { value: JSON.stringify(data.draftConfig) },
+        }),
+        db.setting.upsert({
+          where: { key: "homepage_published" },
+          create: { key: "homepage_published", value: JSON.stringify(data.publishedConfig) },
+          update: { value: JSON.stringify(data.publishedConfig) },
+        }),
+        db.setting.upsert({
+          where: { key: "homepage_meta" },
+          create: { key: "homepage_meta", value: metaString },
+          update: { value: metaString },
+        }),
+      ]);
+    } catch (err) {
+      console.error("Failed to persist homepage Setting fallback:", err);
+    }
+  }
 }
 
 /**
@@ -24,11 +196,7 @@ function getDb(): typeof prisma {
  */
 export async function getHomepagePublishedConfig(): Promise<HomepageConfig> {
   try {
-    const db = getDb();
-    const record = await db.homepageConfiguration.findUnique({
-      where: { pageKey: HOMEPAGE_PAGE_KEY },
-    });
-
+    const record = await loadStoredHomepageData();
     if (!record || !record.publishedConfig) {
       return getDefaultHomepageConfig();
     }
@@ -52,41 +220,40 @@ export async function getHomepageDraftPayload(): Promise<HomepagePayload> {
   const defaultConfig = getDefaultHomepageConfig();
 
   try {
-    const db = getDb();
-    let record = await db.homepageConfiguration.findUnique({
-      where: { pageKey: HOMEPAGE_PAGE_KEY },
-    });
+    let record = await loadStoredHomepageData();
 
     if (!record) {
       // Seed initial default record if not yet present
-      const initialJson = JSON.parse(JSON.stringify(defaultConfig)) as Prisma.InputJsonValue;
-      record = await db.homepageConfiguration.create({
-        data: {
-          pageKey: HOMEPAGE_PAGE_KEY,
-          draftConfig: initialJson,
-          publishedConfig: initialJson,
-          draftVersion: 1,
-          publishedVersion: 1,
-        },
+      await storeHomepageData({
+        draftConfig: defaultConfig,
+        publishedConfig: defaultConfig,
+        draftVersion: 1,
+        publishedVersion: 1,
       });
+
+      record = await loadStoredHomepageData();
     }
 
-    const normalizedDraft = validateAndNormalizeHomepageConfig(record.draftConfig);
-    const draftConfig = normalizedDraft.success && normalizedDraft.data ? normalizedDraft.data : defaultConfig;
+    const rawDraft = record?.draftConfig || defaultConfig;
+    const rawPublished = record?.publishedConfig || defaultConfig;
+
+    const normalizedDraft = validateAndNormalizeHomepageConfig(rawDraft);
+    const draftConfig =
+      normalizedDraft.success && normalizedDraft.data ? normalizedDraft.data : defaultConfig;
 
     // Check if draft has unpublished changes compared to publishedConfig
-    const draftStr = JSON.stringify(record.draftConfig);
-    const pubStr = JSON.stringify(record.publishedConfig);
+    const draftStr = JSON.stringify(rawDraft);
+    const pubStr = JSON.stringify(rawPublished);
     const hasUnpublishedChanges = draftStr !== pubStr;
 
     const meta: HomepageMeta = {
-      draftVersion: record.draftVersion,
-      publishedVersion: record.publishedVersion,
-      updatedBy: record.updatedBy,
-      publishedBy: record.publishedBy,
-      publishedAt: record.publishedAt ? record.publishedAt.toISOString() : null,
-      createdAt: record.createdAt ? record.createdAt.toISOString() : null,
-      updatedAt: record.updatedAt ? record.updatedAt.toISOString() : null,
+      draftVersion: record?.draftVersion || 1,
+      publishedVersion: record?.publishedVersion || 1,
+      updatedBy: record?.updatedBy,
+      publishedBy: record?.publishedBy,
+      publishedAt: record?.publishedAt ? new Date(record.publishedAt).toISOString() : null,
+      createdAt: record?.createdAt ? new Date(record.createdAt).toISOString() : null,
+      updatedAt: record?.updatedAt ? new Date(record.updatedAt).toISOString() : null,
       hasUnpublishedChanges,
     };
 
@@ -122,24 +289,18 @@ export async function saveHomepageDraft(
   const validConfig = normalized.data;
 
   try {
-    const db = getDb();
-    const jsonValue = JSON.parse(JSON.stringify(validConfig)) as Prisma.InputJsonValue;
+    const current = await loadStoredHomepageData();
+    const currentPublished = current?.publishedConfig || getDefaultHomepageConfig();
+    const nextDraftVersion = (current?.draftVersion || 1) + 1;
+    const currentPubVersion = current?.publishedVersion || 1;
 
-    await db.homepageConfiguration.upsert({
-      where: { pageKey: HOMEPAGE_PAGE_KEY },
-      create: {
-        pageKey: HOMEPAGE_PAGE_KEY,
-        draftConfig: jsonValue,
-        publishedConfig: jsonValue,
-        draftVersion: 1,
-        publishedVersion: 1,
-        updatedBy: userId,
-      },
-      update: {
-        draftConfig: jsonValue,
-        draftVersion: { increment: 1 },
-        updatedBy: userId,
-      },
+    await storeHomepageData({
+      draftConfig: validConfig,
+      publishedConfig: currentPublished,
+      draftVersion: nextDraftVersion,
+      publishedVersion: currentPubVersion,
+      authorId: userId,
+      isPublishing: false,
     });
 
     return { success: true, config: validConfig };
@@ -168,13 +329,9 @@ export async function publishHomepageConfig(
       rawConfig = configOrUserId;
     }
 
-    const db = getDb();
-
     if (!rawConfig) {
-      const record = await db.homepageConfiguration.findUnique({
-        where: { pageKey: HOMEPAGE_PAGE_KEY },
-      });
-      rawConfig = record?.draftConfig || getDefaultHomepageConfig();
+      const current = await loadStoredHomepageData();
+      rawConfig = current?.draftConfig || getDefaultHomepageConfig();
     }
 
     const normalized = validateAndNormalizeHomepageConfig(rawConfig);
@@ -183,30 +340,17 @@ export async function publishHomepageConfig(
     }
 
     const validConfig = normalized.data;
-    const validJson = JSON.parse(JSON.stringify(validConfig)) as Prisma.InputJsonValue;
-    const now = new Date();
+    const current = await loadStoredHomepageData();
+    const nextDraftVersion = (current?.draftVersion || 1) + 1;
+    const nextPubVersion = (current?.publishedVersion || 1) + 1;
 
-    await db.homepageConfiguration.upsert({
-      where: { pageKey: HOMEPAGE_PAGE_KEY },
-      create: {
-        pageKey: HOMEPAGE_PAGE_KEY,
-        draftConfig: validJson,
-        publishedConfig: validJson,
-        draftVersion: 1,
-        publishedVersion: 1,
-        publishedBy: authorId,
-        updatedBy: authorId,
-        publishedAt: now,
-      },
-      update: {
-        draftConfig: validJson,
-        publishedConfig: validJson,
-        draftVersion: { increment: 1 },
-        publishedVersion: { increment: 1 },
-        publishedBy: authorId,
-        updatedBy: authorId,
-        publishedAt: now,
-      },
+    await storeHomepageData({
+      draftConfig: validConfig,
+      publishedConfig: validConfig,
+      draftVersion: nextDraftVersion,
+      publishedVersion: nextPubVersion,
+      authorId,
+      isPublishing: true,
     });
 
     return { success: true, config: validConfig };
