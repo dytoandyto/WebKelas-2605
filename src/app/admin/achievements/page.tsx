@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function AdminAchievementsPage() {
   const [{ achievements }, { students }] = await Promise.all([
     getAchievementsData(),
-    getStudentsData(),
+    getStudentsData(undefined, { includePrivate: true }),
   ]);
 
   const studentOptions = students.map((s: any) => ({

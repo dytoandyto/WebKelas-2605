@@ -17,7 +17,7 @@ import {
   Building,
 } from "lucide-react";
 import { getTaskById } from "@/lib/data";
-import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
+import { formatDate, getRelativeDeadline, cn, isTaskFlexibleOrNoDeadline } from "@/lib/utils";
 import { TaskStatus, TaskPriority, TaskType } from "@prisma/client";
 import { DeadlineBadge } from "@/components/ui/badge";
 
@@ -45,7 +45,8 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
     notFound();
   }
 
-  const relative = getRelativeDeadline(task.deadline);
+  const isNoDeadline = isTaskFlexibleOrNoDeadline(task);
+  const relative = getRelativeDeadline(task.deadline, { isNoDeadline });
   const isCompleted = task.status === TaskStatus.COMPLETED || task.computedStatus === TaskStatus.COMPLETED;
 
   return (
@@ -91,7 +92,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <DeadlineBadge deadline={task.deadline} />
+              <DeadlineBadge deadline={task.deadline} isNoDeadline={isNoDeadline} />
             </div>
           </div>
 
@@ -105,7 +106,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
               <span className="text-slate-400 light:text-slate-500 font-mono">Tenggat Waktu:</span>
               <div className="font-bold text-white light:text-slate-900 flex items-center gap-1.5">
                 <Calendar size={13} className="text-cyan-400 light:text-blue-600" />
-                <span>{formatDate(task.deadline)}</span>
+                <span>{isNoDeadline ? "Fleksibel (Tanpa Tenggat Ketat)" : formatDate(task.deadline)}</span>
               </div>
             </div>
             <div className="space-y-1">
@@ -124,7 +125,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
           </div>
 
           {/* Overdue Alert Banner */}
-          {(relative.isOverdue || task.computedStatus === TaskStatus.OVERDUE) && !isCompleted && (
+          {(relative.isOverdue || task.computedStatus === TaskStatus.OVERDUE) && !isCompleted && !isNoDeadline && (
             <div className="p-4 rounded-xl bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 text-xs flex items-start gap-3">
               <AlertCircle size={18} className="text-rose-400 light:text-rose-600 shrink-0 mt-0.5" />
               <div className="space-y-0.5">

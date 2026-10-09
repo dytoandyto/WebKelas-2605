@@ -163,13 +163,14 @@ export function SectionRenderer({
               );
             }
 
-            // Standalone quick links uses responsive grid layout
+            // Standalone quick links uses vertical layout
             return (
-              <QuickLinks
-                key={section.key}
-                layout="grid"
-                settings={section.settings as CampusLinksSettings}
-              />
+              <div key={section.key} className="max-w-xl">
+                <QuickLinks
+                  layout="vertical"
+                  settings={section.settings as CampusLinksSettings}
+                />
+              </div>
             );
           }
 

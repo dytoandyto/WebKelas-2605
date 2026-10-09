@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { DeadlineBadge } from "@/components/ui/badge";
-import { formatDateTime, getRelativeDeadline } from "@/lib/utils";
+import { formatDateTime, getRelativeDeadline, isTaskFlexibleOrNoDeadline } from "@/lib/utils";
 
 export interface TaskDrawerProps {
   task: TaskCardData | null;
@@ -49,7 +49,8 @@ export function TaskDrawer({
 }: TaskDrawerProps) {
   if (!task) return null;
 
-  const deadlineInfo = getRelativeDeadline(task.deadline);
+  const isNoDeadline = Boolean(task.isNoDeadline || isTaskFlexibleOrNoDeadline(task));
+  const deadlineInfo = getRelativeDeadline(task.deadline, { isNoDeadline });
   const lmsUrl = task.submissionUrl || task.lmsUrl;
   const resourceUrl = task.referenceUrl || task.attachmentUrl;
 
@@ -62,7 +63,7 @@ export function TaskDrawer({
             <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/25">
               {task.subject?.code || "TUGAS AKADEMIK"}
             </span>
-            <DeadlineBadge deadline={task.deadline} />
+            <DeadlineBadge deadline={task.deadline} isNoDeadline={isNoDeadline} />
           </div>
           <DrawerTitle className="mt-2 text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             {task.title}
@@ -88,14 +89,14 @@ export function TaskDrawer({
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                  {formatDateTime(task.deadline)}
+                  {isNoDeadline ? "Fleksibel (Tanpa Tenggat Ketat)" : formatDateTime(task.deadline)}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Overdue Alert Banner */}
-          {deadlineInfo.isOverdue && task.status !== "COMPLETED" && (
+          {deadlineInfo.isOverdue && !isNoDeadline && task.status !== "COMPLETED" && (
             <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs flex items-start gap-2.5">
               <AlertCircle size={16} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div className="space-y-0.5">

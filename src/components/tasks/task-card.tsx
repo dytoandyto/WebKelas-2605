@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Paperclip, ChevronRight, ExternalLink } from "lucide-react";
-import { cn, formatDate, getRelativeDeadline } from "@/lib/utils";
+import { cn, formatDate, getRelativeDeadline, isTaskFlexibleOrNoDeadline } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { DeadlineBadge } from "@/components/ui/badge";
 
@@ -23,6 +23,8 @@ export interface TaskCardData {
   submissionUrl?: string | null;
   referenceUrl?: string | null;
   lmsUrl?: string | null;
+  notes?: string | null;
+  isNoDeadline?: boolean;
 }
 
 export interface TaskCardProps {
@@ -40,7 +42,8 @@ export function TaskCard({
   className,
   isDragging = false,
 }: TaskCardProps) {
-  const deadlineInfo = getRelativeDeadline(task.deadline);
+  const isNoDeadline = Boolean(task.isNoDeadline || isTaskFlexibleOrNoDeadline(task));
+  const deadlineInfo = getRelativeDeadline(task.deadline, { isNoDeadline });
   const lmsUrl = task.submissionUrl || task.lmsUrl || task.referenceUrl;
 
   // Calendar variant: ultra-compact for calendar cell pills
@@ -79,13 +82,13 @@ export function TaskCard({
           <span className="font-mono text-[10px] font-bold text-cyan-400 light:text-blue-600 truncate">
             {task.subject?.code || "AKADEMIK"}
           </span>
-          <DeadlineBadge deadline={task.deadline} />
+          <DeadlineBadge deadline={task.deadline} isNoDeadline={isNoDeadline} />
         </div>
         <h4 className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] truncate">
           {task.title}
         </h4>
         <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-[var(--border-color)]/60 text-[10px] text-[var(--text-muted)]">
-          <span>{formatDate(task.deadline)}</span>
+          <span>{isNoDeadline ? "Fleksibel (Tanpa Tenggat)" : formatDate(task.deadline)}</span>
           {lmsUrl && (
             <a
               href={lmsUrl}
@@ -158,10 +161,10 @@ export function TaskCard({
 
           <div className="text-right">
             <div className="text-xs font-semibold text-[var(--text-primary)]">
-              {formatDate(task.deadline)}
+              {isNoDeadline ? "Fleksibel (Tanpa Tenggat)" : formatDate(task.deadline)}
             </div>
             <div className="mt-0.5">
-              <DeadlineBadge deadline={task.deadline} />
+              <DeadlineBadge deadline={task.deadline} isNoDeadline={isNoDeadline} />
             </div>
           </div>
 
@@ -190,7 +193,7 @@ export function TaskCard({
         <span className="font-mono text-xs font-bold text-cyan-400 light:text-blue-600 tracking-wider truncate">
           {task.subject?.code || "AKADEMIK"}
         </span>
-        <DeadlineBadge deadline={task.deadline} />
+        <DeadlineBadge deadline={task.deadline} isNoDeadline={isNoDeadline} />
       </div>
 
       {/* 2. Title & Course Name */}
@@ -216,7 +219,7 @@ export function TaskCard({
       <div className="pt-2.5 border-t border-[var(--border-color)]/70 flex items-center justify-between text-xs">
         <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-medium">
           <Clock className="w-3.5 h-3.5 opacity-70" />
-          <span>{formatDate(task.deadline)}</span>
+          <span>{isNoDeadline ? "Fleksibel (Tanpa Tenggat)" : formatDate(task.deadline)}</span>
         </div>
 
         {lmsUrl && (

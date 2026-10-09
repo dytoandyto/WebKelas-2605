@@ -68,6 +68,28 @@ describe("Validation Schemas tests", () => {
     }).success).toBe(true);
   });
 
+  it("automatically assigns default deadline if omitted or empty", () => {
+    const withoutDeadline = taskSchema.safeParse({
+      subjectId: "sub1",
+      title: "Tugas Tanpa Tenggat Khusus",
+    });
+    expect(withoutDeadline.success).toBe(true);
+    if (withoutDeadline.success) {
+      expect(withoutDeadline.data.deadline).toBeDefined();
+      expect(new Date(withoutDeadline.data.deadline).getTime()).toBeGreaterThan(Date.now() - 5000);
+    }
+
+    const emptyDeadline = taskSchema.safeParse({
+      subjectId: "sub1",
+      title: "Tugas Tanpa Tenggat Khusus 2",
+      deadline: "",
+    });
+    expect(emptyDeadline.success).toBe(true);
+    if (emptyDeadline.success) {
+      expect(emptyDeadline.data.deadline).toBeDefined();
+    }
+  });
+
   it("validates taskType INDIVIDUAL, GROUP, and ADDITIONAL", () => {
     // INDIVIDUAL
     const indTask = taskSchema.safeParse({
@@ -162,4 +184,38 @@ describe("Validation Schemas tests", () => {
       expect(defaultSettings.data.classShortName).toBe("SI • 26-05");
     }
   });
+
+  it("validates changePasswordSchema correctly", async () => {
+    const { changePasswordSchema } = await import("./index");
+    // Mismatched passwords
+    const mismatch = changePasswordSchema.safeParse({
+      currentPassword: "OldPassword123!",
+      newPassword: "NewSecurePassword2026!",
+      confirmPassword: "DifferentPassword2026!",
+    });
+    expect(mismatch.success).toBe(false);
+    if (!mismatch.success) {
+      expect(mismatch.error.issues[0]?.message).toContain("tidak cocok");
+    }
+
+    // Password too short (< 8 chars)
+    const tooShort = changePasswordSchema.safeParse({
+      currentPassword: "OldPassword123!",
+      newPassword: "short",
+      confirmPassword: "short",
+    });
+    expect(tooShort.success).toBe(false);
+    if (!tooShort.success) {
+      expect(tooShort.error.issues[0]?.message).toContain("minimal 8 karakter");
+    }
+
+    // Valid change password input
+    const valid = changePasswordSchema.safeParse({
+      currentPassword: "OldPassword123!",
+      newPassword: "NewSecretPassword2026!",
+      confirmPassword: "NewSecretPassword2026!",
+    });
+    expect(valid.success).toBe(true);
+  });
 });
+

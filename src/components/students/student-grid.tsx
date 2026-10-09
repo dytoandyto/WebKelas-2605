@@ -22,7 +22,7 @@ export function StudentGrid({
       <EmptyState
         icon={<Users className="w-6 h-6 text-cyan-400" />}
         title="Belum ada teman yang cocok"
-        description="Coba cari dengan kata kunci nama atau NIM yang lain."
+        description="Coba cari dengan kata kunci nama atau minat yang lain."
         className={className}
       />
     );

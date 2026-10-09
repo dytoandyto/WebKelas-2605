@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Globe } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -22,18 +22,21 @@ export function QuickLinkCard({
   title,
   description,
   href,
-  external = false,
+  external,
   logoSrc,
   icon,
   badge,
   className,
 }: QuickLinkCardProps) {
+  const isExternal = external !== undefined ? external : href.startsWith("http://") || href.startsWith("https://");
+  const [imgError, setImgError] = React.useState(false);
+
   const content = (
     <Card
       variant="interactive"
       padding="none"
       className={cn(
-        "group relative flex items-center justify-between gap-3 px-3 py-2.5 sm:px-3.5 sm:py-3 text-left rounded-xl transition-colors duration-150 hover:translate-y-0",
+        "group relative flex items-center justify-between gap-3 px-3.5 py-3 text-left rounded-xl transition-all duration-150 hover:translate-y-0",
         "bg-[var(--surface-primary)] hover:bg-[var(--primary)]/5 border border-[var(--border-color)] hover:border-cyan-400/50 light:hover:border-blue-400/60",
         "shadow-2xs",
         "active:scale-[0.99]",
@@ -41,24 +44,29 @@ export function QuickLinkCard({
       )}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        {/* Logo / Icon Container (~32-36px) */}
-        {logoSrc ? (
-          <div className="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center justify-center shrink-0 p-1">
+        {/* Logo / Icon Container (~36px) */}
+        {logoSrc && !imgError ? (
+          <div className="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center justify-center shrink-0 p-1 overflow-hidden shadow-2xs">
             <Image
               src={logoSrc}
-              alt=""
+              alt={title}
               width={32}
               height={22}
               sizes="36px"
               className="max-h-5 sm:max-h-5.5 max-w-full object-contain"
               loading="lazy"
+              onError={() => setImgError(true)}
             />
           </div>
         ) : icon ? (
           <div className="w-9 h-9 rounded-lg bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center text-cyan-400 light:text-blue-600 shrink-0">
             {icon}
           </div>
-        ) : null}
+        ) : (
+          <div className="w-9 h-9 rounded-lg bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center text-cyan-500 light:text-blue-600 shrink-0">
+            <Globe size={18} />
+          </div>
+        )}
 
         {/* Text Information (Title ~13-14px, Description ~11-12px) */}
         <div className="min-w-0 flex-1">
@@ -85,7 +93,7 @@ export function QuickLinkCard({
     </Card>
   );
 
-  if (external) {
+  if (isExternal) {
     return (
       <a
         href={href}

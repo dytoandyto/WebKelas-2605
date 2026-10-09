@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export interface TaskToolbarFilters {
   search: string;
   subjectId: string;
-  deadlineFilter: "ALL" | "UPCOMING" | "DUE_SOON" | "PAST_DEADLINE";
+  deadlineFilter: "ALL" | "UPCOMING" | "DUE_SOON" | "PAST_DEADLINE" | "NO_DEADLINE";
 }
 
 export interface TaskToolbarProps {
@@ -163,6 +163,7 @@ export function TaskToolbar({
               <option value="ALL">Semua Tenggat Mendatang</option>
               <option value="DUE_SOON">Hari Ini / Besok (Mendesak)</option>
               <option value="UPCOMING">Mendatang Lainnya</option>
+              <option value="NO_DEADLINE">Tanpa Tenggat / Fleksibel</option>
             </Select>
 
             {hasActiveFilters && (

@@ -62,6 +62,19 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Password saat ini wajib diisi"),
+    newPassword: z.string().min(8, "Password baru minimal 8 karakter"),
+    confirmPassword: z.string().min(1, "Konfirmasi password baru wajib diisi"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Konfirmasi password baru tidak cocok dengan password baru",
+    path: ["confirmPassword"],
+  });
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+
 // 2. User Schemas (Admin only)
 export const userCreateSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -164,7 +177,19 @@ export const taskSchema = z.object({
   title: z.string().trim().min(3, "Task title must be at least 3 characters"),
   description: z.string().trim().max(3000).optional().nullable(),
   taskType: z.nativeEnum(TaskType).default(TaskType.INDIVIDUAL),
-  deadline: z.string().min(1, "Deadline date and time is required"),
+  deadline: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => {
+      if (!val || val.trim() === "") {
+        const d = new Date();
+        d.setDate(d.getDate() + 7);
+        d.setHours(23, 59, 0, 0);
+        return d.toISOString();
+      }
+      return val;
+    }),
   estimatedTime: z.string().trim().max(100).optional().nullable(),
   priority: z.nativeEnum(TaskPriority).default(TaskPriority.MEDIUM),
   status: z.nativeEnum(TaskStatus).default(TaskStatus.UPCOMING),

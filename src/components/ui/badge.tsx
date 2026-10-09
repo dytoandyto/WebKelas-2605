@@ -178,11 +178,25 @@ export function TaskStatusBadge({
 
 export function DeadlineBadge({
   deadline,
+  isNoDeadline = false,
   className,
 }: {
   deadline: Date | string;
+  isNoDeadline?: boolean;
   className?: string;
 }) {
+  if (isNoDeadline) {
+    return (
+      <Badge
+        variant="cyan"
+        dot
+        className={cn("font-medium", className)}
+      >
+        Tanpa Tenggat
+      </Badge>
+    );
+  }
+
   const d = typeof deadline === "string" ? new Date(deadline) : deadline;
   const now = new Date();
   const diffMs = d.getTime() - now.getTime();

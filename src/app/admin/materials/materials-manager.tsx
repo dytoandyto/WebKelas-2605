@@ -18,9 +18,10 @@ import {
   Layers,
   Upload,
   Link2,
+  Loader2,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
-import { compressImageFile } from "@/lib/compress-image";
+import { compressImageFile, dataUrlToFile } from "@/lib/compress-image";
 import { MaterialType } from "@prisma/client";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -158,6 +159,8 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
   const [newDocUrl, setNewDocUrl] = useState("");
   const [newDocSize, setNewDocSize] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState("");
   const dragCounterRef = useRef(0);
   const docFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -175,80 +178,86 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
       setFormTitle(cleanTitle);
     }
 
-    for (const file of fileList) {
-      if (file.size > 40 * 1024 * 1024) {
-        setErrorMessage(
-          `Berkas "${file.name}" melebihi batas ukuran maksimal (40 MB). Silakan gunakan tautan Google Drive / Cloud untuk file yang sangat besar.`
+    setUploadingFiles(true);
+    setErrorMessage(null);
+
+    try {
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        setUploadProgressText(
+          fileList.length > 1
+            ? `Mengunggah berkas (${i + 1}/${fileList.length}): ${file.name}...`
+            : `Mengunggah berkas: ${file.name}...`
         );
-        continue;
-      }
 
-      const detected = detectMaterialType(file.name);
-      const isImage = file.type.startsWith("image/") || detected === MaterialType.IMAGE;
-      const ext = file.name.split(".").pop()?.toUpperCase() || detected;
-
-      if (isImage) {
-        try {
-          const comp = await compressImageFile(file, { maxWidth: 1920, maxHeight: 1920, quality: 0.82 });
-          const displaySize =
-            comp.isCompressed && comp.compressionRatio > 0
-              ? `${comp.formattedSize} (hemat ${comp.compressionRatio}%)`
-              : comp.formattedSize;
-
-          setFormAttachments((prev) => [
-            ...prev,
-            {
-              id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-              name: file.name,
-              url: comp.dataUrl,
-              size: displaySize,
-              type: "IMAGE",
-            },
-          ]);
-        } catch {
-          const reader = new FileReader();
-          reader.onload = (loadEvent) => {
-            const dataUrl = (loadEvent.target?.result as string) || "";
-            setFormAttachments((prev) => [
-              ...prev,
-              {
-                id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-                name: file.name,
-                url: dataUrl,
-                size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-                type: "IMAGE",
-              },
-            ]);
-          };
-          reader.readAsDataURL(file);
+        if (file.size > 50 * 1024 * 1024) {
+          setErrorMessage(
+            `Berkas "${file.name}" melebihi batas ukuran maksimal (50 MB). Silakan gunakan tautan Google Drive / Cloud untuk file yang sangat besar.`
+          );
+          continue;
         }
-      } else {
-        const sizeInMB = file.size / (1024 * 1024);
-        const formattedSize =
-          sizeInMB < 0.1
-            ? `${Math.round(file.size / 1024)} KB`
-            : `${sizeInMB.toFixed(1)} MB`;
 
-        const reader = new FileReader();
-        reader.onload = (loadEvent) => {
-          const dataUrl = (loadEvent.target?.result as string) || "";
+        const detected = detectMaterialType(file.name);
+        const isImage = file.type.startsWith("image/") || detected === MaterialType.IMAGE;
+        const ext = file.name.split(".").pop()?.toUpperCase() || detected;
+
+        let fileToUpload = file;
+        let displaySize = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+        if (isImage) {
+          try {
+            const comp = await compressImageFile(file, { maxWidth: 1920, maxHeight: 1920, quality: 0.82 });
+            displaySize =
+              comp.isCompressed && comp.compressionRatio > 0
+                ? `${comp.formattedSize} (hemat ${comp.compressionRatio}%)`
+                : comp.formattedSize;
+
+            if (comp.isCompressed && comp.dataUrl) {
+              fileToUpload = dataUrlToFile(comp.dataUrl, file.name);
+            }
+          } catch {
+            // Keep original file
+          }
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileToUpload);
+        formData.append("folder", "materials");
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success && data.url) {
           setFormAttachments((prev) => [
             ...prev,
             {
               id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
               name: file.name,
-              url: dataUrl,
-              size: formattedSize,
+              url: data.url,
+              size: data.size || displaySize,
               type: ext,
             },
           ]);
-        };
-        reader.readAsDataURL(file);
+        } else {
+          setErrorMessage(
+            data.error || `Gagal mengunggah berkas "${file.name}" ke server.`
+          );
+        }
       }
-    }
-
-    if (docFileInputRef.current) {
-      docFileInputRef.current.value = "";
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah berkas ke server."
+      );
+    } finally {
+      setUploadingFiles(false);
+      setUploadProgressText("");
+      if (docFileInputRef.current) {
+        docFileInputRef.current.value = "";
+      }
     }
   };
 
@@ -789,10 +798,11 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  onClick={() => docFileInputRef.current?.click()}
+                  onClick={() => !uploadingFiles && docFileInputRef.current?.click()}
                   className={cn(
                     "relative cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-all duration-200 select-none group",
-                    isDragging
+                    uploadingFiles && "cursor-wait opacity-85 border-cyan-400 bg-cyan-500/10",
+                    isDragging && !uploadingFiles
                       ? "border-cyan-400 bg-cyan-500/15 scale-[1.01] shadow-[0_0_25px_rgba(6,182,212,0.25)] ring-2 ring-cyan-400/50"
                       : "border-cyan-500/30 light:border-slate-300 bg-[#040813]/60 light:bg-slate-50/70 hover:border-cyan-400/70 hover:bg-[#071329] light:hover:bg-slate-100/70"
                   )}
@@ -801,17 +811,27 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                     <div
                       className={cn(
                         "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200",
-                        isDragging
+                        uploadingFiles
+                          ? "bg-cyan-500/20 text-cyan-300 animate-pulse"
+                          : isDragging
                           ? "bg-cyan-500 text-black scale-110 shadow-lg shadow-cyan-500/40"
                           : "bg-cyan-500/15 light:bg-blue-100 text-cyan-400 light:text-blue-600 group-hover:scale-105"
                       )}
                     >
-                      <Upload className={cn("w-5 h-5", isDragging && "animate-bounce")} />
+                      {uploadingFiles ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+                      ) : (
+                        <Upload className={cn("w-5 h-5", isDragging && "animate-bounce")} />
+                      )}
                     </div>
 
                     <div>
                       <p className="text-xs font-bold text-slate-100 light:text-slate-800">
-                        {isDragging ? (
+                        {uploadingFiles ? (
+                          <span className="text-cyan-300 light:text-blue-600 font-extrabold flex items-center justify-center gap-2">
+                            <span>{uploadProgressText || "Mengunggah berkas ke server..."}</span>
+                          </span>
+                        ) : isDragging ? (
                           <span className="text-cyan-300 light:text-blue-600 font-extrabold">
                             Lepaskan berkas di sini untuk mengunggah!
                           </span>
@@ -825,7 +845,9 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                         )}
                       </p>
                       <p className="text-[11px] text-slate-400 light:text-slate-500 mt-0.5">
-                        Format otomatis terdeteksi: PDF, PPTX, DOCX, XLSX, Video, Gambar, ZIP (Maks. 50MB)
+                        {uploadingFiles
+                          ? "Mohon tunggu hingga proses unggah selesai..."
+                          : "Format otomatis terdeteksi: PDF, PPTX, DOCX, XLSX, Video, Gambar, ZIP (Maks. 50MB)"}
                       </p>
                     </div>
 
@@ -1059,10 +1081,19 @@ export function MaterialsManager({ initialMaterials, subjects }: MaterialsManage
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="btn btn-primary btn-sm"
+                  disabled={loading || uploadingFiles}
+                  className="btn btn-primary btn-sm flex items-center gap-1.5"
                 >
-                  {loading ? "Menyimpan..." : editingMaterial ? "Simpan Perubahan" : "Tambah Materi"}
+                  {(loading || uploadingFiles) && <Loader2 size={13} className="animate-spin" />}
+                  <span>
+                    {loading
+                      ? "Menyimpan..."
+                      : uploadingFiles
+                      ? "Mengunggah Berkas..."
+                      : editingMaterial
+                      ? "Simpan Perubahan"
+                      : "Tambah Materi"}
+                  </span>
                 </button>
               </div>
             </form>

@@ -139,3 +139,102 @@ export async function uploadImageFile(
     return { url: "", error: "Failed to store image" };
   }
 }
+
+const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024; // 50 MB
+
+export interface UploadDocumentResult {
+  url: string;
+  fileName: string;
+  size: string;
+  error?: string;
+}
+
+export async function uploadDocumentFile(
+  file: File,
+  folder: "materials" | "tasks" | "general" = "materials"
+): Promise<UploadDocumentResult> {
+  if (!file) {
+    return { url: "", fileName: "", size: "", error: "Berkas tidak ditemukan" };
+  }
+
+  if (file.size > MAX_DOCUMENT_SIZE) {
+    return { url: "", fileName: file.name, size: "", error: "Ukuran berkas melebihi batas 50MB" };
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const rawExt = path.extname(file.name) || "";
+  const ext = rawExt.toLowerCase() || ".bin";
+  const baseName = path
+    .basename(file.name, rawExt)
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 40);
+  const uniqueId = crypto.randomBytes(6).toString("hex");
+  const fileName = `${Date.now()}-${baseName || "doc"}-${uniqueId}${ext}`;
+  const filePath = `${folder}/${fileName}`;
+
+  const sizeInMB = file.size / (1024 * 1024);
+  const formattedSize =
+    sizeInMB < 0.1
+      ? `${Math.round(file.size / 1024)} KB`
+      : `${sizeInMB.toFixed(1)} MB`;
+
+  // Try Supabase Storage if configured
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (
+    supabaseUrl &&
+    supabaseKey &&
+    !supabaseUrl.includes("mock-storage") &&
+    !supabaseUrl.includes("your-project")
+  ) {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data, error } = await supabase.storage
+        .from("classhub")
+        .upload(filePath, buffer, {
+          contentType: file.type || "application/octet-stream",
+          upsert: false,
+        });
+
+      if (!error && data) {
+        const { data: publicUrlData } = supabase.storage
+          .from("classhub")
+          .getPublicUrl(filePath);
+
+        return {
+          url: publicUrlData.publicUrl,
+          fileName: file.name,
+          size: formattedSize,
+        };
+      }
+    } catch {
+      // Fallback to local storage
+    }
+  }
+
+  // Local filesystem storage
+  try {
+    const localDir = path.join(process.cwd(), "public", "uploads", folder);
+    await fs.mkdir(localDir, { recursive: true });
+    const localFilePath = path.join(localDir, fileName);
+    await fs.writeFile(localFilePath, buffer);
+
+    return {
+      url: `/uploads/${folder}/${fileName}`,
+      fileName: file.name,
+      size: formattedSize,
+    };
+  } catch {
+    return {
+      url: "",
+      fileName: file.name,
+      size: formattedSize,
+      error: "Gagal menyimpan berkas ke server",
+    };
+  }
+}
+

@@ -48,11 +48,9 @@ export function StudentProfile({
               <p className="text-sm font-semibold text-cyan-400 light:text-blue-700">
                 {student.className || "JS1SI-26-REG-05"}
               </p>
-              {student.studentNumber && (
-                <p className="text-xs text-[var(--text-muted)] font-mono">
-                  NIM: {student.studentNumber}
-                </p>
-              )}
+              <p className="text-xs text-[var(--text-muted)] font-medium">
+                {student.major || "S1 Sistem Informasi"}
+              </p>
             </div>
           </div>
         </DialogHeader>

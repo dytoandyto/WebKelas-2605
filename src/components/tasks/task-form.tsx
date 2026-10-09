@@ -75,9 +75,8 @@ export function TaskForm({
       newErrors.subjectId = "Pilih mata kuliah untuk penugasan ini";
     }
 
-    if (!formData.deadline) {
-      newErrors.deadline = "Tenggat waktu wajib ditentukan";
-    }
+    // If deadline is empty, auto-assign default (langsung kasih udah ada gitu aja deh)
+    const deadlineToSubmit = formData.deadline || new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16);
 
     if (isGroup && !formData.groupName?.trim()) {
       newErrors.groupName = "Nama kelompok wajib diisi untuk tugas kelompok";
@@ -89,7 +88,7 @@ export function TaskForm({
     }
 
     setErrors({});
-    await onSubmit(formData);
+    await onSubmit({ ...formData, deadline: deadlineToSubmit });
   };
 
   return (
@@ -190,9 +189,12 @@ export function TaskForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] mb-1 block">
-              Tenggat Waktu <span className="text-red-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-[var(--text-secondary)]">
+                Tenggat Waktu
+              </label>
+              <span className="text-[10px] text-cyan-400 font-medium">Bisa Fleksibel</span>
+            </div>
             <Input
               type="datetime-local"
               value={formData.deadline}
@@ -201,6 +203,45 @@ export function TaskForm({
               }
               error={errors.deadline}
             />
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap text-[10px]">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    deadline: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 16),
+                  }))
+                }
+                className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-700"
+              >
+                +3 Hari
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    deadline: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16),
+                  }))
+                }
+                className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-700"
+              >
+                +1 Minggu
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    deadline: new Date(Date.now() + 86400000 * 30).toISOString().slice(0, 16),
+                    notes: prev.notes || "[Tanpa Deadline] Tugas mandiri fleksibel.",
+                  }))
+                }
+                className="px-1.5 py-0.5 rounded bg-cyan-950/60 text-cyan-300 hover:bg-cyan-900/60 border border-cyan-800"
+              >
+                Tanpa Tenggat
+              </button>
+            </div>
           </div>
 
           <div>

@@ -33,12 +33,42 @@ export function formatDateTime(date: Date | string | null | undefined): string {
   }).format(d);
 }
 
-export function getRelativeDeadline(deadlineDate: Date | string): {
+export function isTaskFlexibleOrNoDeadline(task?: {
+  notes?: string | null;
+  title?: string;
+  deadline?: Date | string;
+} | null): boolean {
+  if (!task) return false;
+  const notesLower = (task.notes || "").toLowerCase();
+  const titleLower = (task.title || "").toLowerCase();
+  return (
+    notesLower.includes("tanpa deadline") ||
+    notesLower.includes("tanpa tenggat") ||
+    notesLower.includes("[fleksibel]") ||
+    notesLower.includes("fleksibel") ||
+    titleLower.includes("tanpa deadline") ||
+    titleLower.includes("tanpa tenggat")
+  );
+}
+
+export function getRelativeDeadline(
+  deadlineDate: Date | string,
+  options?: { isNoDeadline?: boolean }
+): {
   text: string;
   isOverdue: boolean;
   isDueSoon: boolean;
   daysRemaining: number;
 } {
+  if (options?.isNoDeadline) {
+    return {
+      text: "Fleksibel (Tanpa Tenggat)",
+      isOverdue: false,
+      isDueSoon: false,
+      daysRemaining: 999,
+    };
+  }
+
   const deadline = typeof deadlineDate === "string" ? new Date(deadlineDate) : deadlineDate;
   const now = new Date();
   const diffMs = deadline.getTime() - now.getTime();

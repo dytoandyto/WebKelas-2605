@@ -197,3 +197,19 @@ export async function compressImageFile(
     img.src = objectUrl;
   });
 }
+
+/**
+ * Converts a base64 Data URL to a native File object for multipart form upload.
+ */
+export function dataUrlToFile(dataUrl: string, fileName: string): File {
+  const parts = dataUrl.split(",");
+  const mime = parts[0]?.match(/:(.*?);/)?.[1] || "application/octet-stream";
+  const binary = atob(parts[1] || "");
+  const length = binary.length;
+  const buffer = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    buffer[i] = binary.charCodeAt(i);
+  }
+  return new File([buffer], fileName, { type: mime });
+}
+

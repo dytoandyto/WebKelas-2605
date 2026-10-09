@@ -46,3 +46,6 @@ pg_internal.init
 pg_control
 prisma/dev-db/
 
+# Uploaded files
+/public/uploads/
+

@@ -101,11 +101,9 @@ export default async function StudentDetailPage({
                 <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] font-display tracking-tight">
                   {student.name}
                 </h1>
-                {student.studentNumber && (
-                  <p className="font-mono text-[var(--primary)] text-sm mt-0.5 font-bold">
-                    NIM: {student.studentNumber}
-                  </p>
-                )}
+                <p className="text-[var(--text-secondary)] text-sm mt-0.5 font-medium">
+                  {student.major || "S1 Sistem Informasi"} &bull; {student.className || "JS1SI-26-REG-05"}
+                </p>
                 {(student as any).classRole && (
                   <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                     <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30">

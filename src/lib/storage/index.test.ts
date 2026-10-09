@@ -25,3 +25,30 @@ describe("Image Upload Security tests", () => {
     expect(validateImageMagicBytes(Buffer.from([0x01, 0x02]))).toBe(false);
   });
 });
+
+describe("uploadDocumentFile", () => {
+  it("rejects file exceeding size limit", async () => {
+    const { uploadDocumentFile } = await import("./index");
+    const hugeFile = {
+      name: "huge-presentation.pptx",
+      size: 60 * 1024 * 1024,
+      arrayBuffer: async () => new ArrayBuffer(0),
+    } as unknown as File;
+
+    const result = await uploadDocumentFile(hugeFile, "materials");
+    expect(result.error).toContain("melebihi batas 50MB");
+  });
+
+  it("successfully stores valid document file and returns public url", async () => {
+    const { uploadDocumentFile } = await import("./index");
+    const fakePdf = new File(["%PDF-1.4 mock content"], "Pertemuan 1 - Pengantar.pdf", {
+      type: "application/pdf",
+    });
+
+    const result = await uploadDocumentFile(fakePdf, "materials");
+    expect(result.error).toBeUndefined();
+    expect(result.url).toMatch(/^\/uploads\/materials\/\d+-Pertemuan_1_-_Pengantar-[a-f0-9]+\.pdf$/);
+    expect(result.fileName).toBe("Pertemuan 1 - Pengantar.pdf");
+  });
+});
+

@@ -61,7 +61,7 @@ export function QuickLinks({
 
   if (layout === "grid") {
     return (
-      <section className={cn("space-y-4 text-left", className)}>
+      <section className={cn("space-y-4 text-left max-w-xl", className)}>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
@@ -77,7 +77,7 @@ export function QuickLinks({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="flex flex-col gap-2.5">
           {linksToRender.map((link) => (
             <QuickLinkCard
               key={link.title}
@@ -88,7 +88,7 @@ export function QuickLinks({
             />
           ))}
           {linksToRender.length === 0 && (
-            <p className="col-span-full text-xs text-text-muted text-center py-4">
+            <p className="text-xs text-text-muted text-center py-4">
               Belum ada tautan aktif.
             </p>
           )}

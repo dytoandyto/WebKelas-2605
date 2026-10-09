@@ -29,7 +29,7 @@ import {
   duplicateTaskAction,
 } from "@/lib/actions/tasks";
 import { TaskStatus, TaskPriority, TaskType } from "@prisma/client";
-import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
+import { formatDate, getRelativeDeadline, cn, isTaskFlexibleOrNoDeadline } from "@/lib/utils";
 import { DeadlineBadge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { SearchInput } from "@/components/ui/search-input";
@@ -71,7 +71,7 @@ interface TasksManagerProps {
   subjects: SubjectItem[];
 }
 
-type DeadlineFilter = "ALL" | "UPCOMING" | "DUE_SOON" | "PAST_DEADLINE";
+type DeadlineFilter = "ALL" | "UPCOMING" | "DUE_SOON" | "PAST_DEADLINE" | "NO_DEADLINE";
 
 export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
   const router = useRouter();
@@ -86,6 +86,7 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isNoDeadlineMode, setIsNoDeadlineMode] = useState(false);
 
   // Form Data (Streamlined for academic assignment tracking)
   const [formData, setFormData] = useState<{
@@ -125,15 +126,15 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-  // Calculate preset extensions (+1d, +3d, +7d, tomorrow night)
-  function calculatePresetDate(type: "+1d" | "+3d" | "+7d" | "tomorrow_night", base?: string | Date): string {
+  // Calculate preset extensions (+1d, +3d, +7d, +30d, tomorrow night)
+  function calculatePresetDate(type: "+1d" | "+3d" | "+7d" | "+30d" | "tomorrow_night", base?: string | Date): string {
     const now = new Date();
     let target: Date;
 
     if (type === "tomorrow_night") {
       target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
     } else {
-      const days = type === "+1d" ? 1 : type === "+3d" ? 3 : 7;
+      const days = type === "+1d" ? 1 : type === "+3d" ? 3 : type === "+7d" ? 7 : 30;
       const baseDate = base ? new Date(base) : now;
       const startMs = !isNaN(baseDate.getTime()) && baseDate.getTime() > now.getTime()
         ? baseDate.getTime()
@@ -148,6 +149,7 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
   function openCreateModal() {
     setEditingTask(null);
     setFormError(null);
+    setIsNoDeadlineMode(false);
 
     // Default deadline: 3 days ahead at 23:59
     const defaultDate = new Date();
@@ -169,6 +171,7 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
   function openEditModal(task: TaskItem) {
     setEditingTask(task);
     setFormError(null);
+    setIsNoDeadlineMode(isTaskFlexibleOrNoDeadline(task));
 
     const d = new Date(task.deadline);
     const formattedDeadline = !isNaN(d.getTime())
@@ -258,14 +261,12 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
       return;
     }
 
-    if (!formData.deadline) {
-      setFormError("Deadline tugas wajib diisi.");
-      return;
-    }
+    // Auto-fallback if deadline is empty: langsung kasih udah ada gitu aja deh
+    const resolvedDeadline = formData.deadline || calculatePresetDate("+7d");
 
     startTransition(async () => {
       try {
-        const isPast = new Date(formData.deadline).getTime() < Date.now();
+        const isPast = new Date(resolvedDeadline).getTime() < Date.now();
         let resolvedStatus: TaskStatus = TaskStatus.UPCOMING;
         if (editingTask) {
           resolvedStatus = editingTask.status === TaskStatus.COMPLETED
@@ -277,13 +278,19 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
           resolvedStatus = isPast ? TaskStatus.OVERDUE : TaskStatus.UPCOMING;
         }
 
+        let notesPayload = editingTask?.notes || null;
+        if (isNoDeadlineMode && !notesPayload?.includes("[Tanpa Deadline]")) {
+          notesPayload = notesPayload ? `${notesPayload} [Tanpa Deadline]` : "[Tanpa Deadline] Tugas mandiri fleksibel.";
+        }
+
         const payload: any = {
           title: formData.title.trim(),
           subjectId: formData.subjectId || null,
-          deadline: formData.deadline,
+          deadline: resolvedDeadline,
           description: formData.description.trim() || null,
           submissionUrl: formData.submissionUrl.trim() || null,
           referenceUrl: formData.referenceUrl.trim() || null,
+          notes: notesPayload,
           taskType: editingTask?.taskType || TaskType.INDIVIDUAL,
           priority: editingTask?.priority || TaskPriority.MEDIUM,
           status: resolvedStatus,
@@ -408,14 +415,16 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
     const now = new Date().getTime();
 
     return tasks.filter((t) => {
+      const isFlexible = isTaskFlexibleOrNoDeadline(t);
       const taskDeadline = new Date(t.deadline).getTime();
       const diffMs = taskDeadline - now;
       const diffHours = diffMs / (1000 * 60 * 60);
 
       // 1. Deadline Filter
-      if (deadlineFilter === "UPCOMING" && diffHours <= 48) return false;
-      if (deadlineFilter === "DUE_SOON" && (diffMs < 0 || diffHours > 48)) return false;
-      if (deadlineFilter === "PAST_DEADLINE" && diffMs >= 0) return false;
+      if (deadlineFilter === "NO_DEADLINE") return isFlexible;
+      if (deadlineFilter === "DUE_SOON" && (diffMs < 0 || diffHours > 48 || isFlexible)) return false;
+      if (deadlineFilter === "UPCOMING" && (diffHours <= 48 || isFlexible)) return false;
+      if (deadlineFilter === "PAST_DEADLINE" && (diffMs >= 0 || isFlexible)) return false;
 
       // 2. Subject Filter
       if (subjectFilter !== "ALL" && t.subjectId !== subjectFilter) {
@@ -443,8 +452,15 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
     let upcoming = 0;
     let dueSoon = 0;
     let past = 0;
+    let noDeadline = 0;
 
     tasks.forEach((t) => {
+      const isFlexible = isTaskFlexibleOrNoDeadline(t);
+      if (isFlexible) {
+        noDeadline++;
+        return;
+      }
+
       const taskDeadline = new Date(t.deadline).getTime();
       const diffMs = taskDeadline - now;
       const diffHours = diffMs / (1000 * 60 * 60);
@@ -458,7 +474,7 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
       }
     });
 
-    return { all: tasks.length, upcoming, dueSoon, past };
+    return { all: tasks.length, upcoming, dueSoon, past, noDeadline };
   }, [tasks]);
 
   // Subject options for Combobox
@@ -558,6 +574,19 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
               )}
             >
               Mendatang ({counts.upcoming})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDeadlineFilter("NO_DEADLINE")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer",
+                deadlineFilter === "NO_DEADLINE"
+                  ? "bg-cyan-600 text-white dark:bg-cyan-500/20 dark:text-cyan-300 dark:border dark:border-cyan-500/30 font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+              )}
+            >
+              Tanpa Tenggat ({counts.noDeadline})
             </button>
 
             <button
@@ -691,10 +720,10 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-1.5 font-medium text-slate-900 dark:text-slate-200 text-xs">
                             <Calendar size={13} className="text-slate-400" />
-                            <span>{formatDate(task.deadline)}</span>
+                            <span>{isTaskFlexibleOrNoDeadline(task) ? "Fleksibel (Tanpa Tenggat)" : formatDate(task.deadline)}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <DeadlineBadge deadline={task.deadline} />
+                            <DeadlineBadge deadline={task.deadline} isNoDeadline={isTaskFlexibleOrNoDeadline(task)} />
                             <button
                               type="button"
                               onClick={() => openQuickDeadlineModal(task)}
@@ -866,11 +895,15 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100">
-                  Deadline & Waktu <span className="text-rose-500">*</span>
+                  Deadline & Waktu
                 </label>
                 {formData.deadline && new Date(formData.deadline).getTime() < Date.now() ? (
                   <span className="text-[11px] font-semibold text-rose-500 dark:text-rose-400 flex items-center gap-1">
                     <AlertCircle size={12} /> Sudah lewat
+                  </span>
+                ) : isNoDeadlineMode ? (
+                  <span className="text-[11px] font-medium text-cyan-600 dark:text-cyan-400 flex items-center gap-1">
+                    <Sparkles size={12} /> Fleksibel
                   </span>
                 ) : (
                   <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -885,40 +918,88 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
                   setFormData({ ...formData, deadline: e.target.value })
                 }
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
-                required
               />
               {/* Quick preset chips */}
               <div className="flex items-center gap-1.5 mt-2 flex-wrap text-[11px]">
                 <span className="text-slate-400 dark:text-slate-500 text-[10px] font-medium mr-1">Preset:</span>
                 <button
                   type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+1d", prev.deadline) }))}
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+1d", prev.deadline) }));
+                    setIsNoDeadlineMode(false);
+                  }}
                   className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
                 >
                   +1 Hari
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+3d", prev.deadline) }))}
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+3d", prev.deadline) }));
+                    setIsNoDeadlineMode(false);
+                  }}
                   className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
                 >
                   +3 Hari
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+7d", prev.deadline) }))}
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("+7d", prev.deadline) }));
+                    setIsNoDeadlineMode(false);
+                  }}
                   className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
                 >
                   +1 Minggu
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("tomorrow_night") }))}
+                  onClick={() => {
+                    const futureDate = calculatePresetDate("+30d");
+                    setFormData((prev) => ({
+                      ...prev,
+                      deadline: futureDate,
+                      description: prev.description || "Tugas mandiri tanpa batasan tenggat waktu pengumpulan tertentu.",
+                    }));
+                    setIsNoDeadlineMode(true);
+                  }}
+                  className="px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950/40 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800 font-semibold transition-colors cursor-pointer"
+                >
+                  Tanpa Deadline (Fleksibel)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, deadline: calculatePresetDate("tomorrow_night") }));
+                    setIsNoDeadlineMode(false);
+                  }}
                   className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 font-medium transition-colors cursor-pointer"
                 >
                   Besok 23:59
                 </button>
               </div>
+
+              {/* Checkbox for Tanpa Tenggat Khusus */}
+              <label className="flex items-center gap-2 mt-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isNoDeadlineMode}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsNoDeadlineMode(checked);
+                    if (checked && !formData.deadline) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        deadline: calculatePresetDate("+30d"),
+                      }));
+                    }
+                  }}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                />
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                  Tugas Tanpa Tenggat Khusus (Atur tanggal fleksibel otomatis)
+                </span>
+              </label>
             </div>
           </div>
 
@@ -1072,32 +1153,39 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                 Pilihan Cepat Perpanjang Tenggat:
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <button
                   type="button"
                   onClick={() => setQuickDeadlineValue(calculatePresetDate("+1d", quickDeadlineTask.deadline))}
-                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
                   +1 Hari
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDeadlineValue(calculatePresetDate("+3d", quickDeadlineTask.deadline))}
-                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
                   +3 Hari
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickDeadlineValue(calculatePresetDate("+7d", quickDeadlineTask.deadline))}
-                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
                   +1 Minggu
                 </button>
                 <button
                   type="button"
+                  onClick={() => setQuickDeadlineValue(calculatePresetDate("+30d", quickDeadlineTask.deadline))}
+                  className="px-2.5 py-2 rounded-lg bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/40 dark:hover:bg-cyan-900/50 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800 text-xs font-semibold transition-colors cursor-pointer text-center"
+                >
+                  +30 Hari (Fleksibel)
+                </button>
+                <button
+                  type="button"
                   onClick={() => setQuickDeadlineValue(calculatePresetDate("tomorrow_night"))}
-                  className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-cyan-500/10 text-slate-800 hover:text-blue-700 dark:text-slate-200 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
                   Besok 23:59
                 </button>

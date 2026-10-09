@@ -16,7 +16,7 @@ import { TaskList } from "./task-list";
 import { TaskDrawer } from "./task-drawer";
 import { useToast } from "@/components/ui/toast";
 import { duplicateTaskAction } from "@/lib/actions/tasks";
-import { cn } from "@/lib/utils";
+import { cn, isTaskFlexibleOrNoDeadline } from "@/lib/utils";
 
 export interface TaskItem extends TaskCardData {
   createdAt: string | Date;
@@ -112,11 +112,15 @@ export function TasksView({
 
       // 3. Deadline Filter (applicable for upcoming scope)
       if (!isHistory && filters.deadlineFilter !== "ALL") {
+        const isFlexible = isTaskFlexibleOrNoDeadline(task);
+        if (filters.deadlineFilter === "NO_DEADLINE") return isFlexible;
+        if (isFlexible && filters.deadlineFilter === "DUE_SOON") return false;
+
         const taskDeadline = new Date(task.deadline).getTime();
         const diffMs = taskDeadline - now;
         const diffHours = diffMs / (1000 * 60 * 60);
 
-        if (filters.deadlineFilter === "UPCOMING" && diffHours <= 48) return false;
+        if (filters.deadlineFilter === "UPCOMING" && (diffHours <= 48 || isFlexible)) return false;
         if (filters.deadlineFilter === "DUE_SOON" && (diffMs < 0 || diffHours > 48)) return false;
       }
 

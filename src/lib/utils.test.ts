@@ -33,5 +33,18 @@ describe("Utils tests", () => {
     const pastResult = getRelativeDeadline(past);
     expect(pastResult.isOverdue).toBe(true);
     expect(pastResult.text).toContain("Overdue");
+
+    // Flexible / No Deadline
+    const flexibleResult = getRelativeDeadline(past, { isNoDeadline: true });
+    expect(flexibleResult.isOverdue).toBe(false);
+    expect(flexibleResult.text).toBe("Fleksibel (Tanpa Tenggat)");
+  });
+
+  it("identifies tasks with flexible or no deadline correctly", async () => {
+    const { isTaskFlexibleOrNoDeadline } = await import("./utils");
+    expect(isTaskFlexibleOrNoDeadline({ title: "Tugas [Tanpa Deadline] Praktek" })).toBe(true);
+    expect(isTaskFlexibleOrNoDeadline({ notes: "Tugas mandiri tanpa tenggat waktu" })).toBe(true);
+    expect(isTaskFlexibleOrNoDeadline({ notes: "Tugas fleksibel" })).toBe(true);
+    expect(isTaskFlexibleOrNoDeadline({ title: "Tugas Biasa", notes: "Kumpul di LMS" })).toBe(false);
   });
 });

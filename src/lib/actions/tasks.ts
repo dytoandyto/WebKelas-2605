@@ -15,13 +15,20 @@ export async function createTaskAction(input: TaskInput): Promise<ActionResult> 
     }
 
     const data = validation.data;
+    let deadlineDate = new Date(data.deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      deadlineDate = new Date();
+      deadlineDate.setDate(deadlineDate.getDate() + 7);
+      deadlineDate.setHours(23, 59, 0, 0);
+    }
+
     const task = await prisma.task.create({
       data: {
         subjectId: data.subjectId || null,
         title: data.title,
         description: data.description || null,
         taskType: data.taskType,
-        deadline: new Date(data.deadline),
+        deadline: deadlineDate,
         estimatedTime: data.estimatedTime || null,
         priority: data.priority,
         status: data.status,
@@ -60,7 +67,12 @@ export async function updateTaskAction(id: string, input: TaskInput): Promise<Ac
     }
 
     const data = validation.data;
-    const deadlineDate = new Date(data.deadline);
+    let deadlineDate = new Date(data.deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      deadlineDate = new Date();
+      deadlineDate.setDate(deadlineDate.getDate() + 7);
+      deadlineDate.setHours(23, 59, 0, 0);
+    }
     const now = new Date();
 
     // Preserve COMPLETED status if already completed.

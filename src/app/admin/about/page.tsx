@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function AdminAboutPage() {
   const [settings, { students }] = await Promise.all([
     getSettings(),
-    getStudentsData(),
+    getStudentsData(undefined, { includePrivate: true }),
   ]);
 
   return (

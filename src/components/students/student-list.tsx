@@ -25,7 +25,7 @@ export function StudentList({
       <EmptyState
         icon={<Users className="w-6 h-6 text-cyan-400" />}
         title="Belum ada teman yang cocok"
-        description="Coba cari dengan kata kunci nama atau NIM yang lain."
+        description="Coba cari dengan kata kunci nama atau minat yang lain."
         className={className}
       />
     );
@@ -54,14 +54,8 @@ export function StudentList({
                   {student.name}
                 </h4>
                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] truncate">
-                  {student.studentNumber && (
-                    <>
-                      <span className="font-mono text-cyan-400 light:text-blue-700 font-medium">
-                        NIM: {student.studentNumber}
-                      </span>
-                      <span>•</span>
-                    </>
-                  )}
+                  <span>{student.major || "S1 Sistem Informasi"}</span>
+                  <span>•</span>
                   <span>{student.className || "JS1SI-26-REG-05"}</span>
                 </div>
               </div>

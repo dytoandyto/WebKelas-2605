@@ -27,9 +27,9 @@ export function StudentsDirectory({
         const q = searchQuery.toLowerCase();
         const matchesSearch =
           s.name.toLowerCase().includes(q) ||
-          (s.studentNumber && s.studentNumber.toLowerCase().includes(q)) ||
           (s.motivation && s.motivation.toLowerCase().includes(q)) ||
-          (s.bio && s.bio.toLowerCase().includes(q));
+          (s.bio && s.bio.toLowerCase().includes(q)) ||
+          (s.major && s.major.toLowerCase().includes(q));
 
         if (!matchesSearch) return false;
         return true;
@@ -56,7 +56,7 @@ export function StudentsDirectory({
         {/* Search Input */}
         <div className="flex-1 max-w-md">
           <Input
-            placeholder="Cari berdasarkan nama, NIM, atau minat..."
+            placeholder="Cari berdasarkan nama atau minat..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             leftIcon={<Search className="w-4 h-4" />}

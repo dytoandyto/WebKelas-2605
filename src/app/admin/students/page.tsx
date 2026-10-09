@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminStudentsPage() {
-  const { students } = await getStudentsData();
+  const { students } = await getStudentsData(undefined, { includePrivate: true });
 
   return (
     <div className="space-y-6">

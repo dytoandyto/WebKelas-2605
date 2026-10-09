@@ -24,6 +24,7 @@ import {
   Layers,
   Info,
   LayoutTemplate,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/lib/actions/auth";
@@ -153,6 +154,12 @@ const navGroups: NavGroup[] = [
   {
     label: "SYSTEM",
     items: [
+      {
+        href: "/admin/profile",
+        label: "Profil & Keamanan",
+        icon: KeyRound,
+        permission: "VIEW_ADMIN",
+      },
       {
         href: "/admin/users",
         label: "Users & Access",

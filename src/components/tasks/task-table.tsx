@@ -16,7 +16,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@/components/ui/dropdown";
-import { formatDate, getRelativeDeadline, cn } from "@/lib/utils";
+import { formatDate, getRelativeDeadline, cn, isTaskFlexibleOrNoDeadline } from "@/lib/utils";
 
 export interface TaskTableProps {
   tasks: TaskCardData[];
@@ -109,13 +109,14 @@ export function TaskTable({
       header: "Tenggat Waktu",
       sortable: true,
       cell: (task) => {
+        const isNoDeadline = Boolean(task.isNoDeadline || isTaskFlexibleOrNoDeadline(task));
         return (
           <div className="space-y-1">
             <div className="text-xs font-semibold text-[var(--text-primary)]">
-              {formatDate(task.deadline)}
+              {isNoDeadline ? "Fleksibel (Tanpa Tenggat)" : formatDate(task.deadline)}
             </div>
             <div>
-              <DeadlineBadge deadline={task.deadline} />
+              <DeadlineBadge deadline={task.deadline} isNoDeadline={isNoDeadline} />
             </div>
           </div>
         );

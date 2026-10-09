@@ -14,6 +14,7 @@ import {
   Settings,
   Sparkles,
   Command,
+  KeyRound,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/actions/auth";
@@ -21,6 +22,7 @@ import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ChangePasswordModal } from "@/components/admin/change-password-modal";
 
 interface AdminTopbarProps {
   user: SessionUser;
@@ -42,6 +44,7 @@ const ROUTE_TITLES: Record<string, { title: string; category: string }> = {
   "/admin/users": { title: "User & Access Management", category: "System" },
   "/admin/logs": { title: "System Activity Audit", category: "System" },
   "/admin/settings": { title: "Workspace & Class Settings", category: "System" },
+  "/admin/profile": { title: "Profil & Keamanan Akun", category: "Account" },
   "/admin/resources": { title: "Campus Academic Resources", category: "Academic" },
   "/admin/components": { title: "Design System Showcase", category: "System" },
 };
@@ -57,6 +60,7 @@ export function AdminTopbar({ user, onOpenMobileSidebar }: AdminTopbarProps) {
   const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   const routeInfo = ROUTE_TITLES[pathname] || {
     title: pathname.split("/").pop()?.replace(/-/g, " ") || "Admin",
@@ -201,13 +205,24 @@ export function AdminTopbar({ user, onOpenMobileSidebar }: AdminTopbarProps) {
 
               <div className="space-y-0.5">
                 <Link
-                  href="/admin/settings"
+                  href="/admin/profile"
                   onClick={() => setProfileOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                 >
-                  <Settings size={14} className="text-slate-400" />
-                  <span>Workspace Settings</span>
+                  <User size={14} className="text-slate-400" />
+                  <span>Profil Akun</span>
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    setPasswordModalOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer text-left font-medium"
+                >
+                  <KeyRound size={14} className="text-blue-500" />
+                  <span>Ubah Password</span>
+                </button>
                 <Link
                   href="/admin/logs"
                   onClick={() => setProfileOpen(false)}
@@ -216,6 +231,17 @@ export function AdminTopbar({ user, onOpenMobileSidebar }: AdminTopbarProps) {
                   <Shield size={14} className="text-slate-400" />
                   <span>Activity Logs</span>
                 </Link>
+                {user.role === "ADMIN" && (
+                  <Link
+                    href="/admin/settings"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <Settings size={14} className="text-slate-400" />
+                    <span>Workspace Settings</span>
+                  </Link>
+                )}
+                <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -229,6 +255,14 @@ export function AdminTopbar({ user, onOpenMobileSidebar }: AdminTopbarProps) {
           )}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+        userEmail={user.email}
+        userName={user.name}
+      />
     </header>
   );
 }
