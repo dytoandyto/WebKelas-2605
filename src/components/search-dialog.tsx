@@ -73,8 +73,10 @@ export function SearchDialog() {
 
   useEffect(() => {
     if (open) {
+      document.body.style.overflow = "hidden";
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
+      document.body.style.overflow = "";
       setQuery("");
       setResults({
         tasks: [],
@@ -85,6 +87,9 @@ export function SearchDialog() {
         achievements: [],
       });
     }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   // Debounced search
@@ -130,36 +135,69 @@ export function SearchDialog() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/20 dark:bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      onClick={() => setOpen(false)}
+      className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-24 px-3 sm:px-4 bg-slate-900/40 dark:bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+    >
       <div
-        className="w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-[#081326] border-slate-200 dark:border-cyan-500/30 text-slate-900 dark:text-slate-100"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-[#081326] border-slate-200 dark:border-cyan-500/30 text-slate-900 dark:text-slate-100 flex flex-col max-h-[85vh] sm:max-h-[80vh]"
         role="dialog"
         aria-modal="true"
         aria-label="Global Search"
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-cyan-500/20 bg-slate-50/80 dark:bg-[#040914]/80">
+        <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 sm:py-3.5 border-b border-slate-200 dark:border-cyan-500/20 bg-slate-50/80 dark:bg-[#040914]/80">
           <Search size={18} className="text-blue-600 dark:text-cyan-400 flex-shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari teman, tugas, atau materi..."
-            className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100"
+            placeholder="Cari teman, tugas, materi..."
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100"
           />
-          {loading && <Loader2 size={16} className="animate-spin text-blue-600 dark:text-cyan-400" />}
+          {loading && <Loader2 size={16} className="animate-spin text-blue-600 dark:text-cyan-400 flex-shrink-0" />}
           {query && !loading && (
             <button
-              onClick={() => setQuery("")}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white"
+              type="button"
+              onClick={() => {
+                setQuery("");
+                inputRef.current?.focus();
+              }}
+              className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors flex-shrink-0"
+              title="Hapus teks pencarian"
+              aria-label="Hapus teks pencarian"
             >
-              <X size={14} />
+              <X size={15} />
             </button>
           )}
-          <kbd className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono rounded bg-slate-200 border border-slate-300 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
-            ESC
-          </kbd>
+
+          {/* Desktop Close & ESC badge */}
+          <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+            <kbd className="px-2 py-0.5 text-[10px] font-mono rounded bg-slate-200 border border-slate-300 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
+              ESC
+            </kbd>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-md transition-colors"
+              title="Tutup (ESC)"
+              aria-label="Tutup dialog pencarian"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Mobile Direct Close Button */}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Tutup pencarian"
+            className="sm:hidden flex items-center justify-center px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 active:scale-95 transition-all flex-shrink-0"
+          >
+            Tutup
+          </button>
         </div>
 
         {/* Results Container */}
@@ -391,11 +429,23 @@ export function SearchDialog() {
         </div>
 
         {/* Footer shortcuts */}
-        <div className="px-4 py-2 border-t border-slate-200 dark:border-cyan-500/10 bg-slate-50/80 dark:bg-[#040914]/60 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+        <div className="px-4 py-2.5 border-t border-slate-200 dark:border-cyan-500/10 bg-slate-50/80 dark:bg-[#040914]/60 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span>Tekan <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">Ctrl + K</kbd> atau <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">/</kbd> di mana saja</span>
+            <span className="hidden sm:inline">
+              Tekan <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">Ctrl + K</kbd> atau <kbd className="px-1.5 py-0.5 rounded bg-slate-200 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">/</kbd> di mana saja
+            </span>
+            <span className="sm:hidden font-medium">Pencarian Ruang Kelas</span>
           </div>
-          <span>Pencarian Ruang Kelas</span>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline">Pencarian Ruang Kelas</span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="sm:hidden px-3 py-1 text-xs font-semibold rounded-lg bg-slate-200/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 active:scale-95 transition-all"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
     </div>
