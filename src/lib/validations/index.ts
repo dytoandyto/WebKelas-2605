@@ -49,6 +49,14 @@ export const optionalFileUrl = z
 export const optionalPhotoUrl = z
   .string()
   .trim()
+  .transform((val) => {
+    if (!val) return val;
+    if (val.startsWith("data:") || val.startsWith("blob:") || val.startsWith("/")) return val;
+    if (!/^https?:\/\//i.test(val) && /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(val)) {
+      return `https://${val}`;
+    }
+    return val;
+  })
   .refine((val) => val === "" || /^https?:\/\/.+/i.test(val) || /^data:image\/.+/i.test(val) || val.startsWith("/"), {
     message: "Must be a valid URL or image",
   })

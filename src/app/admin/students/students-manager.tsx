@@ -48,7 +48,11 @@ import {
   formatGithubUrl,
   formatInstagramUrl,
   formatLinkedinUrl,
+  formatPhotoUrl,
+  isGoogleDriveUrl,
+  getGoogleDriveViewUrl,
 } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
 import { compressImageFile } from "@/lib/compress-image";
 import { EmptyState } from "@/components/ui/empty-state";
 import { showToast } from "@/components/ui/toast";
@@ -291,7 +295,11 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         nickname: formData.nickname.trim() || null,
         studentNumber: formData.studentNumber.trim() || null,
         major: formData.major.trim(),
-        photoUrl: formData.photoUrl.trim() || null,
+        photoUrl: formData.photoUrl.trim()
+          ? isGoogleDriveUrl(formData.photoUrl.trim())
+            ? getGoogleDriveViewUrl(formData.photoUrl.trim())
+            : formatPhotoUrl(formData.photoUrl.trim())
+          : null,
         bio: formData.bio.trim() || null,
         dream: formData.dream.trim() || null,
         motivation: formData.motivation.trim() || null,
@@ -624,17 +632,12 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                     {/* Student Column */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-xs">
-                          {st.photoUrl ? (
-                            <img
-                              src={st.photoUrl}
-                              alt={st.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            st.name.charAt(0).toUpperCase()
-                          )}
-                        </div>
+                        <Avatar
+                          src={st.photoUrl}
+                          name={st.name}
+                          size="md"
+                          className="shrink-0"
+                        />
                         <div>
                           <div className="font-semibold text-slate-900 dark:text-white leading-snug flex items-center gap-1.5">
                             <span>{st.name}</span>
@@ -889,10 +892,11 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                 {compressing ? (
                   <Loader2 size={22} className="animate-spin text-white" />
                 ) : formData.photoUrl ? (
-                  <img
+                  <Avatar
                     src={formData.photoUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
+                    name={formData.name || "Preview"}
+                    size="lg"
+                    className="w-full h-full border-0 shadow-none ring-0"
                   />
                 ) : (
                   <Users size={22} className="text-white/80" />
@@ -956,11 +960,19 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
             <div className="mt-2">
               <input
                 type="url"
-                placeholder="Atau masukkan URL foto langsung (https://...)"
+                placeholder="Atau masukkan URL foto langsung (Google Drive, Unsplash, https://...)"
                 value={formData.photoUrl.startsWith("data:") ? "" : formData.photoUrl}
                 onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
                 className="h-9 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
+              {isGoogleDriveUrl(formData.photoUrl) && (
+                <div className="mt-1.5 flex items-start gap-1.5 text-[11px] text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 p-2 rounded-lg border border-cyan-200 dark:border-cyan-800/50">
+                  <CheckCircle2 size={13} className="shrink-0 text-cyan-600 dark:text-cyan-400 mt-0.5" />
+                  <span>
+                    Tautan Google Drive terdeteksi. Sistem akan otomatis menampilkan foto profil secara aman di website.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Trophy, ExternalLink, GraduationCap, Sparkles, Heart } from "lucide-react";
+import Link from "next/link";
+import { Trophy, ExternalLink, GraduationCap, Sparkles, Heart, ArrowRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon, InstagramIcon } from "@/components/icons";
 import { StudentData } from "./student-card";
 import { Avatar } from "@/components/ui/avatar";
@@ -177,7 +178,14 @@ export function StudentProfile({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-row items-center justify-between sm:justify-between w-full pt-2">
+          <Link
+            href={`/students/${student.id}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 light:text-blue-600 light:hover:text-blue-700 transition-colors"
+          >
+            <span>Buka Halaman Lengkap</span>
+            <ArrowRight size={14} />
+          </Link>
           <Button
             variant="secondary"
             size="sm"

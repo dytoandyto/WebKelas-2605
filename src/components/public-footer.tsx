@@ -102,7 +102,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
                   <GithubIcon size={15} />
                 </a>
               )}
-              {linkedinUrl && (
+              {/* {linkedinUrl && (
                 <a
                   href={linkedinUrl}
                   target="_blank"
@@ -112,7 +112,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
                 >
                   <LinkedinIcon size={15} />
                 </a>
-              )}
+              )} */}
               {instagramUrl && (
                 <a
                   href={instagramUrl}
@@ -124,7 +124,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
                   <InstagramIcon size={15} />
                 </a>
               )}
-              {discordUrl && (
+              {/* {discordUrl && (
                 <a
                   href={discordUrl}
                   target="_blank"
@@ -134,8 +134,8 @@ export function PublicFooter({ settings }: PublicFooterProps) {
                 >
                   <DiscordIcon size={15} />
                 </a>
-              )}
-              {contactEmail && (
+              )} */}
+              {/* {contactEmail && (
                 <a
                   href={`mailto:${contactEmail}`}
                   className="w-9 h-9 rounded-xl bg-[#08152e] light:bg-white hover:bg-cyan-500/20 light:hover:bg-blue-50 border border-cyan-500/25 light:border-slate-200 flex items-center justify-center transition-all text-slate-300 light:text-slate-700 hover:text-cyan-300 light:hover:text-blue-600"
@@ -143,7 +143,7 @@ export function PublicFooter({ settings }: PublicFooterProps) {
                 >
                   <Mail size={15} />
                 </a>
-              )}
+              )} */}
             </div>
           </div>
 

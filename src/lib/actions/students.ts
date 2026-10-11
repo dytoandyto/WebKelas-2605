@@ -10,6 +10,9 @@ import {
   formatGithubUrl,
   formatInstagramUrl,
   formatLinkedinUrl,
+  formatPhotoUrl,
+  isGoogleDriveUrl,
+  getGoogleDriveViewUrl,
 } from "@/lib/utils";
 import {
   StudentExcelRow,
@@ -45,7 +48,11 @@ export async function createStudentAction(input: StudentInput): Promise<ActionRe
         nickname: data.nickname || null,
         studentNumber: data.studentNumber || null,
         major: data.major || "Sistem Informasi",
-        photoUrl: data.photoUrl || null,
+        photoUrl: data.photoUrl
+          ? isGoogleDriveUrl(data.photoUrl)
+            ? getGoogleDriveViewUrl(data.photoUrl)
+            : formatPhotoUrl(data.photoUrl)
+          : null,
         bio: data.bio || null,
         dream: data.dream || null,
         motivation: data.motivation || null,
@@ -99,7 +106,11 @@ export async function updateStudentAction(id: string, input: StudentInput): Prom
         nickname: data.nickname || null,
         studentNumber: data.studentNumber || null,
         major: data.major || "Sistem Informasi",
-        photoUrl: data.photoUrl || null,
+        photoUrl: data.photoUrl
+          ? isGoogleDriveUrl(data.photoUrl)
+            ? getGoogleDriveViewUrl(data.photoUrl)
+            : formatPhotoUrl(data.photoUrl)
+          : null,
         bio: data.bio || null,
         dream: data.dream || null,
         motivation: data.motivation || null,
@@ -412,7 +423,7 @@ export async function importStudentsBatchAction(
               photoApproved: row.foto_disetujui,
             };
 
-            if (row.foto_url) updatePayload.photoUrl = row.foto_url;
+            if (row.foto_url) updatePayload.photoUrl = formatPhotoUrl(row.foto_url);
             if (row.cita_cita) updatePayload.dream = row.cita_cita;
             if (row.motivasi) updatePayload.motivation = row.motivasi;
             if (row.organisasi) updatePayload.organization = row.organisasi;
@@ -447,7 +458,7 @@ export async function importStudentsBatchAction(
             nickname: row.nama_panggilan || null,
             studentNumber: rawNim,
             major: row.program_studi || "Sistem Informasi",
-            photoUrl: row.foto_url || null,
+            photoUrl: row.foto_url ? formatPhotoUrl(row.foto_url) : null,
             dream: row.cita_cita || null,
             motivation: row.motivasi || null,
             organization: row.organisasi || null,

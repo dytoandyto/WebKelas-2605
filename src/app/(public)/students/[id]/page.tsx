@@ -23,6 +23,7 @@ import {
 } from "@/lib/utils";
 import { AchievementCategory } from "@prisma/client";
 import { ContentContainer } from "@/components/shared";
+import { Avatar } from "@/components/ui/avatar";
 
 const CATEGORY_COLOR: Record<AchievementCategory, string> = {
   COMPETITION: "badge-amber",
@@ -85,19 +86,13 @@ export default async function StudentDetailPage({
           <div className="h-40 bg-gradient-to-r from-blue-700 via-cyan-600 to-indigo-800 relative">
             <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
             <div className="absolute -bottom-12 left-6 sm:left-8">
-              <div className="w-24 h-24 rounded-2xl border-4 border-[var(--bg-surface)] shadow-lg overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                {student.photoUrl ? (
-                  <img
-                    src={student.photoUrl}
-                    alt={student.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-white font-extrabold text-3xl font-display">
-                    {student.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
+              <Avatar
+                src={student.photoUrl}
+                name={student.name}
+                size="2xl"
+                shape="rounded"
+                className="border-4 border-[var(--bg-surface)] shadow-lg ring-2 ring-cyan-500/20"
+              />
             </div>
           </div>
 

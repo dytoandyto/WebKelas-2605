@@ -181,3 +181,97 @@ export function formatLinkedinUrl(handleOrUrl?: string | null): string {
   return `https://linkedin.com/in/${clean}`;
 }
 
+/**
+ * Extracts a Google Drive file ID from various URL patterns.
+ * Supports:
+ * - drive.google.com/open?id=FILE_ID
+ * - drive.google.com/file/d/FILE_ID/view (or /preview, /edit)
+ * - drive.google.com/uc?export=view&id=FILE_ID
+ * - drive.google.com/thumbnail?id=FILE_ID
+ * - docs.google.com/file/d/FILE_ID/...
+ * - lh3.googleusercontent.com/d/FILE_ID
+ */
+export function extractGoogleDriveFileId(url?: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  const isGoogleDomain = /(drive\.google\.com|docs\.google\.com|googleusercontent\.com)/i.test(trimmed);
+  if (!isGoogleDomain) return null;
+
+  // 1. /file/d/{id}
+  const fileDMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  if (fileDMatch?.[1]) return fileDMatch[1];
+
+  // 2. /d/{id} (e.g. lh3.googleusercontent.com/d/FILE_ID or drive.google.com/d/FILE_ID)
+  const dMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/i);
+  if (dMatch?.[1]) return dMatch[1];
+
+  // 3. Query param id={id}
+  const idQueryMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
+  if (idQueryMatch?.[1]) return idQueryMatch[1];
+
+  return null;
+}
+
+/**
+ * Checks whether a URL is a recognized Google Drive URL.
+ */
+export function isGoogleDriveUrl(url?: string | null): boolean {
+  return !!extractGoogleDriveFileId(url);
+}
+
+/**
+ * Centralized utility to format and normalize student photo URLs.
+ * If the URL is from Google Drive, it extracts the file ID and converts
+ * it to Google's direct image CDN endpoint:
+ * https://lh3.googleusercontent.com/d/{fileId}
+ * 
+ * Data URLs, relative paths, and non-Google external URLs (e.g. Unsplash, S3, Cloudinary)
+ * are preserved safely without unwanted alterations.
+ */
+export function formatPhotoUrl(url?: string | null): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+
+  // Preserve data URLs (base64) and relative paths
+  if (trimmed.startsWith("data:") || trimmed.startsWith("blob:") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  // Check if it's a Google Drive URL
+  const driveFileId = extractGoogleDriveFileId(trimmed);
+  if (driveFileId) {
+    return `https://lh3.googleusercontent.com/d/${driveFileId}`;
+  }
+
+  // Other external URLs: preserve as-is if already valid protocol
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Auto-prepend https:// only if it looks like a valid hostname (e.g. "example.com/photo.jpg")
+  if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(trimmed)) {
+    return `https://${trimmed.replace(/^\/+/, "")}`;
+  }
+
+  return "";
+}
+
+/**
+ * Converts any Google Drive URL into the standard browser viewer URL:
+ * https://drive.google.com/file/d/{fileId}/view
+ * If the URL is not Google Drive, returns formatExternalUrl(url).
+ */
+export function getGoogleDriveViewUrl(url?: string | null): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  const driveId = extractGoogleDriveFileId(trimmed);
+  if (driveId) {
+    return `https://drive.google.com/file/d/${driveId}/view`;
+  }
+  return formatExternalUrl(trimmed);
+}
+

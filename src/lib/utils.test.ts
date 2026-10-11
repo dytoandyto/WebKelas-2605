@@ -81,4 +81,74 @@ describe("Utils tests", () => {
     expect(formatLinkedinUrl("@desakpradnyani")).toBe("https://linkedin.com/in/desakpradnyani");
     expect(formatLinkedinUrl("https://linkedin.com/in/desakpradnyani")).toBe("https://linkedin.com/in/desakpradnyani");
   });
+
+  it("normalizes Google Drive photo URLs to direct image CDN endpoints", async () => {
+    const {
+      extractGoogleDriveFileId,
+      isGoogleDriveUrl,
+      formatPhotoUrl,
+    } = await import("./utils");
+
+    const testId = "1qgIzTm5-9i8AJhGfZEs83SPXlTkN0diw";
+    const expectedCdn = `https://lh3.googleusercontent.com/d/${testId}`;
+
+    // 1. Google Drive /open?id= format (actual production database format)
+    expect(extractGoogleDriveFileId(`https://drive.google.com/open?id=${testId}`)).toBe(testId);
+    expect(isGoogleDriveUrl(`https://drive.google.com/open?id=${testId}`)).toBe(true);
+    expect(formatPhotoUrl(`https://drive.google.com/open?id=${testId}`)).toBe(expectedCdn);
+
+    // 2. Google Drive /file/d/.../view with query params (sharing link format)
+    expect(extractGoogleDriveFileId(`https://drive.google.com/file/d/${testId}/view?usp=sharing`)).toBe(testId);
+    expect(formatPhotoUrl(`https://drive.google.com/file/d/${testId}/view?usp=sharing`)).toBe(expectedCdn);
+
+    // 3. Google Drive /file/d/... without view
+    expect(extractGoogleDriveFileId(`https://drive.google.com/file/d/${testId}`)).toBe(testId);
+    expect(formatPhotoUrl(`https://drive.google.com/file/d/${testId}`)).toBe(expectedCdn);
+
+    // 4. Google Drive /uc?id= export format
+    expect(extractGoogleDriveFileId(`https://drive.google.com/uc?export=view&id=${testId}`)).toBe(testId);
+    expect(formatPhotoUrl(`https://drive.google.com/uc?export=view&id=${testId}`)).toBe(expectedCdn);
+
+    // 5. Google Drive /thumbnail?id=
+    expect(extractGoogleDriveFileId(`https://drive.google.com/thumbnail?id=${testId}&sz=w800`)).toBe(testId);
+    expect(formatPhotoUrl(`https://drive.google.com/thumbnail?id=${testId}&sz=w800`)).toBe(expectedCdn);
+
+    // 6. Docs.google.com/file/d/...
+    expect(extractGoogleDriveFileId(`https://docs.google.com/file/d/${testId}/edit`)).toBe(testId);
+    expect(formatPhotoUrl(`https://docs.google.com/file/d/${testId}/edit`)).toBe(expectedCdn);
+
+    // 7. Already lh3.googleusercontent.com/d/... format
+    expect(extractGoogleDriveFileId(`https://lh3.googleusercontent.com/d/${testId}`)).toBe(testId);
+    expect(formatPhotoUrl(`https://lh3.googleusercontent.com/d/${testId}`)).toBe(expectedCdn);
+
+    // 8. Non-Google external URLs MUST remain completely unchanged
+    const unsplashUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500";
+    expect(extractGoogleDriveFileId(unsplashUrl)).toBeNull();
+    expect(isGoogleDriveUrl(unsplashUrl)).toBe(false);
+    expect(formatPhotoUrl(unsplashUrl)).toBe(unsplashUrl);
+
+    // 9. Base64 data URLs MUST remain unchanged
+    const dataUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD";
+    expect(extractGoogleDriveFileId(dataUrl)).toBeNull();
+    expect(formatPhotoUrl(dataUrl)).toBe(dataUrl);
+
+    // 10. Local relative paths MUST remain unchanged
+    const localPath = "/images/students/budi.jpg";
+    expect(extractGoogleDriveFileId(localPath)).toBeNull();
+    expect(formatPhotoUrl(localPath)).toBe(localPath);
+
+    // 11. Empty / null values
+    expect(formatPhotoUrl("")).toBe("");
+    expect(formatPhotoUrl(null)).toBe("");
+    expect(formatPhotoUrl(undefined)).toBe("");
+
+    // 12. getGoogleDriveViewUrl canonical viewer URL
+    const { getGoogleDriveViewUrl } = await import("./utils");
+    const azkaId = "1bJMFppsgAxnAoKCzgYHakaEtVmED54FY";
+    const azkaExpectedView = `https://drive.google.com/file/d/${azkaId}/view`;
+    expect(getGoogleDriveViewUrl(`https://drive.google.com/open?id=${azkaId}`)).toBe(azkaExpectedView);
+    expect(getGoogleDriveViewUrl(`https://drive.google.com/file/d/${azkaId}/view`)).toBe(azkaExpectedView);
+    expect(getGoogleDriveViewUrl(`https://lh3.googleusercontent.com/d/${azkaId}`)).toBe(azkaExpectedView);
+    expect(getGoogleDriveViewUrl(unsplashUrl)).toBe(unsplashUrl);
+  });
 });

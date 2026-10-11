@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { formatPhotoUrl } from "@/lib/utils";
 import {
   initialAchievements,
   initialAnnouncements,
@@ -58,6 +59,8 @@ export function sanitizePublicStudent<T extends { studentNumber?: string | null;
   const { studentNumber, ...rest } = student;
   if ("photoApproved" in student && student.photoApproved === false) {
     (rest as any).photoUrl = null;
+  } else if ("photoUrl" in rest && typeof (rest as any).photoUrl === "string") {
+    (rest as any).photoUrl = formatPhotoUrl((rest as any).photoUrl);
   }
   return rest;
 }

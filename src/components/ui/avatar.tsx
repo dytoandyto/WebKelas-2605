@@ -1,15 +1,16 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, formatPhotoUrl, extractGoogleDriveFileId } from "@/lib/utils";
 
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string | null;
   alt?: string;
   name?: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  shape?: "circle" | "rounded";
   status?: "online" | "offline" | "busy" | "away";
+  unoptimized?: boolean;
 }
 
 export function Avatar({
@@ -17,11 +18,40 @@ export function Avatar({
   alt,
   name,
   size = "md",
+  shape = "circle",
   status,
   className,
   ...props
 }: AvatarProps) {
+  const initialSrc = React.useMemo(() => formatPhotoUrl(src), [src]);
+  const [currentSrc, setCurrentSrc] = React.useState<string>(initialSrc);
+  const [useFallbackProxy, setUseFallbackProxy] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
+
+  // Synchronize source when prop changes
+  React.useEffect(() => {
+    setImageError(false);
+    setUseFallbackProxy(false);
+    setCurrentSrc(formatPhotoUrl(src));
+  }, [src]);
+
+  const handleError = () => {
+    // If direct Google CDN failed, try local server-side API proxy
+    const driveId = extractGoogleDriveFileId(src);
+    if (driveId && !useFallbackProxy) {
+      setUseFallbackProxy(true);
+      setCurrentSrc(`/api/avatar?id=${driveId}`);
+      return;
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[Avatar] Foto profil gagal dimuat (${name || alt || "Avatar"}):`,
+        src
+      );
+    }
+    setImageError(true);
+  };
 
   const sizeClasses = {
     xs: "w-6 h-6 text-[10px]",
@@ -29,7 +59,13 @@ export function Avatar({
     md: "w-10 h-10 text-sm",
     lg: "w-14 h-14 text-base",
     xl: "w-20 h-20 text-xl font-bold",
+    "2xl": "w-24 h-24 text-2xl font-extrabold font-display",
   }[size];
+
+  const shapeClasses = {
+    circle: "rounded-full",
+    rounded: "rounded-2xl",
+  }[shape];
 
   const statusClasses = {
     online: "bg-emerald-400",
@@ -50,22 +86,24 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "relative rounded-full shrink-0 flex items-center justify-center font-semibold select-none overflow-hidden",
+        "relative shrink-0 flex items-center justify-center font-semibold select-none overflow-hidden",
         "bg-gradient-to-tr from-blue-600/30 to-cyan-500/30 border border-cyan-400/30 text-cyan-200",
         "light:bg-blue-50 light:border-blue-200 light:text-blue-700",
+        shapeClasses,
         sizeClasses,
         className
       )}
       {...props}
     >
-      {src && !imageError ? (
-        <Image
-          src={src}
+      {currentSrc && !imageError ? (
+        <img
+          src={currentSrc}
           alt={alt || name || "Avatar"}
-          fill
-          sizes="80px"
-          className="object-cover"
-          onError={() => setImageError(true)}
+          className="w-full h-full object-cover select-none pointer-events-none"
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={handleError}
         />
       ) : (
         <span>{getInitials(name || alt)}</span>
