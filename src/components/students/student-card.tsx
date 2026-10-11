@@ -7,7 +7,13 @@ import { GithubIcon, LinkedinIcon, InstagramIcon } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  formatExternalUrl,
+  formatGithubUrl,
+  formatInstagramUrl,
+  formatLinkedinUrl,
+} from "@/lib/utils";
 
 export interface StudentData {
   id: string;
@@ -107,9 +113,9 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
         <div className="flex items-center gap-2">
           {student.githubUrl && (
             <a
-              href={student.githubUrl}
+              href={formatGithubUrl(student.githubUrl)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-cyan-500/10 transition-colors"
               title="GitHub Profile"
@@ -119,9 +125,9 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
           )}
           {student.linkedinUrl && (
             <a
-              href={student.linkedinUrl}
+              href={formatLinkedinUrl(student.linkedinUrl)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-blue-400 hover:bg-cyan-500/10 transition-colors"
               title="LinkedIn Profile"
@@ -131,9 +137,9 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
           )}
           {student.portfolioUrl && (
             <a
-              href={student.portfolioUrl}
+              href={formatExternalUrl(student.portfolioUrl)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
               title="Portofolio Web"
@@ -143,9 +149,9 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
           )}
           {student.instagramUrl && (
             <a
-              href={student.instagramUrl}
+              href={formatInstagramUrl(student.instagramUrl)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-pink-500 hover:bg-pink-500/10 transition-colors"
               title="Instagram Profile"

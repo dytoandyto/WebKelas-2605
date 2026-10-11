@@ -6,6 +6,12 @@ import { assertPermission, logActivity } from "./common";
 import { ActionResult } from "./auth";
 import prisma from "@/lib/db";
 import {
+  formatExternalUrl,
+  formatGithubUrl,
+  formatInstagramUrl,
+  formatLinkedinUrl,
+} from "@/lib/utils";
+import {
   StudentExcelRow,
   ImportStrategy,
   ImportExecutionResult,
@@ -46,10 +52,10 @@ export async function createStudentAction(input: StudentInput): Promise<ActionRe
         organization: data.organization || null,
         isPublished: data.isPublished ?? true,
         photoApproved: data.photoApproved ?? true,
-        githubUrl: data.githubUrl || null,
-        linkedinUrl: data.linkedinUrl || null,
-        portfolioUrl: data.portfolioUrl || null,
-        instagramUrl: data.instagramUrl || null,
+        githubUrl: data.githubUrl ? formatGithubUrl(data.githubUrl) : null,
+        linkedinUrl: data.linkedinUrl ? formatLinkedinUrl(data.linkedinUrl) : null,
+        portfolioUrl: data.portfolioUrl ? formatExternalUrl(data.portfolioUrl) : null,
+        instagramUrl: data.instagramUrl ? formatInstagramUrl(data.instagramUrl) : null,
       },
     });
 
@@ -100,10 +106,10 @@ export async function updateStudentAction(id: string, input: StudentInput): Prom
         organization: data.organization || null,
         isPublished: data.isPublished ?? true,
         photoApproved: data.photoApproved ?? true,
-        githubUrl: data.githubUrl || null,
-        linkedinUrl: data.linkedinUrl || null,
-        portfolioUrl: data.portfolioUrl || null,
-        instagramUrl: data.instagramUrl || null,
+        githubUrl: data.githubUrl ? formatGithubUrl(data.githubUrl) : null,
+        linkedinUrl: data.linkedinUrl ? formatLinkedinUrl(data.linkedinUrl) : null,
+        portfolioUrl: data.portfolioUrl ? formatExternalUrl(data.portfolioUrl) : null,
+        instagramUrl: data.instagramUrl ? formatInstagramUrl(data.instagramUrl) : null,
       },
     });
 
@@ -411,10 +417,10 @@ export async function importStudentsBatchAction(
             if (row.motivasi) updatePayload.motivation = row.motivasi;
             if (row.organisasi) updatePayload.organization = row.organisasi;
             if (row.biodata) updatePayload.bio = row.biodata;
-            if (row.instagram) updatePayload.instagramUrl = row.instagram;
-            if (row.linkedin) updatePayload.linkedinUrl = row.linkedin;
-            if (row.github) updatePayload.githubUrl = row.github;
-            if (row.portfolio) updatePayload.portfolioUrl = row.portfolio;
+            if (row.instagram) updatePayload.instagramUrl = formatInstagramUrl(row.instagram);
+            if (row.linkedin) updatePayload.linkedinUrl = formatLinkedinUrl(row.linkedin);
+            if (row.github) updatePayload.githubUrl = formatGithubUrl(row.github);
+            if (row.portfolio) updatePayload.portfolioUrl = formatExternalUrl(row.portfolio);
             if (rawNim) updatePayload.studentNumber = rawNim;
 
             await prisma.student.update({
@@ -448,10 +454,10 @@ export async function importStudentsBatchAction(
             bio: row.biodata || null,
             isPublished: row.profil_publik,
             photoApproved: row.foto_disetujui,
-            instagramUrl: row.instagram || null,
-            linkedinUrl: row.linkedin || null,
-            githubUrl: row.github || null,
-            portfolioUrl: row.portfolio || null,
+            instagramUrl: row.instagram ? formatInstagramUrl(row.instagram) : null,
+            linkedinUrl: row.linkedin ? formatLinkedinUrl(row.linkedin) : null,
+            githubUrl: row.github ? formatGithubUrl(row.github) : null,
+            portfolioUrl: row.portfolio ? formatExternalUrl(row.portfolio) : null,
           },
         });
 

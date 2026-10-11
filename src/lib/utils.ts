@@ -119,3 +119,65 @@ export function getRelativeDeadline(
     daysRemaining: diffDays,
   };
 }
+
+/**
+ * Ensures an external URL starts with http:// or https://.
+ * If user inputs a domain or path like "desakpradnyani.vercel.app",
+ * it auto-prepends "https://" so the browser navigates externally instead of as a relative route.
+ */
+export function formatExternalUrl(url?: string | null): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed)) {
+    return trimmed;
+  }
+  const clean = trimmed.replace(/^\/+/, "");
+  return `https://${clean}`;
+}
+
+/**
+ * Normalizes an Instagram username, handle, or URL to a full valid https:// URL.
+ */
+export function formatInstagramUrl(handleOrUrl?: string | null): string {
+  if (!handleOrUrl) return "";
+  const trimmed = handleOrUrl.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const clean = trimmed.replace(/^@/, "").replace(/^\/+/, "");
+  if (clean.includes("instagram.com")) {
+    return `https://${clean.replace(/^https?:\/\//, "")}`;
+  }
+  return `https://instagram.com/${clean}`;
+}
+
+/**
+ * Normalizes a GitHub username, handle, or URL to a full valid https:// URL.
+ */
+export function formatGithubUrl(handleOrUrl?: string | null): string {
+  if (!handleOrUrl) return "";
+  const trimmed = handleOrUrl.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const clean = trimmed.replace(/^@/, "").replace(/^\/+/, "");
+  if (clean.includes("github.com")) {
+    return `https://${clean.replace(/^https?:\/\//, "")}`;
+  }
+  return `https://github.com/${clean}`;
+}
+
+/**
+ * Normalizes a LinkedIn handle, profile slug, or URL to a full valid https:// URL.
+ */
+export function formatLinkedinUrl(handleOrUrl?: string | null): string {
+  if (!handleOrUrl) return "";
+  const trimmed = handleOrUrl.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const clean = trimmed.replace(/^@/, "").replace(/^\/+/, "");
+  if (clean.includes("linkedin.com")) {
+    return `https://${clean.replace(/^https?:\/\//, "")}`;
+  }
+  return `https://linkedin.com/in/${clean}`;
+}
+

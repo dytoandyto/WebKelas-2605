@@ -47,4 +47,38 @@ describe("Utils tests", () => {
     expect(isTaskFlexibleOrNoDeadline({ notes: "Tugas fleksibel" })).toBe(true);
     expect(isTaskFlexibleOrNoDeadline({ title: "Tugas Biasa", notes: "Kumpul di LMS" })).toBe(false);
   });
+
+  it("normalizes external URLs and prevents relative navigation bugs", async () => {
+    const {
+      formatExternalUrl,
+      formatInstagramUrl,
+      formatGithubUrl,
+      formatLinkedinUrl,
+    } = await import("./utils");
+
+    // Portfolio URL checks (specifically the user's issue: desakpradnyani.vercel.app)
+    expect(formatExternalUrl("desakpradnyani.vercel.app")).toBe("https://desakpradnyani.vercel.app");
+    expect(formatExternalUrl("https://desakpradnyani.vercel.app")).toBe("https://desakpradnyani.vercel.app");
+    expect(formatExternalUrl("http://desakpradnyani.vercel.app")).toBe("http://desakpradnyani.vercel.app");
+    expect(formatExternalUrl("/desakpradnyani.vercel.app")).toBe("https://desakpradnyani.vercel.app");
+    expect(formatExternalUrl("")).toBe("");
+    expect(formatExternalUrl(null)).toBe("");
+    expect(formatExternalUrl(undefined)).toBe("");
+
+    // Instagram URL checks
+    expect(formatInstagramUrl("desakpradnyani")).toBe("https://instagram.com/desakpradnyani");
+    expect(formatInstagramUrl("@desakpradnyani")).toBe("https://instagram.com/desakpradnyani");
+    expect(formatInstagramUrl("https://instagram.com/desakpradnyani")).toBe("https://instagram.com/desakpradnyani");
+    expect(formatInstagramUrl("")).toBe("");
+
+    // GitHub URL checks
+    expect(formatGithubUrl("desakpradnyani")).toBe("https://github.com/desakpradnyani");
+    expect(formatGithubUrl("@desakpradnyani")).toBe("https://github.com/desakpradnyani");
+    expect(formatGithubUrl("https://github.com/desakpradnyani")).toBe("https://github.com/desakpradnyani");
+
+    // LinkedIn URL checks
+    expect(formatLinkedinUrl("desakpradnyani")).toBe("https://linkedin.com/in/desakpradnyani");
+    expect(formatLinkedinUrl("@desakpradnyani")).toBe("https://linkedin.com/in/desakpradnyani");
+    expect(formatLinkedinUrl("https://linkedin.com/in/desakpradnyani")).toBe("https://linkedin.com/in/desakpradnyani");
+  });
 });

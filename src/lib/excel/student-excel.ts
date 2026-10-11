@@ -1,5 +1,11 @@
 import ExcelJS from "exceljs";
 import { parseBooleanFlex } from "@/lib/validations";
+import {
+  formatExternalUrl,
+  formatGithubUrl,
+  formatInstagramUrl,
+  formatLinkedinUrl,
+} from "@/lib/utils";
 
 export interface StudentExcelRow {
   nama_lengkap: string;
@@ -823,6 +829,18 @@ export function processAndValidateStudentRows(
       if (val !== undefined && val !== null) {
         if (mappedField === "profil_publik" || mappedField === "foto_disetujui") {
           data[mappedField] = parseBooleanFlex(val, false);
+        } else if (mappedField === "portfolio") {
+          const str = String(val).trim();
+          data.portfolio = str.length > 0 ? formatExternalUrl(str) : null;
+        } else if (mappedField === "instagram") {
+          const str = String(val).trim();
+          data.instagram = str.length > 0 ? formatInstagramUrl(str) : null;
+        } else if (mappedField === "github") {
+          const str = String(val).trim();
+          data.github = str.length > 0 ? formatGithubUrl(str) : null;
+        } else if (mappedField === "linkedin") {
+          const str = String(val).trim();
+          data.linkedin = str.length > 0 ? formatLinkedinUrl(str) : null;
         } else {
           const str = String(val).trim();
           data[mappedField] = str.length > 0 ? str : null;

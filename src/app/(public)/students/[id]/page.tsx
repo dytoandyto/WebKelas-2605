@@ -13,7 +13,14 @@ import {
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon, InstagramIcon } from "@/components/icons";
 import { getStudentById } from "@/lib/data";
-import { formatDate, cn } from "@/lib/utils";
+import {
+  formatDate,
+  cn,
+  formatExternalUrl,
+  formatGithubUrl,
+  formatInstagramUrl,
+  formatLinkedinUrl,
+} from "@/lib/utils";
 import { AchievementCategory } from "@prisma/client";
 import { ContentContainer } from "@/components/shared";
 
@@ -117,7 +124,7 @@ export default async function StudentDetailPage({
               <div className="flex items-center gap-2.5 flex-wrap">
                 {student.githubUrl && (
                   <a
-                    href={student.githubUrl}
+                    href={formatGithubUrl(student.githubUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary)] text-xs font-semibold transition-colors"
@@ -129,7 +136,7 @@ export default async function StudentDetailPage({
                 )}
                 {student.linkedinUrl && (
                   <a
-                    href={student.linkedinUrl}
+                    href={formatLinkedinUrl(student.linkedinUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary)] text-xs font-semibold transition-colors"
@@ -141,7 +148,7 @@ export default async function StudentDetailPage({
                 )}
                 {student.portfolioUrl && (
                   <a
-                    href={student.portfolioUrl}
+                    href={formatExternalUrl(student.portfolioUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-[var(--primary)] hover:underline text-xs font-semibold transition-colors"
@@ -153,7 +160,7 @@ export default async function StudentDetailPage({
                 )}
                 {(student as any).instagramUrl && (
                   <a
-                    href={(student as any).instagramUrl}
+                    href={formatInstagramUrl((student as any).instagramUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-color)] text-pink-500 hover:text-pink-600 hover:border-pink-500 text-xs font-semibold transition-colors"

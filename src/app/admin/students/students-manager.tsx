@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Building2,
   Sparkles,
+  Globe,
 } from "lucide-react";
 import { InstagramIcon } from "@/components/icons";
 import { Modal } from "@/components/admin/modal";
@@ -41,7 +42,13 @@ import {
   toggleStudentPublishAction,
   toggleStudentPhotoApprovalAction,
 } from "@/lib/actions/students";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  formatExternalUrl,
+  formatGithubUrl,
+  formatInstagramUrl,
+  formatLinkedinUrl,
+} from "@/lib/utils";
 import { compressImageFile } from "@/lib/compress-image";
 import { EmptyState } from "@/components/ui/empty-state";
 import { showToast } from "@/components/ui/toast";
@@ -291,10 +298,10 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
         organization: formData.organization.trim() || null,
         isPublished: formData.isPublished,
         photoApproved: formData.photoApproved,
-        githubUrl: formData.githubUrl.trim() || null,
-        linkedinUrl: formData.linkedinUrl.trim() || null,
-        portfolioUrl: formData.portfolioUrl.trim() || null,
-        instagramUrl: formData.instagramUrl.trim() || null,
+        githubUrl: formData.githubUrl.trim() ? formatGithubUrl(formData.githubUrl.trim()) : null,
+        linkedinUrl: formData.linkedinUrl.trim() ? formatLinkedinUrl(formData.linkedinUrl.trim()) : null,
+        portfolioUrl: formData.portfolioUrl.trim() ? formatExternalUrl(formData.portfolioUrl.trim()) : null,
+        instagramUrl: formData.instagramUrl.trim() ? formatInstagramUrl(formData.instagramUrl.trim()) : null,
       };
 
       if (editingStudent) {
@@ -739,13 +746,24 @@ export function StudentsManager({ initialStudents }: StudentsManagerProps) {
                       <div className="flex items-center justify-end gap-1">
                         {st.instagramUrl && (
                           <a
-                            href={st.instagramUrl}
+                            href={formatInstagramUrl(st.instagramUrl)}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             className="btn btn-ghost btn-icon p-1.5 text-pink-500 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-950/30"
                             title="Instagram"
                           >
                             <InstagramIcon size={15} />
+                          </a>
+                        )}
+                        {st.portfolioUrl && (
+                          <a
+                            href={formatExternalUrl(st.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-ghost btn-icon p-1.5 text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-950/30"
+                            title="Portofolio Web"
+                          >
+                            <Globe size={15} />
                           </a>
                         )}
                         <Link

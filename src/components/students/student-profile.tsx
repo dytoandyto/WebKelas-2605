@@ -16,6 +16,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  formatExternalUrl,
+  formatGithubUrl,
+  formatInstagramUrl,
+  formatLinkedinUrl,
+} from "@/lib/utils";
 
 export interface StudentProfileProps {
   student: StudentData | null;
@@ -126,9 +132,9 @@ export function StudentProfile({
           <div className="flex items-center gap-3 pt-2">
             {student.githubUrl && (
               <a
-                href={student.githubUrl}
+                href={formatGithubUrl(student.githubUrl)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] hover:border-cyan-400/50 text-xs font-medium text-[var(--text-primary)] transition-colors light:bg-slate-100"
               >
                 <GithubIcon size={14} />
@@ -137,9 +143,9 @@ export function StudentProfile({
             )}
             {student.linkedinUrl && (
               <a
-                href={student.linkedinUrl}
+                href={formatLinkedinUrl(student.linkedinUrl)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] hover:border-blue-400/50 text-xs font-medium text-blue-400 transition-colors light:bg-slate-100"
               >
                 <LinkedinIcon size={14} />
@@ -148,9 +154,9 @@ export function StudentProfile({
             )}
             {student.portfolioUrl && (
               <a
-                href={student.portfolioUrl}
+                href={formatExternalUrl(student.portfolioUrl)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] hover:border-cyan-400/50 text-xs font-medium text-cyan-300 transition-colors light:bg-slate-100"
               >
                 <ExternalLink size={14} />
@@ -159,9 +165,9 @@ export function StudentProfile({
             )}
             {student.instagramUrl && (
               <a
-                href={student.instagramUrl}
+                href={formatInstagramUrl(student.instagramUrl)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] hover:border-pink-400/50 text-xs font-medium text-pink-500 hover:text-pink-600 transition-colors light:bg-slate-100"
               >
                 <InstagramIcon size={14} />
