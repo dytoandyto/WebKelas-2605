@@ -17,7 +17,7 @@ export function StudentsDirectory({
 }: StudentsDirectoryProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"prestasi_absen" | "achievements" | "absen" | "name">("prestasi_absen");
+  const [sortBy, setSortBy] = useState<"prestasi_abjad" | "achievements" | "name">("prestasi_abjad");
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -40,24 +40,9 @@ export function StudentsDirectory({
           const achB = b.achievements?.length || 0;
           return achB - achA;
         }
-        if (sortBy === "absen") {
-          if (a.attendanceNumber && b.attendanceNumber) return a.attendanceNumber - b.attendanceNumber;
-          if (a.studentNumber && b.studentNumber) {
-            return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
-          }
-          if (a.studentNumber) return -1;
-          if (b.studentNumber) return 1;
-          return a.name.localeCompare(b.name);
-        }
-        if (sortBy === "prestasi_absen") {
+        if (sortBy === "prestasi_abjad") {
           const achDiff = (b.achievements?.length || 0) - (a.achievements?.length || 0);
           if (achDiff !== 0) return achDiff;
-          if (a.attendanceNumber && b.attendanceNumber) return a.attendanceNumber - b.attendanceNumber;
-          if (a.studentNumber && b.studentNumber) {
-            return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
-          }
-          if (a.studentNumber) return -1;
-          if (b.studentNumber) return 1;
           return a.name.localeCompare(b.name);
         }
         return a.name.localeCompare(b.name);
@@ -90,9 +75,8 @@ export function StudentsDirectory({
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
             >
-              <option value="prestasi_absen">Prestasi & Absen (Default)</option>
+              <option value="prestasi_abjad">Prestasi lalu Nama (Default)</option>
               <option value="achievements">Prestasi Terbanyak</option>
-              <option value="absen">Urutan Absen / NIM</option>
               <option value="name">Nama (A-Z)</option>
             </Select>
           </div>
