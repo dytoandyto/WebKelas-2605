@@ -138,8 +138,6 @@ export async function getHomeData() {
       }),
       prisma.student.findMany({
         where: { isPublished: true },
-        take: 4,
-        orderBy: { name: "asc" },
         include: { achievements: { include: { achievement: true } } },
       }),
       prisma.gallery.findMany({
@@ -169,6 +167,36 @@ export async function getHomeData() {
       computedStatus: computeDynamicTaskStatus(t),
     }));
 
+    // Hitung nomor absen kelas (NIM / studentNumber ascending) untuk menentukan nomor urut absensi resmi
+    const classRosterByAbsen = [...featuredStudentsRaw].sort((a, b) => {
+      if (a.studentNumber && b.studentNumber) {
+        return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
+      }
+      if (a.studentNumber) return -1;
+      if (b.studentNumber) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    const studentAbsenMap = new Map<string, number>();
+    classRosterByAbsen.forEach((st, idx) => {
+      studentAbsenMap.set(st.id, idx + 1);
+    });
+
+    // Urutkan mahasiswa di Home:
+    // 1. Prestasi terbanyak lebih dulu
+    // 2. Jika sama, urutan absen (attendanceNumber / NIM)
+    // 3. Nama (A-Z)
+    const sortedFeaturedStudents = [...featuredStudentsRaw].sort((a, b) => {
+      const achDiff = (b.achievements?.length || 0) - (a.achievements?.length || 0);
+      if (achDiff !== 0) return achDiff;
+
+      const absenA = studentAbsenMap.get(a.id) ?? 999;
+      const absenB = studentAbsenMap.get(b.id) ?? 999;
+      if (absenA !== absenB) return absenA - absenB;
+
+      return a.name.localeCompare(b.name);
+    });
+
     return {
       stats: {
         studentsCount,
@@ -183,7 +211,10 @@ export async function getHomeData() {
       todayDayOfWeek,
       latestAnnouncements,
       latestAchievements: latestAchievementsRaw,
-      featuredStudents: featuredStudentsRaw.map((s) => sanitizePublicStudent(s)),
+      featuredStudents: sortedFeaturedStudents.map((s) => ({
+        ...sanitizePublicStudent(s),
+        attendanceNumber: studentAbsenMap.get(s.id) || null,
+      })),
       galleryPreview,
       latestMaterials: latestMaterialsRaw,
       latestDailyNotes: latestDailyNotesRaw,
@@ -196,6 +227,27 @@ export async function getHomeData() {
       .filter((t) => t.status !== TaskStatus.COMPLETED)
       .map((t) => ({ ...t, computedStatus: computeDynamicTaskStatus(t) }))
       .slice(0, 4);
+
+    const initialAbsenMap = new Map<string, number>();
+    [...initialStudents]
+      .sort((a, b) => {
+        if (a.studentNumber && b.studentNumber) {
+          return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
+        }
+        if (a.studentNumber) return -1;
+        if (b.studentNumber) return 1;
+        return a.name.localeCompare(b.name);
+      })
+      .forEach((st, idx) => initialAbsenMap.set(st.id, idx + 1));
+
+    const sortedInitialStudents = [...initialStudents].sort((a, b) => {
+      const achDiff = (b.achievements?.length || 0) - (a.achievements?.length || 0);
+      if (achDiff !== 0) return achDiff;
+      const absenA = initialAbsenMap.get(a.id) ?? 999;
+      const absenB = initialAbsenMap.get(b.id) ?? 999;
+      if (absenA !== absenB) return absenA - absenB;
+      return a.name.localeCompare(b.name);
+    });
 
     return {
       stats: {
@@ -211,7 +263,10 @@ export async function getHomeData() {
       todayDayOfWeek,
       latestAnnouncements: initialAnnouncements.filter((a) => a.isPublished).slice(0, 3),
       latestAchievements: initialAchievements.slice(0, 3),
-      featuredStudents: initialStudents.slice(0, 4).map((s) => sanitizePublicStudent(s)),
+      featuredStudents: sortedInitialStudents.map((s) => ({
+        ...sanitizePublicStudent(s),
+        attendanceNumber: initialAbsenMap.get(s.id) || null,
+      })),
       galleryPreview: initialGallery.slice(0, 6),
       latestMaterials: initialMaterials.slice(0, 4),
       latestDailyNotes: initialDailyNotes.slice(0, 3),
@@ -406,7 +461,7 @@ export async function getStudentsData(
   filters?: {
     search?: string;
     major?: string;
-    sort?: "name_asc" | "name_desc" | "achievements";
+    sort?: "name_asc" | "name_desc" | "achievements" | "absen" | "prestasi_absen";
   },
   options?: {
     includePrivate?: boolean;
@@ -456,10 +511,42 @@ export async function getStudentsData(
       },
     });
 
-    const students = includePrivate ? rawStudents : rawStudents.map((s) => sanitizePublicStudent(s));
+    // Hitung nomor absen kelas (NIM ascending, lalu nama)
+    const rosterByAbsen = [...rawStudents].sort((a, b) => {
+      if (a.studentNumber && b.studentNumber) {
+        return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
+      }
+      if (a.studentNumber) return -1;
+      if (b.studentNumber) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    const studentAbsenMap = new Map<string, number>();
+    rosterByAbsen.forEach((st, idx) => {
+      studentAbsenMap.set(st.id, idx + 1);
+    });
+
+    const students = rawStudents.map((s) => {
+      const sanitized = includePrivate ? s : sanitizePublicStudent(s);
+      return {
+        ...sanitized,
+        attendanceNumber: studentAbsenMap.get(s.id) || null,
+      };
+    });
 
     if (filters?.sort === "achievements") {
-      students.sort((a, b) => b.achievements.length - a.achievements.length);
+      students.sort((a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0));
+    } else if (filters?.sort === "absen") {
+      students.sort((a, b) => (a.attendanceNumber || 999) - (b.attendanceNumber || 999));
+    } else if (filters?.sort === "prestasi_absen") {
+      students.sort((a, b) => {
+        const achDiff = (b.achievements?.length || 0) - (a.achievements?.length || 0);
+        if (achDiff !== 0) return achDiff;
+        const absenA = a.attendanceNumber || 999;
+        const absenB = b.attendanceNumber || 999;
+        if (absenA !== absenB) return absenA - absenB;
+        return a.name.localeCompare(b.name);
+      });
     }
 
     const majorsRaw = await prisma.student.findMany({
@@ -487,12 +574,41 @@ export async function getStudentsData(
       );
     }
 
-    const students = includePrivate ? rawStudents : rawStudents.map((s) => sanitizePublicStudent(s));
+    const initialAbsenMap = new Map<string, number>();
+    [...rawStudents]
+      .sort((a, b) => {
+        if (a.studentNumber && b.studentNumber) {
+          return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
+        }
+        if (a.studentNumber) return -1;
+        if (b.studentNumber) return 1;
+        return a.name.localeCompare(b.name);
+      })
+      .forEach((st, idx) => initialAbsenMap.set(st.id, idx + 1));
+
+    const students = rawStudents.map((s) => {
+      const sanitized = includePrivate ? s : sanitizePublicStudent(s);
+      return {
+        ...sanitized,
+        attendanceNumber: initialAbsenMap.get(s.id) || null,
+      };
+    });
 
     if (filters?.sort === "name_desc") {
       students.sort((a, b) => b.name.localeCompare(a.name));
     } else if (filters?.sort === "achievements") {
-      students.sort((a, b) => b.achievements.length - a.achievements.length);
+      students.sort((a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0));
+    } else if (filters?.sort === "absen") {
+      students.sort((a, b) => (a.attendanceNumber || 999) - (b.attendanceNumber || 999));
+    } else if (filters?.sort === "prestasi_absen") {
+      students.sort((a, b) => {
+        const achDiff = (b.achievements?.length || 0) - (a.achievements?.length || 0);
+        if (achDiff !== 0) return achDiff;
+        const absenA = a.attendanceNumber || 999;
+        const absenB = b.attendanceNumber || 999;
+        if (absenA !== absenB) return absenA - absenB;
+        return a.name.localeCompare(b.name);
+      });
     } else {
       students.sort((a, b) => a.name.localeCompare(b.name));
     }

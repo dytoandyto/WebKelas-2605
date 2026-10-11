@@ -55,9 +55,16 @@ export function StudentProfile({
               <DialogTitle className="text-xl sm:text-2xl font-bold">
                 {student.name}
               </DialogTitle>
-              <p className="text-sm font-semibold text-cyan-400 light:text-blue-700">
-                {student.className || "JS1SI-26-REG-05"}
-              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-semibold text-cyan-400 light:text-blue-700">
+                  {student.className || "JS1SI-26-REG-05"}
+                </span>
+                {student.attendanceNumber && (
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 light:bg-blue-50 light:text-blue-700 light:border-blue-200">
+                    Absen #{student.attendanceNumber}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-[var(--text-muted)] font-medium">
                 {student.major || "S1 Sistem Informasi"}
               </p>

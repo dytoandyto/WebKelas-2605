@@ -18,6 +18,7 @@ import {
 export interface StudentData {
   id: string;
   studentNumber?: string | null;
+  attendanceNumber?: number | null;
   name: string;
   photoUrl?: string | null;
   major?: string;
@@ -82,6 +83,14 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
                 <Trophy className="w-3 h-3 text-amber-400" />
                 <span>{achievementCount} Prestasi</span>
               </Badge>
+            ) : student.attendanceNumber ? (
+              <Badge variant="default" className="text-[11px] font-mono bg-cyan-500/10 text-cyan-300 border-cyan-500/30 light:bg-blue-50 light:text-blue-700 light:border-blue-200">
+                <span>Absen #{student.attendanceNumber}</span>
+              </Badge>
+            ) : student.studentNumber ? (
+              <span className="text-[11px] text-[var(--text-muted)] font-mono">
+                {student.studentNumber}
+              </span>
             ) : (
               <span className="text-[11px] text-[var(--text-muted)] font-mono">
                 {student.className || "REG-05"}
@@ -96,6 +105,11 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
             {student.name}
           </h4>
           <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+            {student.attendanceNumber && achievementCount > 0 ? (
+              <span className="font-mono text-cyan-400/90 light:text-blue-600 mr-1.5 font-medium">
+                Absen #{student.attendanceNumber} •
+              </span>
+            ) : null}
             {student.major || "S1 Sistem Informasi"}
           </p>
         </div>

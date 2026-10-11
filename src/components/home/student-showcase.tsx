@@ -20,9 +20,69 @@ export interface StudentShowcaseProps {
 export function StudentShowcase({ students, settings, className }: StudentShowcaseProps) {
   const [selectedStudent, setSelectedStudent] = React.useState<StudentData | null>(null);
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [filterMode, setFilterMode] = React.useState<"prestasi_absen" | "prestasi" | "absen">("prestasi_absen");
+
+  const filteredAndSortedStudents = React.useMemo(() => {
+    if (!students || students.length === 0) return [];
+
+    if (filterMode === "prestasi") {
+      const withAchievements = students.filter(
+        (s) => (s.achievements && s.achievements.length > 0)
+      );
+      if (withAchievements.length > 0) {
+        return [...withAchievements].sort(
+          (a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0)
+        );
+      }
+      return [...students].sort(
+        (a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0)
+      );
+    }
+
+    if (filterMode === "absen") {
+      return [...students].sort((a, b) => {
+        if (a.attendanceNumber && b.attendanceNumber) {
+          return a.attendanceNumber - b.attendanceNumber;
+        }
+        if (a.attendanceNumber) return -1;
+        if (b.attendanceNumber) return 1;
+
+        if (a.studentNumber && b.studentNumber) {
+          return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
+        }
+        if (a.studentNumber) return -1;
+        if (b.studentNumber) return 1;
+
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    // Default "prestasi_absen":
+    // 1. Prestasi terbanyak lebih dulu
+    // 2. Jika sama, urutan absen (attendanceNumber atau studentNumber)
+    // 3. Nama
+    return [...students].sort((a, b) => {
+      const achDiff = (b.achievements?.length || 0) - (a.achievements?.length || 0);
+      if (achDiff !== 0) return achDiff;
+
+      if (a.attendanceNumber && b.attendanceNumber) {
+        return a.attendanceNumber - b.attendanceNumber;
+      }
+      if (a.attendanceNumber) return -1;
+      if (b.attendanceNumber) return 1;
+
+      if (a.studentNumber && b.studentNumber) {
+        return a.studentNumber.localeCompare(b.studentNumber, undefined, { numeric: true });
+      }
+      if (a.studentNumber) return -1;
+      if (b.studentNumber) return 1;
+
+      return a.name.localeCompare(b.name);
+    });
+  }, [students, filterMode]);
 
   const max = settings?.maxItems ?? 4;
-  const displayStudents = (students || []).slice(0, max);
+  const displayStudents = filteredAndSortedStudents.slice(0, max);
   const title = settings?.title || "Profil Mahasiswa Kelas";
   const description = settings?.description;
 
@@ -83,7 +143,7 @@ export function StudentShowcase({ students, settings, className }: StudentShowca
 
   return (
     <section className={cn("space-y-4 text-left", className)}>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
@@ -101,16 +161,58 @@ export function StudentShowcase({ students, settings, className }: StudentShowca
           )}
         </div>
 
-        <Link href="/students">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-cyan-400 light:text-blue-600 font-semibold"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-          >
-            Lihat Semua Mahasiswa
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter Mode Pills */}
+          <div className="inline-flex items-center p-1 rounded-xl bg-[var(--surface-primary)] border border-[var(--border-color)] light:bg-slate-100 text-xs shadow-xs">
+            <button
+              type="button"
+              onClick={() => setFilterMode("prestasi_absen")}
+              className={cn(
+                "px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer",
+                filterMode === "prestasi_absen"
+                  ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-xs font-semibold"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              )}
+            >
+              Prestasi & Absen
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode("prestasi")}
+              className={cn(
+                "px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1",
+                filterMode === "prestasi"
+                  ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-xs font-semibold"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              )}
+            >
+              <span>🏆 Berprestasi</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode("absen")}
+              className={cn(
+                "px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1",
+                filterMode === "absen"
+                  ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-xs font-semibold"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              )}
+            >
+              <span>📋 Urutan Absen</span>
+            </button>
+          </div>
+
+          <Link href="/students">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-cyan-400 light:text-blue-600 font-semibold"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Lihat Semua
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div
