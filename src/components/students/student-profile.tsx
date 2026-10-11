@@ -8,6 +8,7 @@ import { StudentData } from "./student-card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,12 +17,14 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { getAchievementBadge } from "@/components/achievements/achievement-card";
 import {
+  formatDate,
   formatExternalUrl,
   formatGithubUrl,
   formatInstagramUrl,
   formatLinkedinUrl,
+  formatPhotoUrl,
 } from "@/lib/utils";
 
 export interface StudentProfileProps {
@@ -104,23 +107,67 @@ export function StudentProfile({
           {student.achievements && student.achievements.length > 0 && (
             <div className="space-y-2">
               <h5 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
-                <Trophy className="w-3.5 h-3.5" /> Rekam Prestasi & Penghargaan
+                <Trophy className="w-3.5 h-3.5" /> Rekam Prestasi & Penghargaan ({student.achievements.length})
               </h5>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {student.achievements.map((item: any, idx: number) => {
                   const ach = item.achievement || item;
                   return (
                     <div
                       key={ach.id || idx}
-                      className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 light:bg-amber-50/50 light:border-amber-200 flex items-center justify-between text-xs"
+                      className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/5 light:bg-amber-50/50 light:border-amber-200 flex flex-col gap-2 text-xs"
                     >
-                      <span className="font-semibold text-[var(--text-primary)]">
-                        {ach.title}
-                      </span>
-                      {ach.category && (
-                        <Badge variant="yellow" size="sm">
-                          {ach.category}
-                        </Badge>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <span className="text-base shrink-0 mt-0.5">
+                            {ach.badgeIconUrl ? (
+                              ach.badgeIconUrl.startsWith("http") ||
+                              ach.badgeIconUrl.startsWith("/") ||
+                              ach.badgeIconUrl.startsWith("data:") ? (
+                                <img
+                                  src={formatPhotoUrl(ach.badgeIconUrl)}
+                                  alt="Badge"
+                                  className="w-4 h-4 object-contain inline"
+                                />
+                              ) : (
+                                ach.badgeIconUrl
+                              )
+                            ) : (
+                              "🏆"
+                            )}
+                          </span>
+                          <div className="min-w-0">
+                            <h6 className="font-bold text-[var(--text-primary)] leading-snug">
+                              {ach.title}
+                            </h6>
+                            {(ach.organization || ach.achievementDate) && (
+                              <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] font-mono mt-0.5 flex-wrap">
+                                {ach.organization && (
+                                  <span className="text-cyan-400 light:text-blue-700 font-medium">
+                                    {ach.organization}
+                                  </span>
+                                )}
+                                {ach.achievementDate && (
+                                  <span>{formatDate(ach.achievementDate)}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {ach.category && getAchievementBadge(ach.category)}
+                      </div>
+
+                      {ach.id && (
+                        <div className="pt-2 border-t border-amber-500/20 flex justify-end">
+                          <Link
+                            href={`/achievements#${ach.id}`}
+                            onClick={() => onOpenChange(false)}
+                            className="text-[11px] font-semibold text-cyan-400 light:text-blue-600 hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Lihat Detail Prestasi</span>
+                            <ArrowRight size={12} />
+                          </Link>
+                        </div>
                       )}
                     </div>
                   );

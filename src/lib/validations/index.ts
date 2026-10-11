@@ -284,8 +284,8 @@ export const achievementSchema = z.object({
   achievementDate: z.string().min(1, "Achievement date is required"),
   organization: z.string().trim().max(200).optional().nullable(),
   location: z.string().trim().max(200).optional().nullable(),
-  badgeIconUrl: optionalUrl,
-  imageUrl: optionalUrl,
+  badgeIconUrl: z.string().trim().max(1000).optional().nullable(),
+  imageUrl: optionalPhotoUrl,
   studentIds: z.array(z.string()).default([]),
 });
 export type AchievementInput = z.infer<typeof achievementSchema>;

@@ -21,8 +21,9 @@ import {
   deleteAchievementAction,
 } from "@/lib/actions/achievements";
 import { AchievementCategory } from "@prisma/client";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, cn, formatPhotoUrl } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FileCheck, ExternalLink } from "lucide-react";
 
 interface StudentOption {
   id: string;
@@ -49,6 +50,16 @@ interface AchievementsManagerProps {
   allStudents: StudentOption[];
 }
 
+const CATEGORY_LABEL: Record<AchievementCategory, string> = {
+  COMPETITION: "Kompetisi",
+  TECHNOLOGY: "Teknologi",
+  ACADEMIC: "Akademik",
+  VOLUNTEER: "Sosial & Relawan",
+  ORGANIZATION: "Organisasi",
+  CREATIVE: "Kreatif",
+  OTHER: "Lainnya",
+};
+
 const CATEGORY_COLOR: Record<AchievementCategory, string> = {
   COMPETITION: "badge-amber",
   VOLUNTEER: "badge-teal",
@@ -66,6 +77,7 @@ export function AchievementsManager({
   const [achievements, setAchievements] = useState<AchievementItem[]>(initialAchievements);
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [studentSearch, setStudentSearch] = useState("");
   const [isPending, startTransition] = useTransition();
 
   // Modal State
@@ -100,6 +112,7 @@ export function AchievementsManager({
 
   function openCreateModal() {
     setEditingAchievement(null);
+    setStudentSearch("");
     setFormData({
       title: "",
       description: "",
@@ -117,6 +130,7 @@ export function AchievementsManager({
 
   function openEditModal(ach: AchievementItem) {
     setEditingAchievement(ach);
+    setStudentSearch("");
     const d = new Date(ach.achievementDate);
     const dateStr = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : "";
 
@@ -263,10 +277,11 @@ export function AchievementsManager({
                 : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
             )}
           >
-            All ({achievements.length})
+            Semua ({achievements.length})
           </button>
           {Object.keys(AchievementCategory).map((catKey) => {
             const count = achievements.filter((a) => a.category === catKey).length;
+            const label = CATEGORY_LABEL[catKey as AchievementCategory] || catKey;
             return (
               <button
                 key={catKey}
@@ -279,7 +294,7 @@ export function AchievementsManager({
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                 )}
               >
-                {catKey.charAt(0) + catKey.slice(1).toLowerCase()} {count > 0 && `(${count})`}
+                {label} {count > 0 && `(${count})`}
               </button>
             );
           })}
@@ -349,16 +364,24 @@ export function AchievementsManager({
                   <tr key={ach.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-4 px-6 max-w-md">
                       <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden">
                           {ach.badgeIconUrl ? (
-                            <span className="text-base">{ach.badgeIconUrl}</span>
+                            ach.badgeIconUrl.startsWith("http") ? (
+                              <img
+                                src={formatPhotoUrl(ach.badgeIconUrl) || ach.badgeIconUrl}
+                                alt="Badge"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-base select-none">{ach.badgeIconUrl}</span>
+                            )
                           ) : (
                             <Trophy size={16} className="text-amber-500" />
                           )}
                         </div>
                         <div>
                           <span className={cn("badge text-[10px] mb-1", CATEGORY_COLOR[ach.category])}>
-                            {ach.category}
+                            {CATEGORY_LABEL[ach.category] || ach.category}
                           </span>
                           <h4 className="font-semibold text-slate-900 leading-snug line-clamp-2">
                             {ach.title}
@@ -367,6 +390,19 @@ export function AchievementsManager({
                             <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">
                               {ach.description}
                             </p>
+                          )}
+                          {ach.imageUrl && (
+                            <a
+                              href={formatPhotoUrl(ach.imageUrl) || ach.imageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] text-brand-600 hover:text-brand-700 hover:underline mt-1 font-medium"
+                              title="Lihat Sertifikat / Foto Dokumentasi"
+                            >
+                              <FileCheck size={12} />
+                              <span>Sertifikat / Foto</span>
+                              <ExternalLink size={10} />
+                            </a>
                           )}
                         </div>
                       </div>
@@ -465,7 +501,7 @@ export function AchievementsManager({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Category <span className="text-rose-500">*</span>
+                Kategori <span className="text-rose-500">*</span>
               </label>
               <select
                 value={formData.category}
@@ -479,7 +515,7 @@ export function AchievementsManager({
               >
                 {Object.keys(AchievementCategory).map((cat) => (
                   <option key={cat} value={cat}>
-                    {cat}
+                    {CATEGORY_LABEL[cat as AchievementCategory] || cat}
                   </option>
                 ))}
               </select>
@@ -487,7 +523,7 @@ export function AchievementsManager({
 
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Date of Achievement <span className="text-rose-500">*</span>
+                Tanggal Perolehan <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
@@ -504,11 +540,11 @@ export function AchievementsManager({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Organizer / Institution
+                Penyelenggara / Institusi
               </label>
               <input
                 type="text"
-                placeholder="e.g. Ministry of Education or Google Tech"
+                placeholder="cth. Kemendikbudristek, Telkom University, dll."
                 value={formData.organization}
                 onChange={(e) =>
                   setFormData({ ...formData, organization: e.target.value })
@@ -519,11 +555,11 @@ export function AchievementsManager({
 
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Location / City
+                Lokasi / Kota
               </label>
               <input
                 type="text"
-                placeholder="e.g. Jakarta, Indonesia or Online"
+                placeholder="cth. Bandung, Jakarta, atau Online"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
@@ -533,10 +569,10 @@ export function AchievementsManager({
 
           <div>
             <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-              Description & Notes
+              Deskripsi & Catatan
             </label>
             <textarea
-              placeholder="Details about project presented, number of competing teams, etc..."
+              placeholder="Detail prestasi, karya yang dilombakan, peringkat, dll..."
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -549,72 +585,116 @@ export function AchievementsManager({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Badge Emoji or Icon
+                Badge Emoji atau Icon
               </label>
               <input
                 type="text"
-                placeholder="e.g. 🏆 or 🥇"
+                placeholder="cth. 🏆, 🥇, 🥈, atau URL gambar"
                 value={formData.badgeIconUrl}
                 onChange={(e) =>
                   setFormData({ ...formData, badgeIconUrl: e.target.value })
                 }
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
+              <p className="text-[11px] text-slate-400 mt-1">Bisa diisi emoji (misal: 🏆, 🥈) atau URL ikon.</p>
             </div>
 
             <div>
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-1.5">
-                Image or Certificate URL
+                URL Sertifikat atau Foto
               </label>
               <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
+                type="text"
+                placeholder="https://drive.google.com/... atau URL gambar"
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                 className="h-10.5 px-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-sm w-full focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 outline-none transition-colors"
               />
+              <p className="text-[11px] text-slate-400 mt-1">Mendukung link Google Drive atau link foto online.</p>
             </div>
           </div>
 
-          {/* Student Multi-Select Checkboxes */}
+          {/* Student Multi-Select Checkboxes with Search */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs sm:text-[13px] font-semibold text-slate-900 dark:text-slate-100">
-                Select Participating Students
+                Pilih Mahasiswa Peraih Prestasi
               </label>
-              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                {formData.studentIds.length} selected
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  {formData.studentIds.length} dipilih
+                </span>
+                {formData.studentIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, studentIds: [] }))}
+                    className="text-[11px] text-slate-400 hover:text-rose-500 underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50/70 dark:bg-slate-900/50 space-y-1.5">
+
+            {/* Quick Student Search inside Modal */}
+            <div className="relative mb-2">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari nama atau NIM mahasiswa..."
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-blue-600 dark:focus:border-blue-500"
+              />
+            </div>
+
+            <div className="max-h-44 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 bg-slate-50/70 dark:bg-slate-900/50 space-y-1">
               {allStudents.length === 0 ? (
-                <p className="text-xs text-slate-400">No students available.</p>
-              ) : (
-                allStudents.map((st) => {
-                  const isChecked = formData.studentIds.includes(st.id);
+                <p className="text-xs text-slate-400 p-2">Belum ada data mahasiswa.</p>
+              ) : allStudents.filter((st) => {
+                  if (!studentSearch.trim()) return true;
+                  const q = studentSearch.toLowerCase();
                   return (
-                    <label
-                      key={st.id}
-                      className={cn(
-                        "flex items-center gap-2.5 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors text-xs text-slate-900 dark:text-white",
-                        isChecked && "bg-blue-50 dark:bg-blue-950/40 font-medium text-blue-900 dark:text-blue-300"
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleStudentSelection(st.id)}
-                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span>{st.name}</span>
-                      {st.studentNumber && (
-                        <span className="text-slate-400 font-mono text-[10px]">
-                          ({st.studentNumber})
-                        </span>
-                      )}
-                    </label>
+                    st.name.toLowerCase().includes(q) ||
+                    (st.studentNumber && st.studentNumber.toLowerCase().includes(q))
                   );
-                })
+                }).length === 0 ? (
+                <p className="text-xs text-slate-400 p-2">Tidak ditemukan mahasiswa dengan kata kunci tersebut.</p>
+              ) : (
+                allStudents
+                  .filter((st) => {
+                    if (!studentSearch.trim()) return true;
+                    const q = studentSearch.toLowerCase();
+                    return (
+                      st.name.toLowerCase().includes(q) ||
+                      (st.studentNumber && st.studentNumber.toLowerCase().includes(q))
+                    );
+                  })
+                  .map((st) => {
+                    const isChecked = formData.studentIds.includes(st.id);
+                    return (
+                      <label
+                        key={st.id}
+                        className={cn(
+                          "flex items-center gap-2.5 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors text-xs text-slate-900 dark:text-white",
+                          isChecked && "bg-blue-50 dark:bg-blue-950/40 font-medium text-blue-900 dark:text-blue-300"
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleStudentSelection(st.id)}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="truncate flex-1">{st.name}</span>
+                        {st.studentNumber && (
+                          <span className="text-slate-400 font-mono text-[10px]">
+                            ({st.studentNumber})
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })
               )}
             </div>
           </div>

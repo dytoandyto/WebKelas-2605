@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Trophy } from "lucide-react";
 import { AchievementShowcase } from "@/components/achievements/achievement-showcase";
 import { AchievementCard, AchievementData } from "@/components/achievements/achievement-card";
+import { AchievementDetail } from "@/components/achievements/achievement-detail";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,14 @@ export function FeaturedAchievements({
   const secondaryAchievements = displayAchievements.slice(1);
   const title = settings?.title || "Prestasi & Kebanggaan Kelas";
   const description = settings?.description;
+
+  const [selectedAchievement, setSelectedAchievement] = React.useState<AchievementData | null>(null);
+  const [detailOpen, setDetailOpen] = React.useState(false);
+
+  const handleOpenDetail = (item: AchievementData) => {
+    setSelectedAchievement(item);
+    setDetailOpen(true);
+  };
 
   if (achievements.length === 0) {
     return (
@@ -112,16 +121,32 @@ export function FeaturedAchievements({
       </div>
 
       {/* Featured Editorial Banner */}
-      {topAchievement && <AchievementShowcase achievement={topAchievement} />}
+      {topAchievement && (
+        <AchievementShowcase
+          achievement={topAchievement}
+          onClick={() => handleOpenDetail(topAchievement)}
+        />
+      )}
 
       {/* Secondary Editorial Cards */}
       {secondaryAchievements.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {secondaryAchievements.map((item) => (
-            <AchievementCard key={item.id} achievement={item} />
+            <AchievementCard
+              key={item.id}
+              achievement={item}
+              onClick={() => handleOpenDetail(item)}
+            />
           ))}
         </div>
       )}
+
+      {/* Achievement Detail Dialog */}
+      <AchievementDetail
+        achievement={selectedAchievement}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </section>
   );
 }

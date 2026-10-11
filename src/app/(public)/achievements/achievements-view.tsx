@@ -19,6 +19,16 @@ interface AchievementsViewProps {
   initialAchievements: AchievementData[];
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  COMPETITION: "Kompetisi",
+  VOLUNTEER: "Sosial & Relawan",
+  ORGANIZATION: "Organisasi",
+  ACADEMIC: "Akademik",
+  CREATIVE: "Kreatif",
+  TECHNOLOGY: "Teknologi",
+  OTHER: "Lainnya",
+};
+
 export function AchievementsView({ initialAchievements }: AchievementsViewProps) {
   const [viewMode, setViewMode] = useState<"showcase" | "grid" | "timeline">("showcase");
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,6 +37,17 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
   const [detailOpen, setDetailOpen] = useState(false);
 
   const categories = Object.keys(AchievementCategory) as AchievementCategory[];
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    const found = initialAchievements.find((a) => a.id === hash);
+    if (found) {
+      setSelectedAchievement(found);
+      setDetailOpen(true);
+    }
+  }, [initialAchievements]);
 
   const filtered = useMemo(() => {
     return initialAchievements.filter((ach) => {
@@ -69,7 +90,7 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
 
         <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
           {/* Category Filter */}
-          <div className="w-44">
+          <div className="w-48">
             <Select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -77,7 +98,7 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
               <option value="ALL">Semua Kategori</option>
               {categories.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {CATEGORY_LABELS[c] || c}
                 </option>
               ))}
             </Select>

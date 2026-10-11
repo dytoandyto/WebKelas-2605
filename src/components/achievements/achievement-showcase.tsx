@@ -6,7 +6,7 @@ import { Trophy, Calendar, Building, Users, Sparkles, ArrowRight } from "lucide-
 import { AchievementData, getAchievementBadge } from "./achievement-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, cn, formatPhotoUrl } from "@/lib/utils";
 
 export interface AchievementShowcaseProps {
   achievement: AchievementData;
@@ -35,7 +35,7 @@ export function AchievementShowcase({
       <div className="relative min-h-[260px] lg:min-h-full lg:col-span-5 bg-gradient-to-tr from-cyan-950 to-blue-900/40 p-6 flex flex-col justify-between overflow-hidden">
         {achievement.imageUrl ? (
           <Image
-            src={achievement.imageUrl}
+            src={formatPhotoUrl(achievement.imageUrl)}
             alt={achievement.title}
             fill
             sizes="(max-width: 1024px) 100vw, 500px"
@@ -46,7 +46,15 @@ export function AchievementShowcase({
             <div className="absolute inset-0 cyber-grid opacity-25 light:opacity-10" />
             <div className="relative z-0 flex flex-col items-center justify-center p-6 text-center space-y-2">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-500/15 light:bg-amber-100/90 border border-amber-400/30 light:border-amber-300 flex items-center justify-center text-amber-400 light:text-amber-600 shadow-[0_0_24px_rgba(245,158,11,0.25)] group-hover:scale-110 transition-transform duration-300">
-                <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
+                {achievement.badgeIconUrl ? (
+                  achievement.badgeIconUrl.startsWith("http") || achievement.badgeIconUrl.startsWith("/") || achievement.badgeIconUrl.startsWith("data:") ? (
+                    <img src={formatPhotoUrl(achievement.badgeIconUrl)} alt="Badge" className="w-9 h-9 object-contain" />
+                  ) : (
+                    <span className="text-3xl sm:text-4xl leading-none">{achievement.badgeIconUrl}</span>
+                  )
+                ) : (
+                  <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
+                )}
               </div>
               <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300/80 light:text-amber-700 font-bold">
                 Rekam Prestasi
@@ -77,7 +85,16 @@ export function AchievementShowcase({
       {/* Content Side (7 cols) */}
       <div className="p-6 sm:p-8 lg:col-span-7 flex flex-col justify-between space-y-4">
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {achievement.badgeIconUrl && (
+              <span className="text-lg leading-none">
+                {achievement.badgeIconUrl.startsWith("http") || achievement.badgeIconUrl.startsWith("/") || achievement.badgeIconUrl.startsWith("data:") ? (
+                  <img src={formatPhotoUrl(achievement.badgeIconUrl)} alt="Badge" className="w-5 h-5 object-contain inline" />
+                ) : (
+                  achievement.badgeIconUrl
+                )}
+              </span>
+            )}
             {getAchievementBadge(achievement.category)}
             {achievement.location && (
               <span className="text-xs text-[var(--text-muted)] font-mono">

@@ -6,7 +6,7 @@ import { Trophy, Calendar, Building, Users } from "lucide-react";
 import { AchievementCategory } from "@prisma/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate, cn, formatPhotoUrl } from "@/lib/utils";
 
 export interface AchievementData {
   id: string;
@@ -71,7 +71,7 @@ export function AchievementCard({
       {achievement.imageUrl && (
         <div className="relative w-full h-44 overflow-hidden bg-slate-900/60">
           <Image
-            src={achievement.imageUrl}
+            src={formatPhotoUrl(achievement.imageUrl)}
             alt={achievement.title}
             fill
             sizes="(max-width: 768px) 100vw, 400px"
@@ -85,7 +85,18 @@ export function AchievementCard({
         <div className="space-y-2">
           {/* Header Badges */}
           <div className="flex items-center justify-between gap-2">
-            {getAchievementBadge(achievement.category)}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {achievement.badgeIconUrl && (
+                <span className="text-base leading-none">
+                  {achievement.badgeIconUrl.startsWith("http") || achievement.badgeIconUrl.startsWith("/") || achievement.badgeIconUrl.startsWith("data:") ? (
+                    <img src={formatPhotoUrl(achievement.badgeIconUrl)} alt="Badge" className="w-4 h-4 object-contain inline" />
+                  ) : (
+                    achievement.badgeIconUrl
+                  )}
+                </span>
+              )}
+              {getAchievementBadge(achievement.category)}
+            </div>
             <div className="flex items-center gap-1 text-xs text-[var(--text-muted)] font-mono">
               <Calendar className="w-3.5 h-3.5" />
               <span>{formatDate(achievement.achievementDate)}</span>

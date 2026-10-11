@@ -217,5 +217,44 @@ describe("Validation Schemas tests", () => {
     });
     expect(valid.success).toBe(true);
   });
+
+  it("validates achievementSchema allowing emojis as badge icons and photo URLs", async () => {
+    const { achievementSchema } = await import("./index");
+    const { AchievementCategory } = await import("@prisma/client");
+
+    // Emoji as badge icon
+    const emojiBadge = achievementSchema.safeParse({
+      title: "Juara 2 Badminton Liga Mahasiswa Telkom University",
+      category: AchievementCategory.COMPETITION,
+      achievementDate: "2026-10-03",
+      organization: "Telkom University",
+      location: "GOR Cendrawasih, Jakarta Barat",
+      badgeIconUrl: "🥈",
+      studentIds: ["std1"],
+    });
+    expect(emojiBadge.success).toBe(true);
+    if (emojiBadge.success) {
+      expect(emojiBadge.data.badgeIconUrl).toBe("🥈");
+    }
+
+    // Google Drive URL as imageUrl
+    const driveImage = achievementSchema.safeParse({
+      title: "Juara 1 Hackathon",
+      category: AchievementCategory.TECHNOLOGY,
+      achievementDate: "2026-09-15",
+      imageUrl: "https://drive.google.com/file/d/1bJMFppsgAxnAoKCzgYHakaEtVmED54FY/view",
+      badgeIconUrl: "🏆",
+    });
+    expect(driveImage.success).toBe(true);
+
+    // Empty or omitted optional fields
+    const minimal = achievementSchema.safeParse({
+      title: "Lolos Program Bangkit",
+      category: AchievementCategory.ACADEMIC,
+      achievementDate: "2026-08-01",
+    });
+    expect(minimal.success).toBe(true);
+  });
 });
+
 

@@ -16,6 +16,7 @@ import { getStudentById } from "@/lib/data";
 import {
   formatDate,
   cn,
+  formatPhotoUrl,
   formatExternalUrl,
   formatGithubUrl,
   formatInstagramUrl,
@@ -218,12 +219,22 @@ export default async function StudentDetailPage({
               {(student as any).achievements.map((sa: any) => (
                 <div
                   key={sa.achievementId || sa.achievement?.id}
-                  className="card p-5 hover:border-[var(--primary)] transition-all duration-300 shadow-sm"
+                  className="card p-5 hover:border-[var(--primary)] transition-all duration-300 shadow-sm flex flex-col justify-between"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-amber-500">
                       {sa.achievement?.badgeIconUrl ? (
-                        <img src={sa.achievement.badgeIconUrl} alt="" className="w-7 h-7 object-contain" />
+                        sa.achievement.badgeIconUrl.startsWith("http") ||
+                        sa.achievement.badgeIconUrl.startsWith("/") ||
+                        sa.achievement.badgeIconUrl.startsWith("data:") ? (
+                          <img
+                            src={formatPhotoUrl(sa.achievement.badgeIconUrl)}
+                            alt=""
+                            className="w-7 h-7 object-contain"
+                          />
+                        ) : (
+                          <span className="text-xl leading-none">{sa.achievement.badgeIconUrl}</span>
+                        )
                       ) : (
                         <Trophy size={18} />
                       )}
@@ -242,16 +253,45 @@ export default async function StudentDetailPage({
                           {sa.achievement.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 mt-2.5 text-xs text-[var(--text-muted)] font-mono">
+                      <div className="flex items-center gap-3 mt-2.5 text-xs text-[var(--text-muted)] font-mono flex-wrap">
                         {sa.achievement?.organization && (
-                          <span className="text-[var(--primary)]">{sa.achievement.organization}</span>
+                          <span className="text-[var(--primary)] font-semibold">{sa.achievement.organization}</span>
                         )}
                         {sa.achievement?.achievementDate && (
                           <span>{formatDate(sa.achievement.achievementDate)}</span>
                         )}
+                        {sa.achievement?.location && (
+                          <span>&bull; {sa.achievement.location}</span>
+                        )}
                       </div>
                     </div>
                   </div>
+
+                  {/* Certificate preview if present */}
+                  {sa.achievement?.imageUrl && (
+                    <div className="mt-3.5 pt-3 border-t border-[var(--border-color)]">
+                      <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-900/50 border border-[var(--border-color)]">
+                        <img
+                          src={formatPhotoUrl(sa.achievement.imageUrl)}
+                          alt={sa.achievement.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Link to class achievements */}
+                  {sa.achievement?.id && (
+                    <div className="mt-3 pt-2.5 border-t border-[var(--border-color)]/70 flex justify-end">
+                      <Link
+                        href={`/achievements#${sa.achievement.id}`}
+                        className="text-xs font-semibold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Lihat di Rekam Prestasi</span>
+                        <ArrowLeft size={12} className="rotate-180" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

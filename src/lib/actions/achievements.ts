@@ -5,6 +5,7 @@ import { achievementSchema, AchievementInput } from "@/lib/validations";
 import { assertPermission, logActivity } from "./common";
 import { ActionResult } from "./auth";
 import prisma from "@/lib/db";
+import { formatPhotoUrl } from "@/lib/utils";
 
 export async function createAchievementAction(input: AchievementInput): Promise<ActionResult> {
   try {
@@ -15,6 +16,14 @@ export async function createAchievementAction(input: AchievementInput): Promise<
     }
 
     const data = validation.data;
+    const uniqueStudentIds = Array.from(new Set(data.studentIds || []));
+    const formattedBadgeIcon = data.badgeIconUrl
+      ? /^https?:\/\//i.test(data.badgeIconUrl)
+        ? formatPhotoUrl(data.badgeIconUrl)
+        : data.badgeIconUrl
+      : null;
+    const formattedImage = data.imageUrl ? formatPhotoUrl(data.imageUrl) : null;
+
     const achievement = await prisma.achievement.create({
       data: {
         title: data.title,
@@ -23,11 +32,11 @@ export async function createAchievementAction(input: AchievementInput): Promise<
         achievementDate: new Date(data.achievementDate),
         organization: data.organization || null,
         location: data.location || null,
-        badgeIconUrl: data.badgeIconUrl || null,
-        imageUrl: data.imageUrl || null,
+        badgeIconUrl: formattedBadgeIcon,
+        imageUrl: formattedImage,
         createdBy: user.id,
         students: {
-          create: (data.studentIds || []).map((studentId) => ({
+          create: uniqueStudentIds.map((studentId) => ({
             studentId,
           })),
         },
@@ -36,8 +45,11 @@ export async function createAchievementAction(input: AchievementInput): Promise<
 
     await logActivity("CREATE_ACHIEVEMENT", "ACHIEVEMENT", achievement.id, `Created achievement ${achievement.title}`);
     revalidatePath("/achievements");
+    revalidatePath(`/achievements/${achievement.id}`);
     revalidatePath("/admin/achievements");
     revalidatePath("/students");
+    revalidatePath("/admin/students");
+    uniqueStudentIds.forEach((sId) => revalidatePath(`/students/${sId}`));
     revalidatePath("/");
 
     return { success: true, data: achievement };
@@ -55,6 +67,13 @@ export async function updateAchievementAction(id: string, input: AchievementInpu
     }
 
     const data = validation.data;
+    const uniqueStudentIds = Array.from(new Set(data.studentIds || []));
+    const formattedBadgeIcon = data.badgeIconUrl
+      ? /^https?:\/\//i.test(data.badgeIconUrl)
+        ? formatPhotoUrl(data.badgeIconUrl)
+        : data.badgeIconUrl
+      : null;
+    const formattedImage = data.imageUrl ? formatPhotoUrl(data.imageUrl) : null;
 
     // Use a transaction to update achievement and student relationships
     const achievement = await prisma.$transaction(async (tx) => {
@@ -73,10 +92,10 @@ export async function updateAchievementAction(id: string, input: AchievementInpu
           achievementDate: new Date(data.achievementDate),
           organization: data.organization || null,
           location: data.location || null,
-          badgeIconUrl: data.badgeIconUrl || null,
-          imageUrl: data.imageUrl || null,
+          badgeIconUrl: formattedBadgeIcon,
+          imageUrl: formattedImage,
           students: {
-            create: (data.studentIds || []).map((studentId) => ({
+            create: uniqueStudentIds.map((studentId) => ({
               studentId,
             })),
           },
@@ -89,6 +108,8 @@ export async function updateAchievementAction(id: string, input: AchievementInpu
     revalidatePath(`/achievements/${id}`);
     revalidatePath("/admin/achievements");
     revalidatePath("/students");
+    revalidatePath("/admin/students");
+    uniqueStudentIds.forEach((sId) => revalidatePath(`/students/${sId}`));
     revalidatePath("/");
 
     return { success: true, data: achievement };
@@ -101,12 +122,24 @@ export async function deleteAchievementAction(id: string): Promise<ActionResult>
   try {
     await assertPermission("ACHIEVEMENTS_MANAGE");
 
+    // Fetch linked student IDs before deletion for revalidation
+    const existing = await prisma.achievement.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        students: { select: { studentId: true } },
+      },
+    });
+
     await prisma.achievement.delete({ where: { id } });
 
     await logActivity("DELETE_ACHIEVEMENT", "ACHIEVEMENT", id, "Deleted achievement");
     revalidatePath("/achievements");
+    revalidatePath(`/achievements/${id}`);
     revalidatePath("/admin/achievements");
     revalidatePath("/students");
+    revalidatePath("/admin/students");
+    existing?.students.forEach((s) => revalidatePath(`/students/${s.studentId}`));
     revalidatePath("/");
 
     return { success: true };

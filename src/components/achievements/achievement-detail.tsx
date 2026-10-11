@@ -1,8 +1,7 @@
-"use client";
-
 import * as React from "react";
 import Image from "next/image";
-import { Trophy, Calendar, Building, MapPin, Users, Award } from "lucide-react";
+import Link from "next/link";
+import { Trophy, Calendar, Building, MapPin, Users, Award, ExternalLink } from "lucide-react";
 import { AchievementData, getAchievementBadge } from "./achievement-card";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -14,7 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPhotoUrl } from "@/lib/utils";
 
 export interface AchievementDetailProps {
   achievement: AchievementData | null;
@@ -41,8 +40,17 @@ export function AchievementDetail({
               <span>{formatDate(achievement.achievementDate)}</span>
             </div>
           </div>
-          <DialogTitle className="text-xl sm:text-2xl leading-snug">
-            {achievement.title}
+          <DialogTitle className="text-xl sm:text-2xl leading-snug flex items-center gap-2.5">
+            {achievement.badgeIconUrl && (
+              <span className="text-2xl shrink-0 leading-none">
+                {achievement.badgeIconUrl.startsWith("http") || achievement.badgeIconUrl.startsWith("/") || achievement.badgeIconUrl.startsWith("data:") ? (
+                  <img src={formatPhotoUrl(achievement.badgeIconUrl)} alt="Badge" className="w-7 h-7 object-contain inline" />
+                ) : (
+                  achievement.badgeIconUrl
+                )}
+              </span>
+            )}
+            <span>{achievement.title}</span>
           </DialogTitle>
           {achievement.organization && (
             <DialogDescription className="flex items-center gap-1.5 font-medium text-cyan-400 light:text-blue-700">
@@ -58,7 +66,7 @@ export function AchievementDetail({
           {achievement.imageUrl && (
             <div className="relative w-full h-56 sm:h-72 rounded-xl overflow-hidden border border-[var(--border-color)] bg-slate-900/50">
               <Image
-                src={achievement.imageUrl}
+                src={formatPhotoUrl(achievement.imageUrl)}
                 alt={achievement.title}
                 fill
                 sizes="(max-width: 768px) 100vw, 600px"
@@ -87,24 +95,27 @@ export function AchievementDetail({
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {students.map(({ student }) => (
-                  <div
+                  <Link
                     key={student.id}
-                    className="p-3 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] flex items-center gap-3"
+                    href={`/students/${student.id}`}
+                    onClick={() => onOpenChange(false)}
+                    className="p-3 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] hover:border-cyan-400/50 light:hover:border-blue-400 transition-colors flex items-center gap-3 group"
                   >
                     <Avatar
                       src={student.photoUrl}
                       name={student.name}
                       size="sm"
                     />
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-[var(--text-primary)] truncate">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 truncate transition-colors">
                         {student.name}
                       </div>
                       <div className="text-[10px] text-[var(--text-muted)] truncate">
                         {student.major}
                       </div>
                     </div>
-                  </div>
+                    <ExternalLink size={13} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </Link>
                 ))}
               </div>
             </div>

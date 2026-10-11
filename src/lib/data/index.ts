@@ -439,7 +439,17 @@ export async function getStudentsData(
         achievements: {
           include: {
             achievement: {
-              select: { id: true, title: true, category: true, badgeIconUrl: true },
+              select: {
+                id: true,
+                title: true,
+                description: true,
+                category: true,
+                achievementDate: true,
+                organization: true,
+                location: true,
+                badgeIconUrl: true,
+                imageUrl: true,
+              },
             },
           },
         },
