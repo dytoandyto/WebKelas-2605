@@ -1,7 +1,18 @@
+```
 # ClassHub — Modern Class & Cohort Management Web Application
 
 <p align="center">
   <strong>A full-stack, production-ready web portal designed for university classes, student cohorts, and academic communities.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Prisma-6.19-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma ORM" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Embedded_PGlite-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Zod-v4-3E67B1?style=for-the-badge&logo=zod&logoColor=white" alt="Zod" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License" />
 </p>
 
 ---
@@ -9,181 +20,215 @@
 ## 🌟 Key Features
 
 ### 🎓 Public Portal
-- **Interactive Home Dashboard**: Live overview featuring today's schedule, pending task deadlines, highlighted achievements, latest announcements, featured classmates, and class gallery moments.
-- **Weekly Schedule Timetable**: Day-grouped class slots with start/end times, room locations, lecturer names, and direct links to syllabus details.
-- **Coursework & Task Deadlines**: Dynamic countdowns and status indicators (*Upcoming*, *Due Soon*, *Overdue*, *Completed*) with filterable priority levels.
-- **Student Cohort Directory**: Student profile cards featuring bios, student numbers (NIM), career aspirations, portfolios, social links (GitHub, LinkedIn), and achievements.
-- **Detailed Student Profiles (`/students/[id]`)**: Deep-dive into each student's bio, motivation, career dream, and individual or team achievements.
-- **Hall of Fame & Achievements (`/achievements`)**: Categorized honors (Competitions, Academic, Volunteering, Technology, Leadership) with participant tags and awards.
-- **Class Bulletins & Announcements (`/announcements`)**: Formatted announcements with publish controls and category badges.
-- **Campus & Activity Gallery (`/gallery`)**: Visual memories and photo albums from workshops, study groups, hackathons, and gatherings.
-- **Shared Class Resources (`/resources`)**: Curated links to official cloud drives, GitHub Classroom organizations, textbooks, and development tools.
+- **Interactive Home Dashboard (`/`)**: Tampilan ikhtisar interaktif yang memuat jadwal kuliah hari ini, hitung mundur tugas mendesak, sorotan prestasi terbaru, pengumuman terhangat, kartu mahasiswa pilihan, serta momen dokumentasi galeri kelas.
+- **Weekly Schedule Timetable (`/schedule`)**: Jadwal kuliah mingguan yang dikelompokkan per hari (Senin – Sabtu) lengkap dengan jam mulai/selesai, kode ruangan, nama dosen pengampu, dan tautan silabus mata kuliah.
+- **Coursework & Task Deadlines (`/tasks`)**: Sistem pelacak tugas dengan hitung mundur dinamis dan indikator status otomatis (*Upcoming*, *Due Soon*, *Overdue*, *Completed*) serta filter tingkat prioritas (*High*, *Medium*, *Low*).
+- **Student Cohort Directory (`/students`)**: Direktori mahasiswa satu angkatan berupa kartu profil yang memuat foto, NIM, bio singkat, cita-cita karier, portofolio, serta tautan jejaring profesional (GitHub, LinkedIn).
+- **Detailed Student Profiles (`/students/[id]`)**: Halaman detail profil individu yang mengulas perjalanan mahasiswa, motivasi, aspirasi karier, serta daftar prestasi individu maupun tim.
+- **Hall of Fame & Achievements (`/achievements`)**: Etalase penghargaan dan apresiasi prestasi yang diklasifikasikan ke dalam kategori (Kompetisi, Akademik, Kegiatan Sosial, Teknologi, dan Kepemimpinan) dengan penandaan partisipan mahasiswa.
+- **Class Bulletins & Announcements (`/announcements`)**: Papan buletin resmi kelas dengan dukungan teks berformat, status publikasi, dan label kategori informasi.
+- **Campus & Activity Gallery (`/gallery`)**: Dokumentasi album foto kenangan dari berbagai kegiatan seperti workshop, kelompok belajar, hackathon, dan makrab angkatan.
+- **Shared Class Resources (`/resources`)**: Repositori tautan kurasi terpusat menuju Google Drive resmi, organisasi GitHub Classroom, e-book materi, dan software penunjang kuliah.
+- **About Campus & Cohort (`/about`)**: Halaman pengenalan profil kelas/kampus, visi misi, sejarah, serta struktur kepengurusan angkatan.
 
 ### 🛡️ Administrative Portal (`/admin`)
-- **Executive Dashboard**: Key metrics (enrolled students, courses, pending tasks, awards, active announcements) with recent audit activity feeds.
-- **Schedule Management**: Full CRUD for weekly class timetables, rooms, and lecturer assignments.
-- **Tasks & Assignments Management**: Create, update, toggle completion status, and set deadlines with automated due-date computation.
-- **Subjects Curriculum Management**: Manage course codes, subject syllabi, and faculty lecturers.
-- **Student Roster Management**: Add student records, edit biographies, career dreams, and social links.
-- **Achievements Management**: Record honors with multi-student participant tagging.
-- **Announcements Management**: Draft notices, toggle publish status, and upload banner graphics.
-- **Photo Gallery Management**: Curate and upload class memories with event dates.
-- **Resources Management**: Manage category-indexed learning links and shared files.
-- **User & Access Management (RBAC)**: Manage administrators, lecturers, and class assistants with role-based permissions and active/inactive switches.
-- **Class Settings & Branding**: Configure class name, academic year, motto/tagline, contact email, and official community channels (GitHub, Instagram, Discord).
+- **Executive Dashboard (`/admin`)**: Panel kontrol metrik kunci (total mahasiswa terdaftar, jumlah matakuliah, tugas aktif, rekor prestasi, pengumuman terbit) dilengkapi rekam jejak aktivitas audit (*audit activity logs*).
+- **Schedule Management (`/admin/schedule`)**: Manajemen CRUD penuh untuk jadwal jam perkuliahan, alokasi ruangan kelas, dan penugasan dosen pengampu.
+- **Tasks & Assignments Management (`/admin/tasks`)**: Membuat dan memperbarui tugas, mengatur tenggat waktu otomatis, serta menandai status penyelesaian tugas mahasiswa.
+- **Subjects Curriculum Management (`/admin/subjects`)**: Pengelolaan kurikulum, kode mata kuliah, deskripsi silabus, dan data fakultas/dosen.
+- **Student Roster Management (`/admin/students`)**: Manajemen biodata mahasiswa angkatan, pembaruan portofolio, aspirasi karier, dan akun media sosial.
+- **Achievements Management (`/admin/achievements`)**: Pencatatan riwayat penghargaan dengan kemampuan menandai banyak mahasiswa sekaligus (*multi-student participant tagging*).
+- **Announcements Management (`/admin/announcements`)**: Penulisan draf buletin, kontrol status terbit (*publish toggle*), dan unggah banner grafis.
+- **Photo Gallery Management (`/admin/gallery`)**: Kurasi dan kurasi foto kenangan kelas berdasarkan tanggal pelaksanaan acara.
+- **Resources Management (`/admin/resources`)**: Manajemen tautan unduhan materi dan repositori belajar berdasarkan kategori subjek.
+- **About Page Manager (`/admin/about`)**: Editor konten untuk informasi profil kampus, visi, misi, dan narasi yang tampil di halaman publik.
+- **User & Access Management (RBAC) (`/admin/users`)**: Manajemen akun staf administrator, dosen, dan asisten kelas dengan hak akses berbasis peran serta sakelar aktif/nonaktif.
+- **Class Settings & Branding (`/admin/settings`)**: Konfigurasi identitas kelas (nama kelas, tahun angkatan, motto/tagline, email kontak resmi, serta kanal komunitas di Discord, Instagram, dan GitHub).
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js 16](https://nextjs.org/) (App Router, Server Components & Server Actions) |
-| **Language** | [TypeScript 5](https://www.typescriptlang.org/) (Strict mode, full type-safety) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) with custom design tokens, glassmorphism, and responsive layout |
-| **Database ORM** | [Prisma 6.19](https://www.prisma.io/) with PostgreSQL adapter |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) (Compatible with Supabase, Neon, AWS RDS, Railway, or local Postgres) |
-| **Authentication** | Lightweight stateless JWT session cookies via [jose](https://github.com/panva/jose) (`httpOnly`, `sameSite=lax`, `secure`) |
-| **Validation** | [Zod v4](https://zod.dev/) for robust client/server input parsing |
-| **Icons** | [Lucide React](https://lucide.dev/) + Custom SVG Brand Icons |
-| **Security** | `bcryptjs` password hashing, RBAC permission checks, route protection via Next.js Middleware |
+| Layer | Technology | Description |
+|---|---|---|
+| **Framework** | [Next.js 16](https://nextjs.org/) | App Router modern, Server Components (RSC) untuk performa cepat, dan Server Actions untuk mutasi data aman. |
+| **Language** | [TypeScript 5](https://www.typescriptlang.org/) | Strict mode dengan jaminan keamanan tipe data penuh (*end-to-end type safety*). |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Engine utility-first CSS generasi terbaru dengan custom design tokens, *glassmorphism*, dan tata letak ultra-responsif. |
+| **Database ORM** | [Prisma 6.19](https://www.prisma.io/) | Pemodelan skema relasional deklaratif dengan PostgreSQL adapter dan migration tool. |
+| **Database Engine** | [PostgreSQL](https://www.postgresql.org/) | Kompatibel penuh dengan Supabase, Neon Serverless, AWS RDS, Railway, atau instalasi lokal. |
+| **Embedded Database** | [PGlite](https://pglite.dev/) | Mesin PostgreSQL embedded lokal (Node.js engine pada port `5433`), memungkinkan sistem berjalan tanpa instalasi Docker/Postgres manual. |
+| **Authentication** | [jose](https://github.com/panva/jose) | Autentikasi sesi stateless JWT berbasis cookie berkeamanan tinggi (`httpOnly`, `sameSite=lax`, `secure`). |
+| **Validation** | [Zod v4](https://zod.dev/) | Validasi skema input form dan sanitasi data yang sinkron di sisi client maupun server. |
+| **UI Components** | [Radix UI Primitives](https://www.radix-ui.com/) | Primitif antarmuka aksesibel (Modal, Select, Toast, Avatar, Separator, Pagination). |
+| **Icons** | [Lucide React](https://lucide.dev/) | Paket ikon vektor modern yang ringan dipadu custom SVG Brand Icons (GitHub, Discord, LinkedIn). |
+| **Security** | `bcryptjs` | Algoritma hashing password satu arah dengan proteksi middleware Next.js dan guardrail pencegah lockout. |
 
 ---
 
 ## 🔐 Role-Based Access Control (RBAC)
 
-ClassHub enforces granular permissions across administrative roles:
+ClassHub menerapkan pembagian wewenang yang ketat di level middleware dan server action:
 
 | Role | Permissions & Scope |
 |---|---|
-| **ADMIN** | Full system access: manage users, settings, schedules, tasks, curriculum, students, content, and audit logs. |
-| **CLASS_ADMIN** | Class administration: manage schedules, assignments, student directory, achievements, announcements, and gallery. |
-| **LECTURER** | Academic manager: post tasks, assignments, announcements, and resources. |
-| **ASSISTANT** | Teaching assistant: update task statuses, laboratory schedules, and assist student directory maintenance. |
+| **ADMIN** | **Akses Penuh**: Mengelola seluruh pengguna (users), hak akses, pengaturan identitas sistem, data akademik, dan audit log. |
+| **CLASS_ADMIN** | **Administrasi Kelas**: Mengelola jadwal perkuliahan, tugas harian, direktori mahasiswa, prestasi, pengumuman, dan galeri. |
+| **LECTURER** | **Manajer Akademik**: Mempublikasikan tugas kuliah, pengumuman akademik, dan membagikan tautan modul belajar. |
+| **ASSISTANT** | **Asisten Praktikum**: Membantu pembaruan status tugas, jadwal lab/praktikum, dan asistensi direktori mahasiswa. |
 
 ### 🔑 Demo Credentials (Offline / First-Time Login)
+
+Gunakan kredensial bawaan hasil proses seeding database berikut untuk pengujian portal admin:
+
+| Peran (Role) | Alamat Email | Password Bawaan | Lingkup Akses Utama |
+|---|---|---|---|
+| **ADMIN** | `admin@classhub.edu` | `Password123!` | Seluruh Modul + User & Settings |
+| **CLASS_ADMIN** | `classadmin@classhub.edu` | `Password123!` | Operasional Kelas & Direktori |
+| **LECTURER** | `lecturer@classhub.edu` | `Password123!` | Tugas, Pengumuman, & Resources |
+| **ASSISTANT** | `assistant@classhub.edu` | `Password123!` | Status Tugas & Asistensi Jadwal |
+
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js** v20.x or v22.x+
-- **npm** or **pnpm**
-- (Optional) PostgreSQL database instance (e.g. [Supabase](https://supabase.com), [Neon](https://neon.tech), or local Docker)
+Pastikan lingkungan pengembangan lokal telah terpasang:
+- **Node.js** versi `20.x` atau `22.x+` (LTS direkomendasikan)
+- **npm** (bawaan Node) atau **pnpm**
+- *(Opsional)* PostgreSQL instance eksternal (misal: [Supabase](https://supabase.com), [Neon](https://neon.tech), atau Docker). Jika tidak ada, sistem akan otomatis menggunakan database embedded bawaan.
 
 ### 2. Installation
-Clone the repository and install dependencies:
+Kloning repositori dan instal seluruh dependensi paket:
 ```bash
-git clone <repository-url>
+git clone https://github.com/username-anda/ProjectCampus.git
 cd ProjectCampus
 npm install
 ```
 
 ### 3. Environment Variables
-Copy the template file to `.env`:
+Salin berkas template environment:
 ```bash
 cp .env.example .env
 ```
-Configure your environment parameters:
+
+Konfigurasikan variabel environment Anda di dalam file `.env`:
 ```env
+# Koneksi Database (Default ke embedded PGlite lokal pada port 5433)
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/classhub_db?schema=public"
+
+# Rahasia Enkripsi JWT Sesi (Minimal 32 karakter acak)
+AUTH_SECRET="super-secret-jwt-token-key-change-this-in-production-32chars"
+
+# URL Dasar Aplikasi
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Node Environment
+NODE_ENV="development"
 ```
 
 ### 4. Database Setup & Migrations
-Generate Prisma Client:
+Generate Prisma Client client bindings:
 ```bash
 npx prisma generate
 ```
 
-Push schema to your database (when PostgreSQL is active):
+Sinkronisasikan skema tabel ke database:
 ```bash
 npx prisma db push
 ```
 
-Seed database with rich initial academic data:
+Isi database dengan data awal realistis (*seeding*):
 ```bash
 npm run db:seed
 ```
 
-> **Zero-Config Local Database Included**: ClassHub includes an embedded PostgreSQL engine powered by PGlite (`scripts/dev-db.mjs`) on port 5433. Simply running `npm run dev` automatically spins up both the embedded persistent database and Next.js. No Docker or external PostgreSQL installation is required for local development!
+> **⚡ Zero-Config Local Database Included**:  
+> ClassHub dilengkapi mesin PostgreSQL *embedded* yang ditenagai oleh PGlite (`scripts/dev-db.mjs`) pada port `5433`. Menjalankan perintah `npm run dev` secara otomatis menginisialisasi database lokal dan server Next.js sekaligus tanpa memerlukan instalasi Docker atau server PostgreSQL terpisah!
 >
-> **Note on Zero-Downtime Resilience**: If PostgreSQL is temporarily offline or unconfigured, ClassHub automatically switches to its comprehensive `initial-data.ts` fallback layer. The app will build and run without throwing unhandled exceptions.
+> **🛡️ Note on Zero-Downtime Resilience**:  
+> Apabila database PostgreSQL mengalami gangguan jaringan atau sedang offline, ClassHub secara pintar beralih membaca lapisan data cadangan (*fallback layer* di `initial-data.ts`). Aplikasi akan tetap berjalan normal tanpa memunculkan layar crash/unhandled exceptions.
 
 ### 5. Running Locally
-Start the development server (automatically launches embedded database + Next.js):
+Jalankan server pengembangan:
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Available development scripts:
-- `npm run dev`: Starts both embedded PGlite DB and Next.js dev server.
-- `npm run dev:db`: Starts only the embedded PGlite database server on port 5433.
-- `npm run dev:next`: Starts only Next.js (when external DB or existing dev:db is active).
-- `npm test`: Runs all unit and integration test suites via Vitest.
-- `npm run db:push`: Synchronizes Prisma schema with the database.
-- `npm run db:seed`: Seeds database with realistic cohort data and administrator accounts.
+Buka peramban dan akses: [http://localhost:3000](http://localhost:3000)  
+Untuk login ke portal admin, buka: [http://localhost:3000/login](http://localhost:3000/login)
 
-To verify production bundle compilation:
-```bash
-npm run build
-npm run start
-```
+#### Daftar Skrip Pengembangan yang Tersedia:
+| Perintah | Deskripsi |
+|---|---|
+| `npm run dev` | Menjalankan database embedded PGlite dan server Next.js secara bersamaan. |
+| `npm run dev:db` | Menjalankan hanya mesin database PGlite di port 5433. |
+| `npm run dev:next` | Menjalankan hanya Next.js (cocok jika menggunakan database cloud eksternal). |
+| `npm run db:push` | Mendorong perubahan skema Prisma langsung ke database tanpa file migrasi. |
+| `npm run db:seed` | Mengisi database dengan akun staf, jadwal, tugas, dan direktori mahasiswa contoh. |
+| `npm run build` | Melakukan kompilasi bundle produksi (*production build*). |
+| `npm run start` | Menjalankan aplikasi dalam mode produksi. |
+| `npm run lint` | Menjalankan static analysis ESLint untuk mengecek kualitas kode. |
 
 ---
 
 ## 📁 Project Architecture
 
-```
+```text
 ProjectCampus/
 ├── prisma/
-│   ├── schema.prisma              # Complete database schema & relationships
-│   └── seed.ts                    # Database seeder with realistic class data
+│   ├── schema.prisma              # Definisi skema database, relasi entitas, dan enum RBAC
+│   └── seed.ts                    # Skrip pengisian data awal (seeder) akun staf dan jadwal
+├── scripts/
+│   └── dev-db.mjs                 # Script embedded PostgreSQL engine berbasis PGlite
 ├── src/
 │   ├── app/
-│   │   ├── (public)/              # Public route group with PublicNav & Footer
-│   │   │   ├── layout.tsx         # Public layout
-│   │   │   ├── page.tsx           # Home landing page
-│   │   │   ├── schedule/page.tsx  # Timetable schedule view
-│   │   │   ├── tasks/page.tsx     # Coursework and assignments view
-│   │   │   ├── students/          # Student directory & detail pages
-│   │   │   ├── achievements/      # Achievements showcase
-│   │   │   ├── announcements/     # Class bulletins
-│   │   │   ├── gallery/           # Campus photo albums
-│   │   │   └── resources/         # Download & link resources
-│   │   ├── admin/                 # Protected admin management dashboard
-│   │   │   ├── layout.tsx         # Server auth & permission check layout
-│   │   │   ├── layout-client.tsx  # Admin responsive sidebar
-│   │   │   ├── page.tsx           # Admin overview metrics
-│   │   │   ├── schedule/          # Timetable management
-│   │   │   ├── tasks/             # Assignment management
-│   │   │   ├── subjects/          # Course curriculum management
-│   │   │   ├── students/          # Student records management
-│   │   │   ├── achievements/      # Honors management
-│   │   │   ├── announcements/     # Bulletin manager
-│   │   │   ├── gallery/           # Photo album manager
-│   │   │   ├── resources/         # Link manager
-│   │   │   ├── users/             # Team & RBAC manager
-│   │   │   └── settings/          # Class identity & configuration
-│   │   ├── login/page.tsx         # Glassmorphic admin sign-in page
-│   │   ├── globals.css            # Complete design system & custom tokens
-│   │   └── layout.tsx             # Root layout with Inter font
+│   │   ├── (public)/              # Grup route publik dengan PublicNav & Footer terpadu
+│   │   │   ├── layout.tsx         # Layout navigasi publik
+│   │   │   ├── page.tsx           # Home landing page & live dashboard
+│   │   │   ├── schedule/page.tsx  # Tampilan jadwal kuliah mingguan
+│   │   │   ├── tasks/page.tsx     # Tampilan tugas dan tenggat waktu
+│   │   │   ├── students/          # Direktori dan detail profil mahasiswa
+│   │   │   ├── achievements/      # Galeri penghargaan dan prestasi kelas
+│   │   │   ├── announcements/     # Papan pengumuman dan buletin kelas
+│   │   │   ├── gallery/           # Album foto kenangan kegiatan kampus
+│   │   │   ├── resources/         # Repositori tautan drive, modul, dan tools
+│   │   │   └── about/page.tsx     # Profil kelas, visi, misi, dan kepengurusan
+│   │   ├── admin/                 # Protected Route: Panel Pengelolaan Administrator
+│   │   │   ├── layout.tsx         # Autentikasi server & verifikasi hak akses sesi
+│   │   │   ├── layout-client.tsx  # Komponen navigasi sidebar admin yang responsif
+│   │   │   ├── page.tsx           # Ringkasan analitik dan metrik eksekutif
+│   │   │   ├── schedule/          # Manajemen jadwal kelas dan plot ruangan
+│   │   │   ├── tasks/             # Manajemen penugasan dan deadline
+│   │   │   ├── subjects/          # Manajemen silabus mata kuliah dan dosen
+│   │   │   ├── students/          # Manajemen data biodata mahasiswa
+│   │   │   ├── achievements/      # Manajemen pencatatan prestasi
+│   │   │   ├── announcements/     # Editor dan publikasi buletin
+│   │   │   ├── gallery/           # Pengelola album foto kegiatan
+│   │   │   ├── resources/         # Pengelola repositori berkas dan tautan
+│   │   │   ├── users/             # Pengelola tim admin, dosen, & kontrol RBAC
+│   │   │   ├── about/             # Pengelola konten profil dan visi misi
+│   │   │   └── settings/          # Pengaturan identitas kelas dan kanal media sosial
+│   │   ├── login/page.tsx         # Halaman autentikasi admin berdesain glassmorphic
+│   │   ├── globals.css            # Sistem token desain terpusat Tailwind CSS v4
+│   │   └── layout.tsx             # Root layout aplikasi terintegrasi font Inter
 │   ├── components/
-│   │   ├── public-nav.tsx         # Sticky public header with mobile navigation
-│   │   ├── public-footer.tsx      # Multi-column footer with live settings
-│   │   ├── icons.tsx              # Custom SVG brand icons (GitHub, LinkedIn, Discord)
-│   │   └── admin/                 # Reusable admin UI primitives
-│   │       ├── admin-header.tsx   # Consistent admin title bar
-│   │       ├── modal.tsx          # Accessible modal dialog with backdrop
-│   │       └── delete-dialog.tsx  # Confirmation dialog with pending transition
+│   │   ├── public-nav.tsx         # Header navigasi publik responsif dengan mobile drawer
+│   │   ├── public-footer.tsx      # Footer multi-kolom terhubung dengan konfigurasi dinamis
+│   │   ├── icons.tsx              # Komponen ikon merek SVG (GitHub, Discord, LinkedIn)
+│   │   ├── ui/                    # Primitif UI kit (Card, Select, Modal, Toast, Pagination)
+│   │   └── admin/                 # Komponen khusus panel admin
+│   │       ├── admin-header.tsx   # Header judul dan aksi panel admin yang konsisten
+│   │       ├── modal.tsx          # Dialog modal dengan transisi backdrop
+│   │       └── delete-dialog.tsx  # Dialog konfirmasi hapus data dengan pending state
 │   ├── lib/
-│   │   ├── actions/               # Server Actions (Mutations & DB operations)
-│   │   ├── auth/                  # JWT session management & bcrypt password hashing
-│   │   ├── data/                  # Resilient data access layer with fallback
-│   │   ├── permissions/           # RBAC matrix and role definitions
-│   │   ├── validations/           # Zod schemas for all models
-│   │   ├── db.ts                  # Prisma client singleton
-│   │   └── utils.ts               # Utility helpers (formatDate, cn, relative deadlines)
-│   └── middleware.ts              # Route protection for /admin routes
+│   │   ├── actions/               # Server Actions (Mutasi database & logika bisnis)
+│   │   ├── auth/                  # Manajemen enkripsi sesi JWT & hashing password
+│   │   ├── data/                  # Lapisan abstraksi data dengan fallback data cadangan
+│   │   ├── permissions/           # Definisi matriks izin peran (*RBAC matrix*)
+│   │   ├── validations/           # Skema parsing dan validasi data berbasis Zod
+│   │   ├── db.ts                  # Inisialisasi koneksi singleton Prisma Client
+│   │   └── utils.ts               # Helper format tanggal, kalkulasi deadline, dan merging kelas CSS
+│   └── middleware.ts              # Proteksi route otomatis untuk seluruh direktori /admin
 └── package.json
 ```
 
@@ -191,13 +236,14 @@ ProjectCampus/
 
 ## 🔒 Security Best Practices Implemented
 
-1. **HttpOnly Cookies**: Session tokens are encrypted and transmitted solely via secure, HTTP-only cookies to eliminate XSS token theft.
-2. **Server-Side Authorization**: Every Server Action invokes `assertPermission(...)` before executing database mutations.
-3. **Database Guardrails**: Deletion of the final active System Administrator is strictly blocked at the action level to prevent system lockout.
-4. **Input Sanitization**: All form inputs are validated using strict Zod schemas with trim, character limits, and URL pattern enforcement.
-5. **No Secrets in Bundles**: Sensitive variables (`DATABASE_URL`, `AUTH_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`) are strictly server-only.
+1. **HttpOnly & Secure Session Cookies**: Token autentikasi JWT dienkripsi secara simetris dan hanya dikirimkan melalui cookie bertipe `httpOnly`, `sameSite=lax`, dan `secure` untuk mengeliminasi risiko pencurian token melalui eksploitasi XSS (*Cross-Site Scripting*).
+2. **Server-Side Authorization Enforcement**: Setiap mutasi di dalam *Server Action* mewajibkan pemanggilan fungsi `assertPermission(...)` sebelum menjalankan instruksi ke database untuk mencegah bypass wewenang di sisi klien.
+3. **Database Guardrails (Anti-Lockout)**: Logika proteksi di sisi server melarang keras penghapusan akun Administrator aktif terakhir agar sistem tidak pernah mengalami penguncian tanpa pengelola.
+4. **Input Sanitization & Type Coercion**: Seluruh data yang dikirim melalui formulir divalidasi secara ketat menggunakan skema Zod dengan aturan pemangkasan spasi (*trim*), batas panjang karakter, serta validasi pola format URL.
+5. **Zero Secrets in Client Bundles**: Seluruh variabel sensitif (`DATABASE_URL`, `AUTH_SECRET`, kredensial basis data) dilindungi secara mutlak dan tidak pernah bocor ke dalam JavaScript bundle peramban.
 
 ---
 
 ## 📄 License
-This project is open-source and available under the [MIT License](LICENSE).
+Proyek ini bersifat open-source dan didistribusikan di bawah lisensi resmi [MIT License](LICENSE).
+```
