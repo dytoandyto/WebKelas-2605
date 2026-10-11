@@ -27,6 +27,8 @@ vi.mock("@/lib/db", () => ({
             studentNumber: "1202223001",
             major: "S1 Sistem Informasi",
             photoUrl: "/images/students/budi.jpg",
+            isPublished: true,
+            photoApproved: true,
             achievements: [],
           },
         ];
@@ -52,6 +54,8 @@ vi.mock("@/lib/db", () => ({
           name: "Budi Pratama",
           studentNumber: "1202223001",
           major: "S1 Sistem Informasi",
+          isPublished: true,
+          photoApproved: true,
           achievements: [],
         });
       }),

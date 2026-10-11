@@ -102,25 +102,59 @@ export const userUpdateSchema = z.object({
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 
 // 3. Student Schemas
+export const parseBooleanFlex = (val: unknown, defaultVal = false): boolean => {
+  if (typeof val === "boolean") return val;
+  if (typeof val === "number") return val === 1;
+  if (typeof val === "string") {
+    const s = val.trim().toLowerCase();
+    if (["ya", "yes", "true", "1", "published", "setuju", "aktif", "y"].includes(s)) return true;
+    if (["tidak", "no", "false", "0", "draft", "tidak setuju", "nonaktif", "t", "n"].includes(s)) return false;
+  }
+  return defaultVal;
+};
+
 export const studentSchema = z.object({
-  name: z.string().trim().min(2, "Full name is required (min 2 characters)"),
+  name: z.string().trim().min(2, "Nama lengkap wajib diisi (minimal 2 karakter)"),
   studentNumber: z
     .string()
     .trim()
     .optional()
     .nullable()
     .transform((val) => (val === "" ? null : val)),
+  nickname: z.string().trim().max(100).optional().nullable(),
   major: z.string().trim().default("Sistem Informasi").optional(),
   photoUrl: optionalPhotoUrl,
   bio: z.string().trim().max(1000).optional().nullable(),
   dream: z.string().trim().max(255).optional().nullable(),
   motivation: z.string().trim().max(1000).optional().nullable(),
+  organization: z.string().trim().max(500).optional().nullable(),
+  isPublished: z.boolean().default(true),
+  photoApproved: z.boolean().default(true),
   githubUrl: optionalUrl,
   linkedinUrl: optionalUrl,
   portfolioUrl: optionalUrl,
   instagramUrl: optionalUrl,
 });
 export type StudentInput = z.infer<typeof studentSchema>;
+
+export const studentImportRowSchema = z.object({
+  nama_lengkap: z.string().trim().min(2, "Nama lengkap wajib diisi (minimal 2 karakter)"),
+  nama_panggilan: z.string().trim().max(100).optional().nullable(),
+  nim: z.string().trim().optional().nullable(),
+  program_studi: z.string().trim().default("Sistem Informasi").optional(),
+  foto_url: optionalPhotoUrl,
+  cita_cita: z.string().trim().max(255).optional().nullable(),
+  motivasi: z.string().trim().max(1000).optional().nullable(),
+  organisasi: z.string().trim().max(500).optional().nullable(),
+  biodata: z.string().trim().max(1000).optional().nullable(),
+  profil_publik: z.any().transform((v) => parseBooleanFlex(v, false)),
+  foto_disetujui: z.any().transform((v) => parseBooleanFlex(v, false)),
+  github: optionalUrl,
+  linkedin: optionalUrl,
+  portfolio: optionalUrl,
+  instagram: optionalUrl,
+});
+export type StudentImportRow = z.infer<typeof studentImportRowSchema>;
 
 // 4. Subject Schemas
 export const subjectSchema = z.object({

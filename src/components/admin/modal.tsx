@@ -59,10 +59,13 @@ export function Modal({
       />
 
       {/* Modal Dialog Container */}
-      <div className="flex min-h-full items-center justify-center p-3 sm:p-4 text-center">
+      <div
+        className="flex min-h-full items-center justify-center p-3 sm:p-4 text-center cursor-pointer"
+        onClick={onClose}
+      >
         <div
           className={cn(
-            "relative transform overflow-hidden rounded-2xl text-left shadow-2xl transition-all sm:my-8 w-full",
+            "relative transform overflow-hidden rounded-2xl text-left shadow-2xl transition-all sm:my-8 w-full cursor-default",
             maxWidthClasses[maxWidth],
             "animate-in zoom-in-95 duration-200 ease-out",
             "bg-white dark:bg-[#0c1427] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 shadow-2xl"

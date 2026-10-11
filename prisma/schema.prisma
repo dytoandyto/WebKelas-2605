@@ -1,7 +1,7 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -106,11 +106,15 @@ model Student {
   id            String    @id @default(cuid())
   name          String
   studentNumber String?   @unique @map("student_number")
+  nickname      String?
   photoUrl      String?   @map("photo_url")
   bio           String?
   dream         String?
   motivation    String?
-  major         String
+  organization  String?
+  major         String    @default("Sistem Informasi")
+  isPublished   Boolean   @default(true) @map("is_published")
+  photoApproved Boolean   @default(true) @map("photo_approved")
   githubUrl     String?   @map("github_url")
   linkedinUrl   String?   @map("linkedin_url")
   portfolioUrl  String?   @map("portfolio_url")
@@ -123,6 +127,7 @@ model Student {
   @@map("students")
   @@index([name])
   @@index([major])
+  @@index([isPublished])
 }
 
 model Subject {

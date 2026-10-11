@@ -14,7 +14,7 @@ export function ThemeSwitcher({
   className,
   variant = "pill",
 }: ThemeSwitcherProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -57,7 +57,8 @@ export function ThemeSwitcher({
     { key: "dark", label: "Dark", icon: Moon },
   ] as const;
 
-  const currentTheme = themes.find((t) => t.key === theme) || themes[1];
+  const activeKey = theme === "system" ? resolvedTheme : theme;
+  const currentTheme = themes.find((t) => t.key === activeKey) || themes[1];
   const CurrentIcon = currentTheme.icon;
 
   if (variant === "pill") {
@@ -72,7 +73,7 @@ export function ThemeSwitcher({
       >
         {themes.map((t) => {
           const Icon = t.icon;
-          const isActive = theme === t.key;
+          const isActive = activeKey === t.key;
           return (
             <button
               key={t.key}
@@ -114,7 +115,7 @@ export function ThemeSwitcher({
         <div className="absolute right-0 mt-2 w-32 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 z-50 text-xs animate-in fade-in-0 zoom-in-95 duration-150">
           {themes.map((t) => {
             const Icon = t.icon;
-            const isSelected = theme === t.key;
+            const isSelected = activeKey === t.key;
             return (
               <button
                 key={t.key}

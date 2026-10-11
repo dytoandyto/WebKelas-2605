@@ -14,6 +14,8 @@ interface DeleteDialogProps {
   message?: string;
   itemTitle?: string;
   isDeleting?: boolean;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 export function DeleteDialog({
@@ -25,6 +27,8 @@ export function DeleteDialog({
   message,
   itemTitle,
   isDeleting: externalIsDeleting,
+  confirmText = "Hapus",
+  cancelText = "Batal",
 }: DeleteDialogProps) {
   const [internalPending, startTransition] = useTransition();
   const isPending = externalIsDeleting ?? internalPending;
@@ -35,7 +39,12 @@ export function DeleteDialog({
 
   async function handleConfirm() {
     startTransition(async () => {
-      await onConfirm();
+      try {
+        await onConfirm();
+        onClose();
+      } catch (err) {
+        console.error("Delete confirmation failed:", err);
+      }
     });
   }
 
@@ -60,7 +69,7 @@ export function DeleteDialog({
             disabled={isPending}
             className="flex-1 py-2 rounded-lg text-sm font-medium bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-2xs"
           >
-            Cancel
+            {cancelText}
           </button>
           <button
             type="button"
@@ -71,10 +80,10 @@ export function DeleteDialog({
             {isPending ? (
               <>
                 <Loader2 size={15} className="animate-spin" />
-                <span>Deleting...</span>
+                <span>Menghapus...</span>
               </>
             ) : (
-              <span>Delete</span>
+              <span>{confirmText}</span>
             )}
           </button>
         </div>

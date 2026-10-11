@@ -49,11 +49,16 @@ export function computeDynamicTaskStatus(task: {
   return TaskStatus.UPCOMING;
 }
 
-// Privacy helper: ensure student identification numbers (NIM) are never leaked in public outputs
-export function sanitizePublicStudent<T extends { studentNumber?: string | null }>(student: T): Omit<T, "studentNumber"> {
+// Privacy helper: ensure student identification numbers (NIM) are never leaked in public outputs, and unapproved photos are masked
+export function sanitizePublicStudent<T extends { studentNumber?: string | null; photoUrl?: string | null; photoApproved?: boolean }>(
+  student: T
+): Omit<T, "studentNumber"> {
   if (!student) return student;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { studentNumber, ...rest } = student;
+  if ("photoApproved" in student && student.photoApproved === false) {
+    (rest as any).photoUrl = null;
+  }
   return rest;
 }
 
@@ -92,7 +97,7 @@ export async function getHomeData() {
       latestDailyNotesRaw,
       settingsRaw,
     ] = await Promise.all([
-      prisma.student.count(),
+      prisma.student.count({ where: { isPublished: true } }),
       prisma.achievement.count(),
       prisma.subject.count(),
       prisma.task.count({ where: { deadline: { gte: now } } }),
@@ -129,6 +134,7 @@ export async function getHomeData() {
         },
       }),
       prisma.student.findMany({
+        where: { isPublished: true },
         take: 4,
         orderBy: { name: "asc" },
         include: { achievements: { include: { achievement: true } } },
@@ -406,10 +412,14 @@ export async function getStudentsData(
   const includePrivate = options?.includePrivate ?? false;
   try {
     const where: Prisma.StudentWhereInput = {};
+    if (!includePrivate) {
+      where.isPublished = true;
+    }
     if (filters?.major) where.major = filters.major;
     if (filters?.search) {
       const searchConditions: Prisma.StudentWhereInput[] = [
         { name: { contains: filters.search, mode: "insensitive" } },
+        { nickname: { contains: filters.search, mode: "insensitive" } },
         { major: { contains: filters.search, mode: "insensitive" } },
       ];
       // Only include NIM in search filter if requested by authorized admin
@@ -440,6 +450,7 @@ export async function getStudentsData(
     }
 
     const majorsRaw = await prisma.student.findMany({
+      where: includePrivate ? {} : { isPublished: true },
       select: { major: true },
       distinct: ["major"],
     });
@@ -448,12 +459,16 @@ export async function getStudentsData(
     return { students, majors };
   } catch {
     let rawStudents = [...initialStudents];
+    if (!includePrivate) {
+      rawStudents = rawStudents.filter((s) => s.isPublished !== false);
+    }
     if (filters?.major) rawStudents = rawStudents.filter((s) => s.major === filters.major);
     if (filters?.search) {
       const q = filters.search.toLowerCase();
       rawStudents = rawStudents.filter(
         (s) =>
           s.name.toLowerCase().includes(q) ||
+          (s.nickname && s.nickname.toLowerCase().includes(q)) ||
           (includePrivate && s.studentNumber && s.studentNumber.toLowerCase().includes(q)) ||
           s.major.toLowerCase().includes(q)
       );
@@ -494,6 +509,7 @@ export async function getStudentById(id: string, options?: { includePrivate?: bo
       },
     });
     if (student) {
+      if (!includePrivate && student.isPublished === false) return null;
       return includePrivate ? student : sanitizePublicStudent(student);
     }
   } catch {
@@ -502,6 +518,7 @@ export async function getStudentById(id: string, options?: { includePrivate?: bo
 
   const initial = initialStudents.find((s) => s.id === id);
   if (!initial) return null;
+  if (!includePrivate && initial.isPublished === false) return null;
   return includePrivate ? initial : sanitizePublicStudent(initial);
 }
 
@@ -1245,8 +1262,10 @@ export async function getGlobalSearchData(query: string) {
       }),
       prisma.student.findMany({
         where: {
+          isPublished: true,
           OR: [
             { name: { contains: q, mode: "insensitive" } },
+            { nickname: { contains: q, mode: "insensitive" } },
             { major: { contains: q, mode: "insensitive" } },
           ],
         },
@@ -1254,8 +1273,10 @@ export async function getGlobalSearchData(query: string) {
         select: {
           id: true,
           name: true,
+          nickname: true,
           major: true,
           photoUrl: true,
+          photoApproved: true,
         },
       }),
       prisma.achievement.findMany({
@@ -1269,7 +1290,9 @@ export async function getGlobalSearchData(query: string) {
       }),
     ]);
 
-    return { tasks, subjects, materials, dailyNotes, students, achievements };
+    const sanitizedStudents = students.map((s) => sanitizePublicStudent(s));
+
+    return { tasks, subjects, materials, dailyNotes, students: sanitizedStudents, achievements };
   } catch {
     const qLower = q.toLowerCase();
     return {
@@ -1291,7 +1314,8 @@ export async function getGlobalSearchData(query: string) {
         .filter((n) => n.title.toLowerCase().includes(qLower))
         .slice(0, 5),
       students: initialStudents
-        .filter((s) => s.name.toLowerCase().includes(qLower) || (s.major && s.major.toLowerCase().includes(qLower)))
+        .filter((s) => s.isPublished !== false)
+        .filter((s) => s.name.toLowerCase().includes(qLower) || (s.nickname && s.nickname.toLowerCase().includes(qLower)) || (s.major && s.major.toLowerCase().includes(qLower)))
         .map((s) => sanitizePublicStudent(s))
         .slice(0, 5),
       achievements: initialAchievements
