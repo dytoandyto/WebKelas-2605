@@ -176,6 +176,15 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
   const executeSlashCommandRef = React.useRef<(cmd: SlashCommandItem) => void>(() => {});
   const checkSlashCommandRef = React.useRef<(currentEditor: Editor | null) => void>(() => {});
 
+  // Floating Selection Bubble Menu state & refs
+  const [bubbleMenuOpen, setBubbleMenuOpen] = React.useState(false);
+  const [bubbleCoords, setBubbleCoords] = React.useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const checkBubbleMenuRef = React.useRef<(currentEditor: Editor | null) => void>(() => {});
+
+  // Right-Click Quick Context Menu state & refs
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
+  const contextMenuRef = React.useRef<HTMLDivElement>(null);
+
   // Initialize Tiptap editor
   const editor = useEditor({
     extensions: [
@@ -279,6 +288,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     },
     onSelectionUpdate: ({ editor }) => {
       checkSlashCommandRef.current(editor);
+      checkBubbleMenuRef.current(editor);
     },
   });
 
@@ -900,17 +910,67 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     checkSlashCommandRef.current = checkSlashCommand;
   }, [checkSlashCommand]);
 
-  // Click outside to dismiss slash menu
+  // Check selection for floating bubble menu
+  const checkBubbleMenu = React.useCallback((currentEditor: Editor | null) => {
+    if (!currentEditor || !currentEditor.isFocused) {
+      setBubbleMenuOpen(false);
+      return;
+    }
+    const { from, to } = currentEditor.state.selection;
+    if (from === to) {
+      setBubbleMenuOpen(false);
+      return;
+    }
+
+    try {
+      const fromCoords = currentEditor.view.coordsAtPos(from);
+      const toCoords = currentEditor.view.coordsAtPos(to);
+      const centerLeft = (fromCoords.left + toCoords.left) / 2;
+      const top = Math.max(16, fromCoords.top - 46);
+      const left = Math.max(16, Math.min(centerLeft - 130, window.innerWidth - 310));
+      setBubbleCoords({ top, left });
+      setBubbleMenuOpen(true);
+    } catch {
+      setBubbleMenuOpen(false);
+    }
+  }, []);
+
   React.useEffect(() => {
-    if (!slashMenuOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
+    checkBubbleMenuRef.current = checkBubbleMenu;
+  }, [checkBubbleMenu]);
+
+  // Click outside, scroll, and key listener to dismiss context, slash, and bubble menus
+  React.useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
+      }
       if (slashMenuRef.current && !slashMenuRef.current.contains(e.target as Node)) {
         setSlashMenuOpen(false);
       }
     };
-    window.addEventListener("mousedown", handleClickOutside);
-    return () => window.removeEventListener("mousedown", handleClickOutside);
-  }, [slashMenuOpen]);
+    const handleScroll = () => {
+      setContextMenu(null);
+      if (editor) {
+        checkBubbleMenuRef.current(editor);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setContextMenu(null);
+        setBubbleMenuOpen(false);
+        setSlashMenuOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleGlobalClick);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("mousedown", handleGlobalClick);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editor]);
 
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100 flex flex-col bg-slate-100/60 dark:bg-[#070d19]">
@@ -1100,12 +1160,12 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       )}
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
-      <div className="flex-1 flex max-w-[1720px] w-full mx-auto overflow-hidden">
+      <div className="flex-1 flex max-w-[1720px] w-full mx-auto">
         {/* CENTER / LEFT: DOCUMENT EDITING CANVAS */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <main className="flex-1 flex flex-col min-w-0">
           {viewMode !== "preview" && editor && (
             /* STICKY RICH-TEXT TOOLBAR */
-            <div className="sticky top-14 z-30 bg-white/95 dark:bg-[#0c1427]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+            <div className="sticky top-14 z-30 bg-white/95 dark:bg-[#0c1427]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shadow-xs transition-colors">
               <div className="flex flex-wrap items-center gap-0.5 text-slate-700 dark:text-slate-300">
                 {/* History: Undo / Redo */}
                 <button
@@ -1510,7 +1570,17 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
                 </div>
 
                 {/* Tiptap Block Editor Content */}
-                <div className="flex-1 min-h-[460px]">
+                <div
+                  className="flex-1 min-h-[460px]"
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    const menuWidth = 260;
+                    const menuHeight = 440;
+                    const x = Math.min(e.clientX, window.innerWidth - menuWidth - 16);
+                    const y = Math.min(e.clientY, window.innerHeight - menuHeight - 16);
+                    setContextMenu({ x, y });
+                  }}
+                >
                   <EditorContent editor={editor} />
                 </div>
 
@@ -2308,6 +2378,358 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
             <span>↵ Terapkan</span>
             <span>Esc Tutup</span>
           </div>
+        </div>
+      )}
+
+      {/* 6. RIGHT-CLICK CONTEXT MENU (Word / Notion Style) */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
+          className="fixed z-50 w-64 max-h-[85vh] overflow-y-auto bg-white/98 dark:bg-[#0c1427]/98 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 space-y-1.5 animate-in fade-in zoom-in-95 duration-100 text-xs select-none"
+        >
+          <div className="px-2.5 py-1 text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <Sparkles size={12} className="text-blue-600 dark:text-cyan-400" />
+              <span>Menu Cepat Editor</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setContextMenu(null)}
+              className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X size={13} />
+            </button>
+          </div>
+
+          {/* Group 1: Media & Links */}
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setContextMenu(null);
+                openImageModal();
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2.5 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-cyan-500/10 hover:text-blue-600 dark:hover:text-cyan-400 font-medium cursor-pointer transition-colors"
+            >
+              <ImageIcon size={15} className="text-blue-600 dark:text-cyan-400 shrink-0" />
+              <div className="flex-1 text-left">
+                <p className="font-semibold">Sisipkan Gambar</p>
+                <p className="text-[10px] text-slate-400">Upload PC atau link URL</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setContextMenu(null);
+                openLinkModal();
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer transition-colors"
+            >
+              <LinkIcon size={15} className="text-slate-500 shrink-0" />
+              <div className="flex-1 text-left">
+                <p className="font-semibold">Sisipkan Tautan</p>
+                <p className="text-[10px] text-slate-400">Ctrl + K</p>
+              </div>
+            </button>
+          </div>
+
+          <div className="h-px bg-slate-100 dark:bg-slate-800/80 my-1" />
+
+          {/* Group 2: Headings */}
+          <div className="space-y-0.5">
+            <p className="px-2.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider">Format Judul</p>
+            <div className="grid grid-cols-3 gap-1 px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setContextMenu(null);
+                  editor?.chain().focus().toggleHeading({ level: 1 }).run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-bold border transition-colors cursor-pointer",
+                  editor?.isActive("heading", { level: 1 })
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setContextMenu(null);
+                  editor?.chain().focus().toggleHeading({ level: 2 }).run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-bold border transition-colors cursor-pointer",
+                  editor?.isActive("heading", { level: 2 })
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+              >
+                H2
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setContextMenu(null);
+                  editor?.chain().focus().toggleHeading({ level: 3 }).run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-bold border transition-colors cursor-pointer",
+                  editor?.isActive("heading", { level: 3 })
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+              >
+                H3
+              </button>
+            </div>
+          </div>
+
+          <div className="h-px bg-slate-100 dark:bg-slate-800/80 my-1" />
+
+          {/* Group 3: Inline Styles */}
+          <div className="space-y-0.5">
+            <p className="px-2.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider">Gaya Tulisan</p>
+            <div className="grid grid-cols-4 gap-1 px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  editor?.chain().focus().toggleBold().run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-bold border transition-colors cursor-pointer",
+                  editor?.isActive("bold")
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+                title="Tebal (Ctrl+B)"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor?.chain().focus().toggleItalic().run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-bold italic border transition-colors cursor-pointer",
+                  editor?.isActive("italic")
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+                title="Miring (Ctrl+I)"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor?.chain().focus().toggleUnderline().run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-bold underline border transition-colors cursor-pointer",
+                  editor?.isActive("underline")
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+                title="Garis Bawah (Ctrl+U)"
+              >
+                U
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor?.chain().focus().toggleCode().run();
+                }}
+                className={cn(
+                  "py-1 rounded-md text-center text-xs font-mono border transition-colors cursor-pointer",
+                  editor?.isActive("code")
+                    ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border-blue-300 dark:border-cyan-500/30"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                )}
+                title="Kode Baris"
+              >
+                &lt;/&gt;
+              </button>
+            </div>
+          </div>
+
+          <div className="h-px bg-slate-100 dark:bg-slate-800/80 my-1" />
+
+          {/* Group 4: Blocks (Code, Quote, Lists, Divider) */}
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setContextMenu(null);
+                editor?.chain().focus().toggleCodeBlock().run();
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+            >
+              <Code size={14} className="text-cyan-500 shrink-0" />
+              <span>Blok Kode Program</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setContextMenu(null);
+                editor?.chain().focus().toggleBlockquote().run();
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+            >
+              <Quote size={14} className="text-amber-500 shrink-0" />
+              <span>Kutipan / Callout Box</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setContextMenu(null);
+                editor?.chain().focus().toggleBulletList().run();
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+            >
+              <List size={14} className="text-slate-400 shrink-0" />
+              <span>Daftar Poin (Bullet List)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setContextMenu(null);
+                editor?.chain().focus().setHorizontalRule().run();
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+            >
+              <Minus size={14} className="text-slate-400 shrink-0" />
+              <span>Garis Pemisah (Divider)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 7. FLOATING SELECTION BUBBLE MENU */}
+      {bubbleMenuOpen && editor && (
+        <div
+          style={{ top: `${bubbleCoords.top}px`, left: `${bubbleCoords.left}px` }}
+          className="fixed z-50 flex items-center gap-0.5 p-1 rounded-xl bg-slate-900/95 dark:bg-[#070d19]/95 text-white shadow-2xl backdrop-blur-md border border-slate-700/80 animate-in fade-in zoom-in-95 duration-100 select-none pointer-events-auto"
+        >
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleBold().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("bold") ? "bg-blue-600 text-white font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Tebal (Ctrl+B)"
+          >
+            <Bold size={14} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleItalic().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("italic") ? "bg-blue-600 text-white font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Miring (Ctrl+I)"
+          >
+            <Italic size={14} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleUnderline().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("underline") ? "bg-blue-600 text-white font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Garis Bawah (Ctrl+U)"
+          >
+            <UnderlineIcon size={14} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleCode().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("code") ? "bg-blue-600 text-white font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Kode Baris"
+          >
+            <Code size={14} />
+          </button>
+
+          <div className="w-px h-3.5 bg-slate-700/80 mx-0.5" />
+
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              openLinkModal();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("link") ? "bg-blue-600 text-white font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Tautan (Ctrl+K)"
+          >
+            <LinkIcon size={14} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 1 }).run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer font-bold text-xs",
+              editor.isActive("heading", { level: 1 }) ? "bg-blue-600 text-white" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Heading 1"
+          >
+            H1
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer font-bold text-xs",
+              editor.isActive("heading", { level: 2 }) ? "bg-blue-600 text-white" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Heading 2"
+          >
+            H2
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleBlockquote().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("blockquote") ? "bg-blue-600 text-white" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Kutipan"
+          >
+            <Quote size={14} />
+          </button>
         </div>
       )}
     </div>

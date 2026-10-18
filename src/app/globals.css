@@ -773,13 +773,26 @@ tr:hover td {
 .article-rich-content figure.article-image figcaption,
 .article-rich-content .article-caption {
   margin-top: 0.625rem;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
   font-family: inherit;
-  font-style: italic;
+  font-style: normal;
   line-height: 1.5;
-  padding: 0 0.5rem;
-  text-align: inherit;
+  padding: 0.35rem 0.75rem;
+  text-align: center;
+  background-color: rgba(241, 245, 249, 0.8);
+  border-radius: 0.5rem;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dark .tiptap figure.article-image figcaption,
+.dark .article-rich-content figure.article-image figcaption,
+.dark .article-rich-content .article-caption {
+  color: #e2e8f0;
+  background-color: rgba(30, 41, 59, 0.6);
 }
 
 .tiptap hr,
@@ -820,4 +833,112 @@ tr:hover td {
 .tiptap tr:hover td,
 .article-rich-content tr:hover td {
   background-color: var(--surface-card-hover);
+}
+
+/* ==========================================================================
+   CODE HIGHLIGHTING (PrismJS Syntax Highlighting Tokens)
+   ========================================================================== */
+pre[class*="language-"],
+code[class*="language-"],
+.article-rich-content pre,
+.article-rich-content code {
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  direction: ltr;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  line-height: 1.6;
+  tab-size: 2;
+  hyphens: none;
+}
+
+.article-rich-content pre {
+  position: relative;
+  margin: 1.5rem 0;
+  border-radius: 0.875rem;
+  background-color: #0b1120 !important;
+  border: 1px solid rgba(51, 65, 85, 0.7);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.article-rich-content pre code {
+  display: block;
+  padding: 1.25rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+
+/* Tokens */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #64748b;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #94a3b8;
+}
+
+.token.namespace {
+  color: #38bdf8;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #f59e0b;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #34d399;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #f472b6;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.token.function,
+.token.class-name {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #fb7185;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
 }

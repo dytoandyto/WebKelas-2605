@@ -4,6 +4,21 @@ import * as React from "react";
 import { Check, Copy, Info, AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isHtmlContent, extractHeadings, generateHeadingId } from "@/lib/editor/content-converter";
+import Prism from "prismjs";
+import "prismjs/components/prism-csharp";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-markup";
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
 
 export interface TocItem {
   id: string;
@@ -11,7 +26,7 @@ export interface TocItem {
   level: number;
 }
 
-interface ArticleContentRendererProps {
+export interface ArticleContentRendererProps {
   content: string;
   className?: string;
   onHeadingsExtracted?: (headings: TocItem[]) => void;
@@ -33,10 +48,34 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const rawLang = (language || "csharp").toLowerCase().replace(/^language-/, "");
+  const langKey =
+    rawLang === "cs"
+      ? "csharp"
+      : rawLang === "js"
+      ? "javascript"
+      : rawLang === "ts"
+      ? "typescript"
+      : rawLang === "py"
+      ? "python"
+      : rawLang;
+  const grammar = Prism.languages[langKey] || Prism.languages.csharp || Prism.languages.javascript;
+
+  const highlightedCode = React.useMemo(() => {
+    try {
+      return Prism.highlight(code, grammar, langKey);
+    } catch {
+      return code;
+    }
+  }, [code, grammar, langKey]);
+
   return (
     <div className="relative group my-5 rounded-xl overflow-hidden border border-slate-700/60 bg-[#070d19] dark:bg-[#050b14] shadow-md">
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-900/90 border-b border-slate-800 text-xs font-mono text-slate-400">
-        <span className="uppercase text-cyan-400 font-semibold">{language || "text"}</span>
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-900/90 border-b border-slate-800 text-xs font-mono text-slate-400 select-none">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-500/80 inline-block" />
+          <span className="uppercase text-cyan-400 font-semibold">{langKey === "csharp" ? "C#" : langKey}</span>
+        </div>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer text-xs"
@@ -45,7 +84,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
           {copied ? (
             <>
               <Check size={13} className="text-emerald-400" />
-              <span className="text-emerald-400 font-sans">Tersalin</span>
+              <span className="text-emerald-400 font-sans font-semibold">Tersalin ✓</span>
             </>
           ) : (
             <>
@@ -56,7 +95,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
         </button>
       </div>
       <pre className="p-4 overflow-x-auto text-sm font-mono text-slate-200 leading-relaxed no-scrollbar">
-        <code>{code}</code>
+        <code className={`language-${langKey}`} dangerouslySetInnerHTML={{ __html: highlightedCode }} />
       </pre>
     </div>
   );
@@ -409,27 +448,78 @@ export function ArticleContentRenderer({
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  // Enhance code blocks with copy buttons when HTML content is rendered
+  // Enhance code blocks with syntax highlighting and copy buttons when HTML content is rendered
   React.useEffect(() => {
     if (!containerRef.current || !isHtmlContent(content)) return;
     const pres = containerRef.current.querySelectorAll("pre");
     pres.forEach((pre) => {
-      if (pre.querySelector(".code-copy-btn")) return;
-      pre.classList.add("relative", "group");
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className =
-        "code-copy-btn absolute top-2 right-2 px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-1 shadow-sm z-10";
-      btn.innerHTML = `<span>Salin</span>`;
-      btn.onclick = () => {
-        const code = pre.querySelector("code")?.innerText || pre.innerText;
-        navigator.clipboard.writeText(code);
-        btn.innerHTML = `<span class="text-emerald-400 font-semibold">Tersalin ✓</span>`;
-        setTimeout(() => {
-          btn.innerHTML = `<span>Salin</span>`;
-        }, 2000);
-      };
-      pre.appendChild(btn);
+      let codeEl = pre.querySelector("code");
+      if (!codeEl) {
+        const newCode = document.createElement("code");
+        newCode.innerHTML = pre.innerHTML;
+        pre.innerHTML = "";
+        pre.appendChild(newCode);
+        codeEl = newCode;
+      }
+
+      // Check language from class list
+      let lang = "csharp";
+      const classes = Array.from(codeEl.classList).concat(Array.from(pre.classList));
+      const langClass = classes.find((c) => c.startsWith("language-"));
+      if (langClass) {
+        const raw = langClass.replace("language-", "").toLowerCase();
+        lang = raw === "cs" ? "csharp" : raw === "js" ? "javascript" : raw === "ts" ? "typescript" : raw;
+      } else {
+        const text = codeEl.innerText;
+        if (/using System|namespace |Console\.Write|public class|int |void Main|string\[\]/.test(text)) {
+          lang = "csharp";
+        } else if (/const |let |function |import |export |=>/.test(text)) {
+          lang = "typescript";
+        } else if (/def |import |class |print\(/.test(text)) {
+          lang = "python";
+        }
+        codeEl.classList.add(`language-${lang}`);
+      }
+
+      // Highlight syntax with Prism
+      if (!codeEl.classList.contains("prism-highlighted")) {
+        try {
+          Prism.highlightElement(codeEl);
+          codeEl.classList.add("prism-highlighted");
+        } catch {
+          // fallback
+        }
+      }
+
+      // Add top code header bar with language badge and copy button
+      if (!pre.querySelector(".code-header-bar")) {
+        pre.classList.add("relative", "group", "overflow-hidden", "has-code-header");
+        const header = document.createElement("div");
+        header.className =
+          "code-header-bar flex items-center justify-between px-4 py-2 bg-slate-900/95 border-b border-slate-800 text-xs font-mono text-slate-400 select-none";
+
+        const badge = document.createElement("div");
+        badge.className = "flex items-center gap-2 font-bold uppercase text-cyan-400 text-xs";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span><span>${lang === "csharp" ? "C#" : lang}</span>`;
+        header.appendChild(badge);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "code-copy-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition-colors cursor-pointer flex items-center gap-1 shadow-sm";
+        btn.innerHTML = `<span>Salin</span>`;
+        btn.onclick = () => {
+          const rawText = codeEl?.innerText || pre.innerText;
+          navigator.clipboard.writeText(rawText);
+          btn.innerHTML = `<span class="text-emerald-400 font-semibold">Tersalin ✓</span>`;
+          setTimeout(() => {
+            btn.innerHTML = `<span>Salin</span>`;
+          }, 2000);
+        };
+        header.appendChild(btn);
+
+        pre.insertBefore(header, pre.firstChild);
+      }
     });
   }, [content]);
 

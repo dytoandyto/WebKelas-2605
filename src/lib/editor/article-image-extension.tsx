@@ -54,8 +54,8 @@ export function ArticleImageNodeView({
   }[align] || "mx-auto text-center";
 
   const sizeClasses = {
-    small: "max-w-xs sm:max-w-sm w-full",
-    medium: "max-w-lg sm:max-w-xl w-full",
+    small: "max-w-[360px] sm:max-w-sm w-full min-w-[260px]",
+    medium: "max-w-xl sm:max-w-2xl w-full",
     full: "w-full max-w-full",
   }[size] || "w-full max-w-full";
 
@@ -219,13 +219,13 @@ export function ArticleImageNodeView({
         </div>
 
         {/* Inline Editable Caption Field (WordPress Gutenberg Style) */}
-        <div className="mt-2 text-center">
+        <div className="mt-2.5 text-center px-1">
           <input
             type="text"
             value={caption || ""}
             onChange={(e) => updateAttributes({ caption: e.target.value })}
             placeholder="Tambahkan keterangan gambar (caption opsional)..."
-            className="w-full text-center text-xs text-slate-600 dark:text-slate-400 placeholder:text-slate-400 dark:placeholder:text-slate-600 bg-transparent border-0 border-b border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-500 outline-none py-1 italic transition-colors font-sans"
+            className="w-full text-center text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-100/70 dark:bg-slate-800/60 rounded-lg px-3 py-1.5 border border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all font-sans"
             aria-label="Keterangan gambar"
           />
         </div>
