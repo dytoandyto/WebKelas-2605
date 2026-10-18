@@ -54,7 +54,7 @@ export function PageHeader({
       )}
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-1.5 max-w-3xl">
+        <div className="space-y-1.5 max-w-4xl xl:max-w-5xl">
           {badge && (
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] dark:text-cyan-400 border border-[var(--primary)]/25 mb-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] dark:bg-cyan-400 animate-pulse" />

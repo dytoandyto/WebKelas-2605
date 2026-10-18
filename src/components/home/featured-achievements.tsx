@@ -43,8 +43,8 @@ export function FeaturedAchievements({
       <section className={cn("space-y-4 text-left", className)}>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-xs font-mono uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold">
               {"// Prestasi"}
             </span>
           </div>
@@ -64,7 +64,7 @@ export function FeaturedAchievements({
             padding="lg"
             className="text-center border-dashed space-y-3 p-6 sm:p-8"
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 light:bg-amber-50 border border-amber-500/20 light:border-amber-200 flex items-center justify-center mx-auto text-amber-500 light:text-amber-600">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 dark:bg-amber-950/40 dark:border-amber-800/50 dark:text-amber-400 flex items-center justify-center mx-auto">
               <Trophy className="w-6 h-6" />
             </div>
             <div className="space-y-1">
@@ -93,8 +93,8 @@ export function FeaturedAchievements({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-xs font-mono uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold">
               {"// Prestasi"}
             </span>
           </div>
@@ -112,7 +112,7 @@ export function FeaturedAchievements({
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-amber-400 light:text-amber-700 font-semibold"
+            className="text-xs text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-semibold cursor-pointer"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
             Lihat Semua Prestasi

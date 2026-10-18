@@ -64,7 +64,7 @@ export function FilterBar({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full pl-9 pr-8 py-2 rounded-xl bg-[var(--surface-primary)] light:bg-white border border-[var(--border-color)] light:border-slate-300 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-cyan-400 light:focus:border-blue-500 focus:ring-2 focus:ring-cyan-500/20 transition-all shadow-xs"
+                className="w-full pl-9 pr-8 py-2 rounded-xl bg-[var(--surface-primary)] border border-[var(--border-color)] text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
@@ -85,7 +85,7 @@ export function FilterBar({
               <select
                 value={group.value}
                 onChange={(e) => group.onChange(e.target.value)}
-                className="appearance-none px-3.5 py-2 pr-8 rounded-xl bg-[var(--surface-primary)] light:bg-white border border-[var(--border-color)] light:border-slate-300 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-400 light:focus:border-blue-500 cursor-pointer shadow-xs"
+                className="appearance-none px-3.5 py-2 pr-8 rounded-xl bg-[var(--surface-primary)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-blue-500 cursor-pointer shadow-xs"
               >
                 {group.options.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -117,7 +117,7 @@ export function FilterBar({
           {activeChips.map((chip) => (
             <span
               key={chip.id}
-              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 light:bg-blue-50 light:border-blue-200 light:text-blue-700 font-medium"
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800/50 dark:text-blue-300 font-medium"
             >
               <span>
                 {chip.label}: <strong>{chip.valueLabel}</strong>
@@ -125,7 +125,7 @@ export function FilterBar({
               <button
                 type="button"
                 onClick={chip.onRemove}
-                className="hover:text-white light:hover:text-blue-900 rounded-full cursor-pointer"
+                className="hover:text-blue-950 dark:hover:text-white rounded-full cursor-pointer"
                 title={`Remove ${chip.label}`}
               >
                 <X size={11} />
@@ -137,7 +137,7 @@ export function FilterBar({
             <button
               type="button"
               onClick={onClearAll}
-              className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-cyan-400 light:hover:text-blue-600 font-medium ml-1 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-blue-600 dark:hover:text-blue-400 font-medium ml-1 transition-colors cursor-pointer"
             >
               <RotateCcw size={10} />
               <span>Clear all</span>

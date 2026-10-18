@@ -72,12 +72,11 @@ export function ToastProvider({ children }: { children?: React.ReactNode }) {
             key={toast.id}
             role="status"
             className={cn(
-              "pointer-events-auto flex items-start gap-3 p-4 rounded-xl border bg-[var(--surface-primary)] shadow-[0_12px_36px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-300 animate-in slide-in-from-bottom-5",
-              "light:bg-white light:shadow-lg light:border-slate-200",
+              "pointer-events-auto flex items-start gap-3 p-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] shadow-lg backdrop-blur-xl transition-all duration-300 animate-in slide-in-from-bottom-5",
               toast.type === "success" && "border-emerald-500/40",
               toast.type === "error" && "border-red-500/40",
               toast.type === "warning" && "border-amber-500/40",
-              toast.type === "info" && "border-cyan-500/40"
+              toast.type === "info" && "border-blue-500/40"
             )}
           >
             {getIcon(toast.type)}

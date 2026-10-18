@@ -64,8 +64,8 @@ export function QuickLinks({
       <section className={cn("space-y-4 text-left max-w-xl", className)}>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
-            <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+            <span className="text-xs font-mono uppercase tracking-wider text-blue-700 dark:text-blue-400 font-bold">
               {"// Akses Cepat"}
             </span>
           </div>

@@ -15,7 +15,6 @@ import {
   X,
   LogIn,
   ChevronDown,
-  Sparkles,
   Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,7 +34,7 @@ const baseNavLinks = [
   { href: "/schedule", label: "Jadwal", icon: Calendar },
   { href: "/subjects", label: "Mata Kuliah", icon: BookOpen, hasDropdown: true },
   { href: "/tasks", label: "Tugas", icon: CheckSquare },
-  { href: "/materials", label: "Materi", icon: BookOpen },
+  { href: "/articles", label: "Artikel", icon: BookOpen },
   { href: "/daily-notes", label: "Catatan", icon: FileText },
   { href: "/students", label: "Mahasiswa", icon: Users },
   { href: "/achievements", label: "Prestasi", icon: Trophy },
@@ -80,22 +79,19 @@ export function PublicNavbar({
   return (
     <header
       className={cn(
-        "fixed top-3 sm:top-5 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none",
+        "fixed top-3 sm:top-5 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pointer-events-none",
         className
       )}
     >
-      <div className="max-w-7xl mx-auto flex flex-col items-center">
+      <div className="max-w-[1680px] w-full mx-auto flex flex-col items-center">
         {/* Floating Pill Navbar */}
         <nav
           className={cn(
-            "w-full pointer-events-auto rounded-full transition-all duration-300",
-            "bg-[#081326]/85 backdrop-blur-2xl border border-cyan-500/25",
-            "light:bg-white/90 light:border-slate-200 light:shadow-[0_8px_30px_rgba(18,32,44,0.08)]",
+            "w-full pointer-events-auto rounded-full transition-all duration-200",
+            "bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800",
             "px-4 sm:px-5 py-2.5 flex items-center justify-between",
-            "shadow-[0_8px_32px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.1)]",
-            scrolled
-              ? "border-cyan-400/40 shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(6,182,212,0.2)] light:border-blue-400/40"
-              : ""
+            "shadow-sm",
+            scrolled ? "shadow-md border-slate-300 dark:border-slate-700" : ""
           )}
           aria-label="Navigasi utama"
         >
@@ -104,28 +100,24 @@ export function PublicNavbar({
             href="/"
             className="flex items-center gap-2.5 font-bold group flex-shrink-0"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 p-[1px] shadow-[0_0_12px_rgba(6,182,212,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.8)] transition-all">
-              <div className="w-full h-full rounded-full bg-[#060b17] light:bg-white flex items-center justify-center">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 font-extrabold text-xs">
-                  05
-                </span>
-              </div>
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-extrabold text-xs shadow-xs">
+              05
             </div>
             <div className="flex flex-col leading-tight">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-blue-200 light:from-blue-700 light:via-slate-900 light:to-blue-600 text-sm">
+                <span className="font-extrabold tracking-tight text-slate-900 dark:text-white text-sm font-display">
                   {classCode}
                 </span>
-                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse" />
+                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-blue-500" />
               </div>
-              <span className="text-[10px] text-cyan-400/70 light:text-slate-500 font-mono hidden sm:block tracking-wider uppercase">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono hidden sm:block tracking-wider uppercase">
                 SI Tel-U JKT
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-1 bg-black/20 light:bg-slate-100/70 p-1 rounded-full border border-white/5 light:border-slate-200">
+          <div className="hidden lg:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-800/60 p-1 rounded-full border border-slate-200/60 dark:border-slate-700/60">
             {baseNavLinks.map((link) => {
               const isActive =
                 link.href === "/"
@@ -143,15 +135,12 @@ export function PublicNavbar({
                     <Link
                       href={link.href}
                       className={cn(
-                        "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 relative inline-flex items-center gap-1",
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors relative inline-flex items-center gap-1",
                         isActive
-                          ? "text-white font-semibold shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                          : "text-slate-300 hover:text-white light:text-slate-600 light:hover:text-slate-900 hover:bg-white/5 light:hover:bg-white/80"
+                          ? "bg-blue-600 text-white font-semibold shadow-xs"
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
                       )}
                     >
-                      {isActive && (
-                        <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 -z-10" />
-                      )}
                       <span>{link.label}</span>
                       <ChevronDown
                         size={12}
@@ -164,8 +153,8 @@ export function PublicNavbar({
 
                     {/* Subjects Dropdown Menu */}
                     {subjectsOpen && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl bg-[#081326]/95 backdrop-blur-2xl border border-cyan-500/30 p-2.5 shadow-2xl z-50 light:bg-white light:border-slate-200 light:shadow-[0_12px_40px_rgba(18,32,44,0.12)] animate-in fade-in-0 zoom-in-95 duration-150">
-                        <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 light:text-blue-700 border-b border-[var(--border-color)]/60 mb-1 flex items-center justify-between">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 shadow-lg z-50 animate-in fade-in-0 zoom-in-95 duration-150">
+                        <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
                           <span>Mata Kuliah Kurikulum</span>
                           <span>{subjects.length} Matkul</span>
                         </div>
@@ -175,22 +164,22 @@ export function PublicNavbar({
                               key={s.id}
                               href={`/subjects/${s.code}`}
                               onClick={() => setSubjectsOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-left hover:bg-cyan-500/10 light:hover:bg-slate-100 transition-colors group"
+                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
                             >
-                              <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-400/30 light:bg-blue-50 light:text-blue-700 light:border-blue-200 shrink-0">
+                              <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0">
                                 {s.code}
                               </span>
-                              <span className="font-medium text-[var(--text-primary)] group-hover:text-cyan-300 light:group-hover:text-blue-600 truncate">
+                              <span className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
                                 {s.name}
                               </span>
                             </Link>
                           ))}
                         </div>
-                        <div className="pt-2 mt-1 border-t border-[var(--border-color)]/60">
+                        <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
                           <Link
                             href="/subjects"
                             onClick={() => setSubjectsOpen(false)}
-                            className="block text-center py-1.5 px-3 rounded-lg text-xs font-semibold text-cyan-400 light:text-blue-600 hover:bg-cyan-500/10 light:hover:bg-blue-50 transition-colors"
+                            className="block text-center py-1.5 px-3 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
                           >
                             Lihat Semua Mata Kuliah &rarr;
                           </Link>
@@ -206,15 +195,12 @@ export function PublicNavbar({
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 relative",
+                    "px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors relative",
                     isActive
-                      ? "text-white font-semibold shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                      : "text-slate-300 hover:text-white light:text-slate-600 light:hover:text-slate-900 hover:bg-white/5 light:hover:bg-white/80"
+                      ? "bg-blue-600 text-white font-semibold shadow-xs"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
                   )}
                 >
-                  {isActive && (
-                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 -z-10" />
-                  )}
                   {link.label}
                 </Link>
               );
@@ -227,13 +213,13 @@ export function PublicNavbar({
             <button
               type="button"
               onClick={handleOpenSearch}
-              className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-900/60 light:bg-slate-100 border border-cyan-500/20 light:border-slate-300 text-xs text-slate-400 hover:text-white hover:border-cyan-400/40 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
               title="Pencarian (Ctrl+K)"
               aria-label="Pencarian (Ctrl+K)"
             >
-              <Search size={13} className="text-cyan-400" />
+              <Search size={13} className="text-blue-600 dark:text-blue-400" />
               <span className="hidden sm:inline">Cari</span>
-              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[10px] font-mono rounded bg-white/5 text-slate-400 border border-white/10">
+              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[10px] font-mono rounded bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
                 ⌘K
               </kbd>
             </button>
@@ -246,7 +232,7 @@ export function PublicNavbar({
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full text-xs py-1.5 px-3 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+                className="rounded-full text-xs py-1.5 px-3"
                 leftIcon={<LogIn size={13} />}
               >
                 Masuk
@@ -256,7 +242,7 @@ export function PublicNavbar({
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-1.5 rounded-full bg-slate-900/70 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 lg:hidden cursor-pointer"
+              className="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 lg:hidden cursor-pointer"
               aria-label={mobileOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -266,7 +252,7 @@ export function PublicNavbar({
 
         {/* Mobile Dropdown Menu Drawer */}
         {mobileOpen && (
-          <div className="w-full mt-2 pointer-events-auto rounded-3xl bg-[#081326]/95 backdrop-blur-2xl border border-cyan-500/30 p-4 shadow-2xl lg:hidden light:bg-white light:border-slate-200 animate-in fade-in-0 slide-in-from-top-4 duration-200">
+          <div className="w-full mt-2 pointer-events-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-xl lg:hidden animate-in fade-in-0 slide-in-from-top-4 duration-200">
             {/* Mobile Search Button */}
             <button
               type="button"
@@ -274,13 +260,13 @@ export function PublicNavbar({
                 setMobileOpen(false);
                 handleOpenSearch();
               }}
-              className="w-full flex items-center justify-between p-2.5 mb-3 rounded-xl text-xs font-semibold bg-cyan-500/10 text-cyan-300 light:bg-blue-50 light:text-blue-700 border border-cyan-400/20 light:border-blue-200 cursor-pointer"
+              className="w-full flex items-center justify-between p-2.5 mb-3 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer"
             >
               <span className="flex items-center gap-2">
-                <Search size={14} />
+                <Search size={14} className="text-blue-600 dark:text-blue-400" />
                 <span>Cari di Seluruh Kelas...</span>
               </span>
-              <kbd className="px-1.5 py-0.2 text-[10px] font-mono rounded bg-white/10 light:bg-blue-100">
+              <kbd className="px-1.5 py-0.2 text-[10px] font-mono rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
                 ⌘K
               </kbd>
             </button>
@@ -297,10 +283,10 @@ export function PublicNavbar({
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-medium transition-all",
+                      "flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-medium transition-colors",
                       isActive
-                        ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold"
-                        : "text-slate-300 hover:text-white hover:bg-cyan-500/10 light:text-slate-700 light:hover:bg-slate-100"
+                        ? "bg-blue-600 text-white font-semibold"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                     )}
                   >
                     {Icon && <Icon size={14} className="opacity-80 shrink-0" />}
@@ -312,11 +298,11 @@ export function PublicNavbar({
 
             {/* Mobile Subjects Quick Accordion */}
             {subjects && subjects.length > 0 && (
-              <div className="mb-3 pt-2 border-t border-[var(--border-color)]">
+              <div className="mb-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setMobileSubjectsOpen(!mobileSubjectsOpen)}
-                  className="w-full flex items-center justify-between text-xs font-semibold text-cyan-300 light:text-blue-700 py-1.5 px-2 rounded-lg hover:bg-cyan-500/10 cursor-pointer"
+                  className="w-full flex items-center justify-between text-xs font-semibold text-blue-600 dark:text-blue-400 py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   <span className="flex items-center gap-1.5">
                     <BookOpen size={13} />
@@ -335,9 +321,9 @@ export function PublicNavbar({
                         key={s.id}
                         href={`/subjects/${s.code}`}
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2 py-1 px-2 rounded text-[11px] text-slate-300 hover:text-cyan-300 light:text-slate-600 light:hover:text-blue-700"
+                        className="flex items-center gap-2 py-1 px-2 rounded text-[11px] text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
                       >
-                        <span className="font-mono font-bold text-[10px] text-cyan-400 light:text-blue-600">
+                        <span className="font-mono font-bold text-[10px] text-blue-600 dark:text-blue-400">
                           {s.code}
                         </span>
                         <span className="truncate">{s.name}</span>
@@ -348,7 +334,7 @@ export function PublicNavbar({
               </div>
             )}
 
-            <div className="pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}

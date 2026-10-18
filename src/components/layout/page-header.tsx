@@ -56,7 +56,7 @@ export function PageHeader({
         >
           <Link
             href="/"
-            className="hover:text-cyan-400 light:hover:text-blue-600 transition-colors"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             Beranda
           </Link>
@@ -68,7 +68,7 @@ export function PageHeader({
                 {b.href && !isLast ? (
                   <Link
                     href={b.href}
-                    className="hover:text-cyan-400 light:hover:text-blue-600 transition-colors"
+                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
                     {b.label}
                   </Link>
@@ -91,11 +91,11 @@ export function PageHeader({
 
       {/* Main Header Row */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-1.5 max-w-3xl">
+        <div className="space-y-1.5 max-w-4xl xl:max-w-5xl">
           {badge && (
             <div className="inline-flex items-center gap-2 mb-1.5">
               {typeof badge === "string" ? (
-                <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 light:bg-blue-50 light:border-blue-200 light:text-blue-700">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800/50 dark:text-blue-300">
                   {badge}
                 </span>
               ) : (
@@ -145,7 +145,7 @@ export function PageHeader({
               className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface-card)]"
             >
               {s.icon && (
-                <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 flex items-center justify-center shrink-0 light:bg-blue-50 light:border-blue-200 light:text-blue-600">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 dark:bg-blue-950/40 dark:border-blue-800/50 dark:text-blue-400 flex items-center justify-center shrink-0">
                   {s.icon}
                 </div>
               )}

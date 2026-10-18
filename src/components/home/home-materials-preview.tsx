@@ -49,8 +49,8 @@ export function HomeMaterialsPreview({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
-            <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-cyan-400 animate-pulse" />
+            <span className="text-xs font-mono uppercase tracking-wider text-blue-700 dark:text-cyan-400 font-bold">
               {"// Bahan Belajar"}
             </span>
           </div>
@@ -62,11 +62,11 @@ export function HomeMaterialsPreview({
           </p>
         </div>
 
-        <Link href="/materials">
+        <Link href="/articles">
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-cyan-400 light:text-blue-600 font-semibold cursor-pointer"
+            className="text-xs text-blue-600 hover:text-blue-700 dark:text-cyan-400 dark:hover:text-cyan-300 font-semibold cursor-pointer"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
             {buttonLabel}
@@ -81,8 +81,8 @@ export function HomeMaterialsPreview({
             padding="md"
             className="text-center border-dashed p-6 sm:p-8 space-y-3"
           >
-            <Link href="/materials" className="block space-y-3 group focus-visible:outline-none">
-              <div className="w-11 h-11 rounded-2xl bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center mx-auto text-cyan-400 light:text-blue-600 group-hover:scale-105 transition-transform">
+            <Link href="/articles" className="block space-y-3 group focus-visible:outline-none">
+              <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 dark:bg-cyan-500/10 dark:border-cyan-500/20 dark:text-cyan-400 flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
                 <BookOpen className="w-5 h-5" />
               </div>
               <div className="space-y-1">
@@ -90,17 +90,17 @@ export function HomeMaterialsPreview({
                   Materi Perkuliahan Belum Diunggah
                 </h4>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed max-w-md mx-auto">
-                  Modul dan bahan ajar dikelompokkan berdasarkan mata kuliah. Akses halaman materi untuk memilih mata kuliah dan melihat modul yang tersedia.
+                  Modul dan bahan ajar dikelompokkan berdasarkan mata kuliah. Akses halaman materi atau artikel untuk memilih topik dan melihat modul yang tersedia.
                 </p>
               </div>
               <div className="pt-1">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs pointer-events-none group-hover:bg-cyan-500/10 light:group-hover:bg-blue-50"
+                  className="text-xs pointer-events-none group-hover:bg-blue-50 dark:group-hover:bg-cyan-500/10"
                   rightIcon={<ArrowRight size={13} />}
                 >
-                  Buka Repositori Materi
+                  Buka Repositori Artikel & Materi
                 </Button>
               </div>
             </Link>
@@ -120,28 +120,28 @@ export function HomeMaterialsPreview({
           {displayMaterials.map((m) => (
             <Link
               key={m.id}
-              href={`/materials/${m.id}`}
+              href={`/articles`}
               className="group block h-full focus-visible:outline-none"
             >
               <Card
                 variant="interactive"
                 padding="md"
-                className="h-full p-5 flex flex-col justify-between text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/50 light:hover:border-blue-400/60"
+                className="h-full p-5 flex flex-col justify-between text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-400/60 dark:hover:border-cyan-400/50"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase bg-purple-500/15 light:bg-purple-50 text-purple-300 light:text-purple-700 border border-purple-500/30 light:border-purple-200">
+                    <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30">
                       {m.type || "PDF"}
                     </span>
                     {m.subject && (
-                      <span className="font-mono text-xs font-bold text-cyan-400 light:text-blue-600 truncate">
+                      <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400 truncate">
                         {m.subject.code}
                       </span>
                     )}
                   </div>
 
                   <div>
-                    <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors line-clamp-2">
+                    <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)] group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
                       {m.title}
                     </h3>
                     {m.subject?.name && (
@@ -158,7 +158,7 @@ export function HomeMaterialsPreview({
                   )}
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-[var(--border-color)]/70 flex items-center justify-between text-[11px] font-medium text-cyan-400 light:text-blue-600 group-hover:text-cyan-300 light:group-hover:text-blue-700">
+                <div className="pt-3 mt-3 border-t border-[var(--border-color)]/70 flex items-center justify-between text-[11px] font-medium text-blue-600 hover:text-blue-700 dark:text-cyan-400 dark:hover:text-cyan-300">
                   <span>Lihat materi →</span>
                   {m.fileSize && (
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">

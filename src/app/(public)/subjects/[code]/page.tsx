@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getSubjectByCode } from "@/lib/data";
 import { SubjectHubView } from "@/components/subjects/subject-hub-view";
+import { ContentContainer } from "@/components/shared";
 
 interface SubjectDetailPageProps {
   params: Promise<{ code: string }>;
@@ -31,7 +32,7 @@ export default async function SubjectDetailPage({ params }: SubjectDetailPagePro
 
   return (
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <ContentContainer className="space-y-6">
         <Link
           href="/subjects"
           className="inline-flex items-center gap-2 text-xs font-semibold text-cyan-400 light:text-blue-600 hover:text-cyan-300 light:hover:text-blue-700 transition-colors"
@@ -41,7 +42,7 @@ export default async function SubjectDetailPage({ params }: SubjectDetailPagePro
         </Link>
 
         <SubjectHubView subject={subject} />
-      </div>
+      </ContentContainer>
     </div>
   );
 }

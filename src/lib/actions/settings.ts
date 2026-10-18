@@ -61,6 +61,7 @@ export async function updateAboutAction(input: AboutInput): Promise<ActionResult
       academicYear: data.academicYear,
       waliDosen: data.waliDosen,
       classDescription: data.classDescription || "",
+      aboutAspiration: data.aboutAspiration || "",
       aboutVision: data.aboutVision || "",
       aboutMission: data.aboutMission || "",
       aboutValues: JSON.stringify(data.aboutValues || []),

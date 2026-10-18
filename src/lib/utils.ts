@@ -275,3 +275,25 @@ export function getGoogleDriveViewUrl(url?: string | null): string {
   return formatExternalUrl(trimmed);
 }
 
+/**
+ * Generates an SEO-friendly URL slug from string
+ */
+export function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Calculates estimated reading time in minutes based on words (default 200 wpm)
+ */
+export function calculateReadingTime(content: string): number {
+  if (!content) return 1;
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+

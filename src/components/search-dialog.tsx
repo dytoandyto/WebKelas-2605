@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 interface SearchResults {
   tasks: any[];
   subjects: any[];
-  materials: any[];
+  articles: any[];
   dailyNotes: any[];
   students: any[];
   achievements: any[];
@@ -34,7 +34,7 @@ export function SearchDialog() {
   const [results, setResults] = useState<SearchResults>({
     tasks: [],
     subjects: [],
-    materials: [],
+    articles: [],
     dailyNotes: [],
     students: [],
     achievements: [],
@@ -81,7 +81,7 @@ export function SearchDialog() {
       setResults({
         tasks: [],
         subjects: [],
-        materials: [],
+        articles: [],
         dailyNotes: [],
         students: [],
         achievements: [],
@@ -98,7 +98,7 @@ export function SearchDialog() {
       setResults({
         tasks: [],
         subjects: [],
-        materials: [],
+        articles: [],
         dailyNotes: [],
         students: [],
         achievements: [],
@@ -127,7 +127,7 @@ export function SearchDialog() {
   const totalResults =
     results.tasks.length +
     results.subjects.length +
-    results.materials.length +
+    (results.articles?.length || 0) +
     results.dailyNotes.length +
     results.students.length +
     results.achievements.length;
@@ -141,23 +141,23 @@ export function SearchDialog() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-[#081326] border-slate-200 dark:border-cyan-500/30 text-slate-900 dark:text-slate-100 flex flex-col max-h-[85vh] sm:max-h-[80vh]"
+        className="w-full max-w-2xl rounded-2xl border shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 flex flex-col max-h-[85vh] sm:max-h-[80vh]"
         role="dialog"
         aria-modal="true"
         aria-label="Global Search"
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 sm:py-3.5 border-b border-slate-200 dark:border-cyan-500/20 bg-slate-50/80 dark:bg-[#040914]/80">
-          <Search size={18} className="text-blue-600 dark:text-cyan-400 flex-shrink-0" />
+        <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 sm:py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+          <Search size={18} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari teman, tugas, materi..."
+            placeholder="Cari tugas, artikel, teman, catatan..."
             className="flex-1 min-w-0 bg-transparent border-0 outline-none text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100"
           />
-          {loading && <Loader2 size={16} className="animate-spin text-blue-600 dark:text-cyan-400 flex-shrink-0" />}
+          {loading && <Loader2 size={16} className="animate-spin text-blue-600 dark:text-blue-400 flex-shrink-0" />}
           {query && !loading && (
             <button
               type="button"
@@ -292,37 +292,34 @@ export function SearchDialog() {
             </div>
           )}
 
-          {/* Group 3: MATERIALS */}
-          {results.materials.length > 0 && (
+          {/* Group 3: ARTICLES */}
+          {results.articles && results.articles.length > 0 && (
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2 flex items-center justify-between">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2 flex items-center justify-between font-mono">
                 <span className="flex items-center gap-1.5">
-                  <FileText size={12} /> Materi Kuliah
+                  <BookOpen size={12} /> Artikel Edukasi
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">{results.materials.length} ditemukan</span>
+                <span className="text-[10px] text-slate-500">{results.articles.length} ditemukan</span>
               </div>
               <div className="space-y-1">
-                {results.materials.map((m) => (
+                {results.articles.map((a) => (
                   <Link
-                    key={m.id}
-                    href={`/materials/${m.id}`}
+                    key={a.id}
+                    href={`/articles/${a.slug}`}
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
                   >
                     <div>
-                      <div className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 flex items-center gap-2">
-                        <span className="px-1.5 py-0.2 rounded font-mono text-[9px] bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
-                          {m.type}
-                        </span>
-                        {m.title}
+                      <div className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 flex items-center gap-2">
+                        {a.title}
                       </div>
-                      {m.subject && (
+                      {a.subject && (
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          {m.subject.name}
+                          {a.subject.code} &bull; {a.subject.name}
                         </div>
                       )}
                     </div>
-                    <ArrowRight size={13} className="text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight size={13} className="text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-transform group-hover:translate-x-1" />
                   </Link>
                 ))}
               </div>

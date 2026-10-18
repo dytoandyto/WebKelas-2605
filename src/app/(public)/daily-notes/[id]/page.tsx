@@ -49,8 +49,8 @@ export default async function DailyNoteDetailPage({ params }: DailyNoteDetailPag
 
   return (
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-28 pt-28">
-      {/* Container constrained to 760px - 820px for optimal long-form reading typography */}
-      <article className="max-w-3xl mx-auto px-4 sm:px-6 space-y-8">
+      {/* Widened container for spacious layout with responsive gutters */}
+      <article className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 space-y-8">
         {/* Top Back Navigation */}
         <Link
           href="/daily-notes"

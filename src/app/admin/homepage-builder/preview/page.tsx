@@ -33,7 +33,7 @@ export default async function HomepageDraftPreviewPage() {
     <div className="relative min-h-screen">
       {/* Top Floating Preview Banner */}
       <div className="sticky top-0 z-50 w-full bg-amber-500/90 light:bg-amber-600/95 backdrop-blur-md text-amber-950 light:text-white px-4 py-2.5 shadow-lg border-b border-amber-600/30">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm">
+        <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm">
           <div className="flex items-center gap-2 font-medium">
             <span className="p-1 rounded-md bg-amber-900/20 light:bg-amber-700/50">
               <Eye className="w-4 h-4 text-amber-950 light:text-white" />

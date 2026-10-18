@@ -40,73 +40,75 @@ export function HeroSection({
   const effectiveSubtitle = settings?.subtitle || `${classNameTitle || majorName} • ${institutionName}`;
   const effectiveDescription =
     settings?.description ||
-    "Satu tempat untuk semua urusan kelas. Pantau jadwal, sikat deadline tugas, unduh materi, dan update info seputar teman sekelas—semua rapi dan gampang diakses kapan aja.";
+    "Satu tempat untuk semua urusan kelas. Pantau jadwal, sikat deadline tugas, akses materi & artikel, dan update info seputar teman sekelas—semua rapi dan gampang diakses kapan aja.";
 
   return (
     <section
       className={cn(
-        "relative flex items-center justify-center pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden text-center",
+        "relative flex items-center justify-center pt-20 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden text-center",
         className
       )}
     >
-      {/* Ambient Lighting & Glows */}
+      {/* Ambient Lighting & Radiant Blooms (Subtle in Light Mode, Deep in Dark Mode) */}
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[380px] rounded-full pointer-events-none opacity-30 light:opacity-10 blur-[130px]"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[860px] h-[360px] rounded-full pointer-events-none blur-[110px] opacity-70 dark:opacity-25"
         style={{
           background:
-            "radial-gradient(circle, #2563eb 0%, #06b6d4 45%, transparent 75%)",
+            "radial-gradient(ellipse at center, rgba(37,99,235,0.15) 0%, rgba(56,189,248,0.1) 40%, transparent 70%)",
         }}
       />
       <div
-        className="absolute top-1/3 left-10 w-64 h-64 rounded-full pointer-events-none opacity-20 light:opacity-5 blur-[90px]"
+        className="absolute -top-10 left-1/4 w-72 h-72 rounded-full pointer-events-none blur-[90px] opacity-40 dark:opacity-15"
         style={{
-          background: "radial-gradient(circle, #38bdf8 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)",
         }}
       />
       <div
-        className="absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none opacity-20 light:opacity-5 blur-[100px]"
+        className="absolute bottom-4 right-1/4 w-80 h-80 rounded-full pointer-events-none blur-[100px] opacity-40 dark:opacity-15"
         style={{
-          background: "radial-gradient(circle, #1d4ed8 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)",
         }}
       />
-
-      {/* Subtle Abstract Grid Lines */}
-      <div className="absolute inset-0 cyber-grid opacity-25 light:opacity-10 pointer-events-none" />
 
       {/* Hero Content Container */}
       <div className="max-w-4xl mx-auto relative z-10 space-y-6 sm:space-y-8">
         {/* Eyebrow Pill: Class Identity */}
         {(settings?.showBadges ?? true) && (
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-cyan-500/10 light:bg-blue-50 border border-cyan-400/30 light:border-blue-200 text-cyan-300 light:text-blue-700 text-xs sm:text-sm font-semibold tracking-wider uppercase font-mono shadow-[0_0_20px_rgba(6,182,212,0.2)] light:shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600 animate-pulse" />
-            <span>
-              {effectiveEyebrow} &bull; {effectiveAcademicYear}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-medium tracking-wide shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse shrink-0" />
+            <span className="font-semibold uppercase tracking-wider text-[11px] sm:text-xs">
+              {effectiveEyebrow}
+            </span>
+            <span className="text-slate-300 dark:text-slate-600">&bull;</span>
+            <span className="font-mono text-[11px] sm:text-xs text-slate-600 dark:text-slate-300">
+              {effectiveAcademicYear}
             </span>
           </div>
         )}
 
         {/* Display Headline */}
-        <div className="space-y-3">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-[var(--text-primary)]">
+        <div className="space-y-3 sm:space-y-4">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-slate-900 dark:text-white">
             Academic Class Hub{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 light:from-blue-600 light:via-cyan-600 light:to-blue-800">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 dark:from-blue-400 dark:via-cyan-300 dark:to-teal-300">
               {effectiveClassCode}
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg font-medium text-cyan-200/90 light:text-blue-800 font-mono tracking-wide">
+          <p className="text-base sm:text-lg font-semibold text-blue-700 dark:text-cyan-300/90 font-mono tracking-wide">
             {effectiveSubtitle}
           </p>
 
           {(settings?.showClassPills ?? true) && waliDosen && (
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] font-mono">
-              Wali Dosen: <span className="text-[var(--text-secondary)] font-semibold">{waliDosen}</span>
-            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 font-mono">
+              <span className="text-slate-500 dark:text-slate-400">Wali Dosen:</span>
+              <span className="text-slate-900 dark:text-slate-100 font-semibold">{waliDosen}</span>
+            </div>
           )}
         </div>
 
         {/* Lead Description */}
-        <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
           {effectiveDescription}
         </p>
 
@@ -119,7 +121,7 @@ export function HeroSection({
                   <Button
                     variant="primary"
                     size="lg"
-                    className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer"
+                    className="rounded-xl shadow-xs hover:shadow-md cursor-pointer"
                     leftIcon={<Calendar className="w-4 h-4" />}
                   >
                     {settings.primaryButtonText || "Jadwal Perkuliahan"}
@@ -140,14 +142,14 @@ export function HeroSection({
                 </Link>
               )}
 
-              <Link href="/materials">
+              <Link href="/articles">
                 <Button
                   variant="outline"
                   size="lg"
                   className="rounded-xl cursor-pointer"
                   leftIcon={<BookOpen className="w-4 h-4" />}
                 >
-                  Materi Kuliah
+                  Artikel Edukasi
                 </Button>
               </Link>
 
@@ -155,10 +157,10 @@ export function HeroSection({
                 <Button
                   variant="ghost"
                   size="lg"
-                  className="rounded-xl cursor-pointer text-cyan-400 light:text-blue-600"
+                  className="rounded-xl cursor-pointer text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
                   leftIcon={<Users className="w-4 h-4" />}
                 >
-                  Teman Satu Kelas
+                  Teman Sekelas
                 </Button>
               </Link>
             </>
@@ -168,7 +170,7 @@ export function HeroSection({
                 <Button
                   variant="primary"
                   size="lg"
-                  className="rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer"
+                  className="rounded-xl shadow-xs hover:shadow-md cursor-pointer"
                   leftIcon={<Calendar className="w-4 h-4" />}
                 >
                   Jadwal Kuliah
@@ -186,14 +188,14 @@ export function HeroSection({
                 </Button>
               </Link>
 
-              <Link href="/materials">
+              <Link href="/articles">
                 <Button
                   variant="outline"
                   size="lg"
                   className="rounded-xl cursor-pointer"
                   leftIcon={<BookOpen className="w-4 h-4" />}
                 >
-                  Materi Kuliah
+                  Artikel Edukasi
                 </Button>
               </Link>
 
@@ -201,10 +203,10 @@ export function HeroSection({
                 <Button
                   variant="ghost"
                   size="lg"
-                  className="rounded-xl cursor-pointer text-cyan-400 light:text-blue-600"
+                  className="rounded-xl cursor-pointer text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
                   leftIcon={<Users className="w-4 h-4" />}
                 >
-                  Teman Satu Kelas
+                  Teman Sekelas
                 </Button>
               </Link>
             </>

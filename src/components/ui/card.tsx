@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export const cardVariants = cva(
-  "rounded-2xl transition-all duration-200 text-[var(--text-primary)] relative overflow-hidden",
+  "rounded-xl transition-all duration-150 text-[var(--text-primary)] relative overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "bg-[var(--surface-card)] border border-[var(--border-color)] shadow-xs",
+          "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs",
         glass:
-          "bg-[var(--surface-card)]/80 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)] light:shadow-[0_8px_30px_rgba(18,32,44,0.06)] light:border-slate-200/80",
+          "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm",
         elevated:
-          "bg-[var(--surface-card)] border border-[var(--border-color)] shadow-md light:shadow-[0_12px_28px_-6px_rgba(18,32,44,0.08)]",
+          "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md",
         outline:
-          "bg-transparent border border-[var(--border-color)] hover:border-cyan-400/40 light:border-slate-300",
+          "bg-transparent border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700",
         interactive:
-          "bg-[var(--surface-card)] border border-[var(--border-color)] shadow-xs hover:-translate-y-0.5 hover:border-cyan-400/40 hover:shadow-sm light:hover:border-blue-400/50 cursor-pointer group",
+          "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm cursor-pointer group",
         featured:
-          "bg-gradient-to-b from-[var(--surface-card)] to-[var(--surface-secondary)] border border-cyan-400/30 shadow-sm light:border-blue-300 light:shadow-sm",
+          "bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/50 shadow-sm",
       },
       padding: {
         none: "p-0",
@@ -72,7 +72,7 @@ export const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "font-bold text-base sm:text-lg text-[var(--text-primary)] tracking-tight",
+      "font-bold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight",
       className
     )}
     {...props}
@@ -86,7 +86,7 @@ export const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-xs text-[var(--text-secondary)] leading-relaxed", className)}
+    className={cn("text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed", className)}
     {...props}
   />
 ));
@@ -106,14 +106,14 @@ export const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center pt-3 mt-auto border-t border-[var(--border-color)]/60", className)}
+    className={cn("flex items-center pt-3 mt-auto border-t border-slate-100 dark:border-slate-800", className)}
     {...props}
   />
 ));
 CardFooter.displayName = "CardFooter";
 
 /* --------------------------------------------------
-   Dedicated SaaS Metric / Stat Card Component
+   Dedicated Metric / Stat Card Component
 -------------------------------------------------- */
 
 export interface StatCardProps {
@@ -140,35 +140,35 @@ export function StatCard({
     <Card
       padding="md"
       className={cn(
-        "flex flex-col justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--surface-card)] hover:border-cyan-400/30 light:hover:border-blue-400/40 transition-colors shadow-xs",
+        "flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-xs",
         className
       )}
     >
       <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[var(--text-muted)]">
+        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {title}
         </span>
         {icon && (
-          <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 light:bg-blue-50 light:text-blue-600 shrink-0">
+          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 shrink-0">
             {icon}
           </div>
         )}
       </div>
 
       <div className="space-y-1">
-        <div className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+        <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
           {value}
         </div>
 
         {(description || trend) && (
-          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
             {trend && (
               <span
                 className={cn(
                   "font-semibold font-mono",
                   trend.isPositive
-                    ? "text-emerald-400 light:text-emerald-600"
-                    : "text-rose-400 light:text-rose-600"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-rose-600 dark:text-rose-400"
                 )}
               >
                 {trend.value}

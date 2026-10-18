@@ -70,6 +70,9 @@ vi.mock("@/lib/db", () => ({
     dailyNote: {
       findMany: vi.fn().mockResolvedValue([]),
     },
+    learningArticle: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
   },
 }));
 

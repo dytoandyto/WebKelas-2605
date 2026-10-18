@@ -66,7 +66,7 @@ export function AdminLayoutClient({ user, children }: AdminLayoutClientProps) {
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 bg-slate-50 dark:bg-[#040813] p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 bg-slate-50 dark:bg-[#040813] p-4 sm:p-6 lg:p-8 xl:p-10 2xl:p-12">
           {children}
         </main>
       </div>

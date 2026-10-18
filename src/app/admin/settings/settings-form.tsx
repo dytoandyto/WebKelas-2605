@@ -70,7 +70,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
+    <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl xl:max-w-6xl">
       {statusMessage && (
         <div
           className={`p-4 rounded-xl border flex items-center gap-3 text-sm animate-in fade-in duration-200 ${

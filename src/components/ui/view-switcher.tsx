@@ -45,7 +45,7 @@ export function ViewSwitcher<T extends string = ViewMode>({
       role="tablist"
       aria-label="Pilihan Tampilan"
       className={cn(
-        "inline-flex items-center p-1 rounded-xl bg-[var(--surface-primary)] border border-[var(--border-color)] light:bg-slate-100 light:border-slate-200 select-none",
+        "inline-flex items-center p-1 rounded-xl bg-[var(--surface-primary)] border border-[var(--border-color)] select-none",
         className
       )}
     >
@@ -64,8 +64,8 @@ export function ViewSwitcher<T extends string = ViewMode>({
                 ? "px-2.5 py-1 text-xs"
                 : "px-3 py-1.5 text-xs sm:text-sm",
               isActive
-                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_12px_rgba(6,182,212,0.35)] font-semibold"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-cyan-500/10 light:text-slate-600 light:hover:text-slate-900 light:hover:bg-slate-200/60"
+                ? "bg-[var(--brand-primary)] text-white shadow-xs font-semibold"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-slate-100 dark:hover:bg-slate-800/60"
             )}
           >
             {v.icon}

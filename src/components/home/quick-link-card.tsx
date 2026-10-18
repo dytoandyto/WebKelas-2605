@@ -37,7 +37,7 @@ export function QuickLinkCard({
       padding="none"
       className={cn(
         "group relative flex items-center justify-between gap-3 px-3.5 py-3 text-left rounded-xl transition-all duration-150 hover:translate-y-0",
-        "bg-[var(--surface-primary)] hover:bg-[var(--primary)]/5 border border-[var(--border-color)] hover:border-cyan-400/50 light:hover:border-blue-400/60",
+        "bg-[var(--surface-primary)] hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-[var(--border-color)] hover:border-blue-400 dark:hover:border-blue-500",
         "shadow-2xs",
         "active:scale-[0.99]",
         className
@@ -59,11 +59,11 @@ export function QuickLinkCard({
             />
           </div>
         ) : icon ? (
-          <div className="w-9 h-9 rounded-lg bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center text-cyan-400 light:text-blue-600 shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 dark:bg-blue-950/40 dark:border-blue-800/50 dark:text-blue-400 flex items-center justify-center shrink-0">
             {icon}
           </div>
         ) : (
-          <div className="w-9 h-9 rounded-lg bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center text-cyan-500 light:text-blue-600 shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 dark:bg-blue-950/40 dark:border-blue-800/50 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Globe size={18} />
           </div>
         )}
@@ -71,7 +71,7 @@ export function QuickLinkCard({
         {/* Text Information (Title ~13-14px, Description ~11-12px) */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors truncate">
+            <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
               {title}
             </span>
             {badge && (
@@ -87,7 +87,7 @@ export function QuickLinkCard({
       </div>
 
       {/* External Action Indicator Arrow */}
-      <div className="shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors p-0.5">
+      <div className="shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors p-0.5">
         <ArrowUpRight size={15} />
       </div>
     </Card>
@@ -99,7 +99,7 @@ export function QuickLinkCard({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="block group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 light:focus-visible:ring-blue-500"
+        className="block group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         aria-label={`${title} - ${description} (buka tautan resmi)`}
       >
         {content}
@@ -110,7 +110,7 @@ export function QuickLinkCard({
   return (
     <Link
       href={href}
-      className="block group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 light:focus-visible:ring-blue-500"
+      className="block group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
     >
       {content}
     </Link>

@@ -2,19 +2,19 @@
 
 import * as React from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ThemeSwitcherProps {
   className?: string;
-  variant?: "pill" | "icon" ;
+  variant?: "pill" | "icon" | "dropdown";
 }
 
 export function ThemeSwitcher({
   className,
   variant = "pill",
 }: ThemeSwitcherProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -39,51 +39,63 @@ export function ThemeSwitcher({
     }
   }, [open]);
 
+  // Prevent layout shift during SSR & hydration by matching exact dimension
   if (!mounted) {
+    if (variant === "pill") {
+      return (
+        <div
+          className={cn(
+            "h-7.5 w-[64px] rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 animate-pulse",
+            className
+          )}
+          aria-hidden="true"
+        />
+      );
+    }
     return (
       <div
         className={cn(
-          "w-8 h-8 rounded-full bg-slate-800/40 border border-slate-700/40 flex items-center justify-center opacity-70",
+          "w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center",
           className
         )}
+        aria-hidden="true"
       >
-        <Moon size={14} className="text-slate-400" />
+        <div className="w-3.5 h-3.5 rounded-full bg-slate-300 dark:bg-slate-600" />
       </div>
     );
   }
 
   const themes = [
-    { key: "light", label: "Light", icon: Sun },
-    { key: "dark", label: "Dark", icon: Moon },
+    { key: "light", label: "Terang", icon: Sun },
+    { key: "dark", label: "Gelap", icon: Moon },
   ] as const;
 
-  const activeKey = theme === "system" ? resolvedTheme : theme;
-  const currentTheme = themes.find((t) => t.key === activeKey) || themes[1];
-  const CurrentIcon = currentTheme.icon;
+  const isDark = resolvedTheme === "dark";
+  const CurrentIcon = isDark ? Moon : Sun;
 
   if (variant === "pill") {
     return (
       <div
         className={cn(
-          "inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs",
+          "inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-2xs",
           className
         )}
         role="group"
-        aria-label="Theme switcher"
+        aria-label="Pilih tema tampilan"
       >
         {themes.map((t) => {
           const Icon = t.icon;
-          const isActive = activeKey === t.key;
+          const isSelected = resolvedTheme === t.key;
           return (
             <button
               key={t.key}
               onClick={() => setTheme(t.key)}
-              title={`${t.label} theme`}
-              aria-label={`${t.label} theme`}
-              aria-pressed={isActive}
+              title={`Mode ${t.label}`}
+              aria-label={`Ganti ke mode ${t.label}`}
+              aria-pressed={isSelected}
               className={cn(
                 "p-1.5 rounded-md transition-all duration-150 flex items-center justify-center text-xs cursor-pointer",
-                isActive
+                isSelected
                   ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-semibold"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               )}
@@ -96,6 +108,23 @@ export function ThemeSwitcher({
     );
   }
 
+  if (variant === "icon") {
+    return (
+      <button
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+        className={cn(
+          "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer",
+          "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs",
+          className
+        )}
+        aria-label={isDark ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
+        title={isDark ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
+      >
+        <CurrentIcon size={14} />
+      </button>
+    );
+  }
+
   return (
     <div className="relative inline-block" ref={dropdownRef}>
       <button
@@ -105,17 +134,17 @@ export function ThemeSwitcher({
           "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs",
           className
         )}
-        aria-label="Pilih tema"
+        aria-label="Pilih tema tampilan"
         aria-expanded={open}
       >
         <CurrentIcon size={14} />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-32 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 z-50 text-xs animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2 w-32 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg py-1 z-50 text-xs animate-in fade-in-0 zoom-in-95 duration-150">
           {themes.map((t) => {
             const Icon = t.icon;
-            const isSelected = activeKey === t.key;
+            const isSelected = resolvedTheme === t.key;
             return (
               <button
                 key={t.key}

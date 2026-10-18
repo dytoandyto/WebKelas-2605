@@ -36,7 +36,7 @@ export default async function AnnouncementsPage() {
             description="Belum ada warta resmi atau pengumuman penting yang dipublikasikan saat ini. Periksa kembali nanti."
           />
         ) : (
-          <div className="space-y-6 max-w-4xl mx-auto">
+          <div className="space-y-6 max-w-5xl xl:max-w-6xl mx-auto">
             {announcements.map((ann: any) => (
               <article
                 key={ann.id}

@@ -129,7 +129,7 @@ export default function ComponentsShowcasePage() {
   };
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto pb-24 text-left">
+    <div className="space-y-12 w-full pb-24 text-left">
       {/* Page Header */}
       <PageHeader
         density="dashboard"

@@ -51,7 +51,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
 
   return (
     <div className="cosmic-canvas min-h-screen text-[var(--text-primary)] pb-24 pt-28">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 space-y-6">
         {/* Back Link */}
         <Link
           href="/tasks"

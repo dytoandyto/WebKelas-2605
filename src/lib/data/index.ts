@@ -15,6 +15,7 @@ import {
   initialUsers,
   initialMaterials,
   initialDailyNotes,
+  initialArticles,
 } from "./initial-data";
 import {
   DayOfWeek,
@@ -23,6 +24,7 @@ import {
   TaskStatus,
   AchievementCategory,
   ResourceCategory,
+  ArticleStatus,
   Prisma,
 } from "@prisma/client";
 
@@ -90,6 +92,7 @@ export async function getHomeData() {
       tasksCount,
       materialsCount,
       dailyNotesCount,
+      articlesCount,
       upcomingTasksRaw,
       todaySchedulesRaw,
       latestAnnouncements,
@@ -106,6 +109,7 @@ export async function getHomeData() {
       prisma.task.count({ where: { deadline: { gte: now } } }),
       prisma.material.count(),
       prisma.dailyNote.count(),
+      prisma.learningArticle.count({ where: { status: ArticleStatus.PUBLISHED } }).catch(() => 0),
       prisma.task.findMany({
         where: { deadline: { gte: now } },
         orderBy: { deadline: "asc" },
@@ -184,6 +188,7 @@ export async function getHomeData() {
         tasksCount,
         materialsCount,
         dailyNotesCount,
+        articlesCount,
       },
       upcomingTasks,
       todaySchedules: todaySchedulesRaw,
@@ -218,6 +223,7 @@ export async function getHomeData() {
         tasksCount: initialTasks.filter((t) => t.status !== TaskStatus.COMPLETED).length,
         materialsCount: initialMaterials.length,
         dailyNotesCount: initialDailyNotes.length,
+        articlesCount: initialArticles.filter((a) => a.status === ArticleStatus.PUBLISHED).length,
       },
       upcomingTasks,
       todaySchedules: initialSchedules.filter((s) => s.dayOfWeek === todayDayOfWeek),
@@ -753,6 +759,7 @@ export async function getAdminOverviewData() {
       usersCount,
       materialsCount,
       dailyNotesCount,
+      articlesCount,
       upcomingDeadlinesRaw,
       recentAchievements,
       recentAnnouncements,
@@ -760,6 +767,7 @@ export async function getAdminOverviewData() {
       todaySchedulesRaw,
       recentMaterialsRaw,
       recentDailyNotesRaw,
+      recentArticlesRaw,
       settingsRaw,
     ] = await Promise.all([
       prisma.student.count(),
@@ -772,6 +780,7 @@ export async function getAdminOverviewData() {
       prisma.user.count(),
       prisma.material.count(),
       prisma.dailyNote.count(),
+      prisma.learningArticle ? prisma.learningArticle.count().catch(() => 0) : Promise.resolve(0),
       prisma.task.findMany({
         where: { status: { not: TaskStatus.COMPLETED } },
         orderBy: { deadline: "asc" },
@@ -807,6 +816,13 @@ export async function getAdminOverviewData() {
         take: 3,
         include: { subject: true, author: { select: { id: true, name: true } } },
       }),
+      prisma.learningArticle
+        ? prisma.learningArticle.findMany({
+            orderBy: { createdAt: "desc" },
+            take: 4,
+            include: { subject: true, author: { select: { id: true, name: true } } },
+          }).catch(() => [])
+        : Promise.resolve([]),
       prisma.setting.findMany(),
     ]);
 
@@ -832,6 +848,7 @@ export async function getAdminOverviewData() {
         usersCount,
         materialsCount,
         dailyNotesCount,
+        articlesCount,
       },
       upcomingDeadlines,
       recentAchievements,
@@ -840,6 +857,7 @@ export async function getAdminOverviewData() {
       todaySchedules: todaySchedulesRaw,
       recentMaterials: recentMaterialsRaw,
       recentDailyNotes: recentDailyNotesRaw,
+      recentArticles: recentArticlesRaw,
       settings,
     };
   } catch {
@@ -1212,6 +1230,14 @@ export async function getSubjectByCode(code: string) {
           orderBy: { date: "desc" },
           include: { author: { select: { id: true, name: true } } },
         },
+        articles: {
+          where: { status: ArticleStatus.PUBLISHED },
+          orderBy: { publishedAt: "desc" },
+          include: { author: { select: { id: true, name: true } } },
+        },
+        resources: {
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -1227,6 +1253,10 @@ export async function getSubjectByCode(code: string) {
         tasks: initialTasks.filter((t) => t.subjectId === initial.id),
         materials: initialMaterials.filter((m) => m.subjectId === initial.id),
         dailyNotes: initialDailyNotes.filter((n) => n.subjectId === initial.id),
+        articles: (initialArticles as any[]).filter(
+          (a) => a.subjectId === initial.id && a.status === ArticleStatus.PUBLISHED
+        ),
+        resources: (initialResources as any[]).filter((r) => r.subjectId === initial.id),
       };
     }
     return null;
@@ -1241,13 +1271,17 @@ export async function getSubjectByCode(code: string) {
         tasks: initialTasks.filter((t) => t.subjectId === initial.id),
         materials: initialMaterials.filter((m) => m.subjectId === initial.id),
         dailyNotes: initialDailyNotes.filter((n) => n.subjectId === initial.id),
+        articles: (initialArticles as any[]).filter(
+          (a) => a.subjectId === initial.id && a.status === ArticleStatus.PUBLISHED
+        ),
+        resources: (initialResources as any[]).filter((r) => r.subjectId === initial.id),
       };
     }
     return null;
   }
 }
 
-// 23. Global Search Data (Tasks, Subjects, Materials, Daily Notes, Students, Achievements)
+// 23. Global Search Data (Tasks, Subjects, Materials, Daily Notes, Students, Achievements, Articles)
 export async function getGlobalSearchData(query: string) {
   if (!query || query.trim().length < 2) {
     return {
@@ -1257,13 +1291,14 @@ export async function getGlobalSearchData(query: string) {
       dailyNotes: [],
       students: [],
       achievements: [],
+      articles: [],
     };
   }
 
   const q = query.trim();
 
   try {
-    const [tasks, subjects, materials, dailyNotes, students, achievements] = await Promise.all([
+    const [tasks, subjects, materials, dailyNotes, students, achievements, articles] = await Promise.all([
       prisma.task.findMany({
         where: {
           OR: [
@@ -1334,11 +1369,23 @@ export async function getGlobalSearchData(query: string) {
         },
         take: 5,
       }),
+      prisma.learningArticle.findMany({
+        where: {
+          status: ArticleStatus.PUBLISHED,
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { excerpt: { contains: q, mode: "insensitive" } },
+            { tags: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+        include: { subject: { select: { id: true, code: true, name: true } } },
+      }),
     ]);
 
     const sanitizedStudents = students.map((s) => sanitizePublicStudent(s));
 
-    return { tasks, subjects, materials, dailyNotes, students: sanitizedStudents, achievements };
+    return { tasks, subjects, materials, dailyNotes, students: sanitizedStudents, achievements, articles };
   } catch {
     const qLower = q.toLowerCase();
     return {
@@ -1367,7 +1414,483 @@ export async function getGlobalSearchData(query: string) {
       achievements: initialAchievements
         .filter((a) => a.title.toLowerCase().includes(qLower))
         .slice(0, 5),
+      articles: (initialArticles as any[])
+        .filter((a) => a.status === ArticleStatus.PUBLISHED)
+        .filter(
+          (a) =>
+            a.title.toLowerCase().includes(qLower) ||
+            (a.excerpt && a.excerpt.toLowerCase().includes(qLower)) ||
+            (a.tags && a.tags.toLowerCase().includes(qLower))
+        )
+        .slice(0, 5),
     };
   }
 }
+
+// ==========================================
+// 24. Learning Hub & Educational Articles
+// ==========================================
+
+export async function getLearningHubData(options?: {
+  subjectId?: string;
+  search?: string;
+}) {
+  try {
+    const articleWhere: Prisma.LearningArticleWhereInput = {
+      status: ArticleStatus.PUBLISHED,
+    };
+    const noteWhere: Prisma.DailyNoteWhereInput = {};
+    const resourceWhere: Prisma.ResourceWhereInput = {};
+
+    if (options?.subjectId) {
+      articleWhere.subjectId = options.subjectId;
+      noteWhere.subjectId = options.subjectId;
+      resourceWhere.subjectId = options.subjectId;
+    }
+
+    if (options?.search) {
+      const q = options.search;
+      articleWhere.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { excerpt: { contains: q, mode: "insensitive" } },
+        { content: { contains: q, mode: "insensitive" } },
+        { tags: { contains: q, mode: "insensitive" } },
+      ];
+      noteWhere.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { summary: { contains: q, mode: "insensitive" } },
+        { content: { contains: q, mode: "insensitive" } },
+      ];
+      resourceWhere.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const [
+      featuredArticle,
+      articles,
+      dailyNotes,
+      resources,
+      subjects,
+      totalArticlesCount,
+      totalNotesCount,
+      totalResourcesCount,
+    ] = await Promise.all([
+      prisma.learningArticle.findFirst({
+        where: {
+          ...articleWhere,
+          isFeatured: true,
+        },
+        orderBy: { publishedAt: "desc" },
+        include: {
+          subject: true,
+          author: { select: { id: true, name: true, role: true } },
+        },
+      }),
+      prisma.learningArticle.findMany({
+        where: articleWhere,
+        orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+        take: 12,
+        include: {
+          subject: true,
+          author: { select: { id: true, name: true, role: true } },
+          _count: { select: { resources: true, notes: true } },
+        },
+      }),
+      prisma.dailyNote.findMany({
+        where: noteWhere,
+        orderBy: { date: "desc" },
+        take: 8,
+        include: {
+          subject: true,
+          author: { select: { id: true, name: true, role: true } },
+          article: { select: { id: true, title: true, slug: true } },
+        },
+      }),
+      prisma.resource.findMany({
+        where: resourceWhere,
+        orderBy: { createdAt: "desc" },
+        take: 12,
+        include: {
+          subject: true,
+          creator: { select: { id: true, name: true, role: true } },
+        },
+      }),
+      prisma.subject.findMany({
+        orderBy: { code: "asc" },
+        include: {
+          _count: {
+            select: {
+              articles: { where: { status: ArticleStatus.PUBLISHED } },
+              dailyNotes: true,
+              resources: true,
+            },
+          },
+        },
+      }),
+      prisma.learningArticle.count({ where: { status: ArticleStatus.PUBLISHED } }),
+      prisma.dailyNote.count(),
+      prisma.resource.count(),
+    ]);
+
+    const finalFeatured = featuredArticle || articles[0] || null;
+
+    return {
+      featuredArticle: finalFeatured,
+      articles,
+      dailyNotes,
+      resources,
+      subjects,
+      stats: {
+        totalArticles: totalArticlesCount,
+        totalNotes: totalNotesCount,
+        totalResources: totalResourcesCount,
+      },
+    };
+  } catch {
+    let filteredArticles = (initialArticles as any[]).filter(
+      (a) => a.status === ArticleStatus.PUBLISHED
+    );
+    let filteredNotes = initialDailyNotes as any[];
+    let filteredResources = initialResources as any[];
+
+    if (options?.subjectId) {
+      filteredArticles = filteredArticles.filter((a) => a.subjectId === options.subjectId);
+      filteredNotes = filteredNotes.filter((n) => n.subjectId === options.subjectId);
+      filteredResources = filteredResources.filter((r) => r.subjectId === options.subjectId);
+    }
+
+    if (options?.search) {
+      const q = options.search.toLowerCase();
+      filteredArticles = filteredArticles.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          (a.excerpt && a.excerpt.toLowerCase().includes(q)) ||
+          (a.tags && a.tags.toLowerCase().includes(q))
+      );
+      filteredNotes = filteredNotes.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          (n.summary && n.summary.toLowerCase().includes(q))
+      );
+      filteredResources = filteredResources.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          (r.description && r.description.toLowerCase().includes(q))
+      );
+    }
+
+    const featured =
+      filteredArticles.find((a) => a.isFeatured) || filteredArticles[0] || null;
+
+    return {
+      featuredArticle: featured,
+      articles: filteredArticles,
+      dailyNotes: filteredNotes,
+      resources: filteredResources,
+      subjects: initialSubjects.map((s) => ({
+        ...s,
+        _count: {
+          articles: filteredArticles.filter((a) => a.subjectId === s.id).length,
+          dailyNotes: filteredNotes.filter((n) => n.subjectId === s.id).length,
+          resources: filteredResources.filter((r) => r.subjectId === s.id).length,
+        },
+      })),
+      stats: {
+        totalArticles: filteredArticles.length,
+        totalNotes: filteredNotes.length,
+        totalResources: filteredResources.length,
+      },
+    };
+  }
+}
+
+export async function getArticlesData(filters?: {
+  subjectId?: string;
+  tag?: string;
+  search?: string;
+  status?: ArticleStatus;
+  limit?: number;
+  page?: number;
+}) {
+  const page = Math.max(1, filters?.page ?? 1);
+  const limit = filters?.limit ?? 12;
+  const skip = (page - 1) * limit;
+
+  try {
+    const where: Prisma.LearningArticleWhereInput = {
+      status: filters?.status ?? ArticleStatus.PUBLISHED,
+    };
+
+    if (filters?.subjectId) where.subjectId = filters.subjectId;
+    if (filters?.tag) where.tags = { contains: filters.tag, mode: "insensitive" };
+    if (filters?.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { excerpt: { contains: filters.search, mode: "insensitive" } },
+        { content: { contains: filters.search, mode: "insensitive" } },
+        { tags: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+
+    const [articles, total] = await Promise.all([
+      prisma.learningArticle.findMany({
+        where,
+        orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+        skip,
+        take: limit,
+        include: {
+          subject: true,
+          author: { select: { id: true, name: true, role: true } },
+          _count: { select: { resources: true, notes: true } },
+        },
+      }),
+      prisma.learningArticle.count({ where }),
+    ]);
+
+    return { articles, total, page, totalPages: Math.ceil(total / limit) };
+  } catch {
+    let articles = (initialArticles as any[]).filter(
+      (a) => a.status === (filters?.status ?? ArticleStatus.PUBLISHED)
+    );
+    if (filters?.subjectId) articles = articles.filter((a) => a.subjectId === filters.subjectId);
+    if (filters?.tag) articles = articles.filter((a) => a.tags?.toLowerCase().includes(filters.tag!.toLowerCase()));
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      articles = articles.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          (a.excerpt && a.excerpt.toLowerCase().includes(q)) ||
+          (a.tags && a.tags.toLowerCase().includes(q))
+      );
+    }
+    const total = articles.length;
+    const paginated = articles.slice(skip, skip + limit);
+    return { articles: paginated, total, page, totalPages: Math.ceil(total / limit) };
+  }
+}
+
+export async function getArticleBySlug(
+  slug: string,
+  options?: { allowDraft?: boolean }
+) {
+  try {
+    const where: Prisma.LearningArticleWhereInput = { slug };
+    if (!options?.allowDraft) {
+      where.status = ArticleStatus.PUBLISHED;
+    }
+
+    const article = await prisma.learningArticle.findFirst({
+      where,
+      include: {
+        subject: {
+          include: {
+            schedules: true,
+            tasks: { take: 3, orderBy: { deadline: "asc" } },
+          },
+        },
+        author: { select: { id: true, name: true, role: true } },
+        resources: {
+          include: { resource: true },
+        },
+        notes: {
+          orderBy: { date: "desc" },
+          take: 5,
+          include: { subject: true },
+        },
+      },
+    });
+
+    if (article) {
+      const [relatedArticles, prevArticle, nextArticle] = await Promise.all([
+        prisma.learningArticle.findMany({
+          where: {
+            status: ArticleStatus.PUBLISHED,
+            subjectId: article.subjectId,
+            NOT: { id: article.id },
+          },
+          take: 3,
+          include: {
+            subject: true,
+            author: { select: { id: true, name: true } },
+          },
+        }),
+        prisma.learningArticle.findFirst({
+          where: {
+            status: ArticleStatus.PUBLISHED,
+            createdAt: { lt: article.createdAt },
+          },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, title: true, slug: true },
+        }),
+        prisma.learningArticle.findFirst({
+          where: {
+            status: ArticleStatus.PUBLISHED,
+            createdAt: { gt: article.createdAt },
+          },
+          orderBy: { createdAt: "asc" },
+          select: { id: true, title: true, slug: true },
+        }),
+      ]);
+
+      return {
+        article,
+        relatedArticles,
+        prevArticle,
+        nextArticle,
+      };
+    }
+
+    const initMatch = (initialArticles as any[]).find((a) => a.slug === slug);
+    if (initMatch && (options?.allowDraft || initMatch.status === ArticleStatus.PUBLISHED)) {
+      const related = (initialArticles as any[]).filter(
+        (a) => a.id !== initMatch.id && a.status === ArticleStatus.PUBLISHED
+      ).slice(0, 3);
+      const notes = (initialDailyNotes as any[]).filter((n) => n.articleId === initMatch.id);
+      return {
+        article: { ...initMatch, notes, resources: [] },
+        relatedArticles: related,
+        prevArticle: null,
+        nextArticle: null,
+      };
+    }
+
+    return null;
+  } catch {
+    const initMatch = (initialArticles as any[]).find((a) => a.slug === slug);
+    if (initMatch && (options?.allowDraft || initMatch.status === ArticleStatus.PUBLISHED)) {
+      const related = (initialArticles as any[]).filter(
+        (a) => a.id !== initMatch.id && a.status === ArticleStatus.PUBLISHED
+      ).slice(0, 3);
+      const notes = (initialDailyNotes as any[]).filter((n) => n.articleId === initMatch.id);
+      return {
+        article: { ...initMatch, notes, resources: [] },
+        relatedArticles: related,
+        prevArticle: null,
+        nextArticle: null,
+      };
+    }
+    return null;
+  }
+}
+
+export async function getArticleById(id: string) {
+  try {
+    const article = await prisma.learningArticle.findUnique({
+      where: { id },
+      include: {
+        subject: true,
+        author: { select: { id: true, name: true, role: true } },
+        resources: {
+          select: { resourceId: true },
+        },
+        notes: {
+          select: { id: true, title: true },
+        },
+      },
+    });
+
+    if (article) {
+      return {
+        ...article,
+        resourceIds: article.resources.map((r) => r.resourceId),
+        noteIds: article.notes.map((n) => n.id),
+      };
+    }
+
+    const init = (initialArticles as any[]).find((a) => a.id === id);
+    if (init) {
+      return {
+        ...init,
+        resourceIds: [],
+        noteIds: [],
+      };
+    }
+
+    return null;
+  } catch {
+    const init = (initialArticles as any[]).find((a) => a.id === id);
+    if (init) {
+      return {
+        ...init,
+        resourceIds: [],
+        noteIds: [],
+      };
+    }
+    return null;
+  }
+}
+
+export async function getAdminArticlesData(filters?: {
+  subjectId?: string;
+  status?: ArticleStatus;
+  search?: string;
+}) {
+  try {
+    const where: Prisma.LearningArticleWhereInput = {};
+    if (filters?.subjectId) where.subjectId = filters.subjectId;
+    if (filters?.status) where.status = filters.status;
+    if (filters?.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { excerpt: { contains: filters.search, mode: "insensitive" } },
+        { tags: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+
+    const [articles, subjects, totalCount, publishedCount, draftCount, archivedCount] =
+      await Promise.all([
+        prisma.learningArticle.findMany({
+          where,
+          orderBy: { updatedAt: "desc" },
+          include: {
+            subject: true,
+            author: { select: { id: true, name: true, role: true } },
+            _count: { select: { resources: true, notes: true } },
+          },
+        }),
+        prisma.subject.findMany({ orderBy: { code: "asc" } }),
+        prisma.learningArticle.count(),
+        prisma.learningArticle.count({ where: { status: ArticleStatus.PUBLISHED } }),
+        prisma.learningArticle.count({ where: { status: ArticleStatus.DRAFT } }),
+        prisma.learningArticle.count({ where: { status: ArticleStatus.ARCHIVED } }),
+      ]);
+
+    return {
+      articles,
+      subjects,
+      counts: {
+        total: totalCount,
+        published: publishedCount,
+        draft: draftCount,
+        archived: archivedCount,
+      },
+    };
+  } catch {
+    let articles = initialArticles as any[];
+    if (filters?.subjectId) articles = articles.filter((a) => a.subjectId === filters.subjectId);
+    if (filters?.status) articles = articles.filter((a) => a.status === filters.status);
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      articles = articles.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          (a.excerpt && a.excerpt.toLowerCase().includes(q))
+      );
+    }
+
+    return {
+      articles,
+      subjects: initialSubjects,
+      counts: {
+        total: (initialArticles as any[]).length,
+        published: (initialArticles as any[]).filter((a) => a.status === ArticleStatus.PUBLISHED).length,
+        draft: (initialArticles as any[]).filter((a) => a.status === ArticleStatus.DRAFT).length,
+        archived: (initialArticles as any[]).filter((a) => a.status === ArticleStatus.ARCHIVED).length,
+      },
+    };
+  }
+}
+
 

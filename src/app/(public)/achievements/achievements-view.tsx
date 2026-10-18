@@ -165,7 +165,7 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
             />
           )}
           {remaining.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
               {remaining.map((item) => (
                 <AchievementCard
                   key={item.id}
@@ -177,7 +177,7 @@ export function AchievementsView({ initialAchievements }: AchievementsViewProps)
           )}
         </div>
       ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
           {filtered.map((item) => (
             <AchievementCard
               key={item.id}

@@ -46,8 +46,8 @@ export function StudentShowcase({ students, settings, className }: StudentShowca
       <section className={cn("space-y-4 text-left", className)}>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
-            <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+            <span className="text-xs font-mono uppercase tracking-wider text-blue-700 dark:text-blue-400 font-bold">
               {"// Profil"}
             </span>
           </div>
@@ -67,7 +67,7 @@ export function StudentShowcase({ students, settings, className }: StudentShowca
             padding="lg"
             className="text-center border-dashed space-y-3 p-6 sm:p-8"
           >
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 light:bg-blue-50 border border-cyan-500/20 light:border-blue-200 flex items-center justify-center mx-auto text-cyan-400 light:text-blue-600">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 dark:bg-blue-950/40 dark:border-blue-800/50 dark:text-blue-400 flex items-center justify-center mx-auto">
               <Users className="w-6 h-6" />
             </div>
             <div className="space-y-1">
@@ -96,8 +96,8 @@ export function StudentShowcase({ students, settings, className }: StudentShowca
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
-            <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+            <span className="text-xs font-mono uppercase tracking-wider text-blue-700 dark:text-blue-400 font-bold">
               {"// Profil"}
             </span>
           </div>
@@ -115,7 +115,7 @@ export function StudentShowcase({ students, settings, className }: StudentShowca
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-cyan-400 light:text-blue-600 font-semibold cursor-pointer"
+            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold cursor-pointer"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
             Lihat Semua

@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   Users,
   BookOpen,
+  BookMarked,
   CheckSquare,
   Trophy,
   Megaphone,
@@ -41,8 +42,8 @@ export default async function AdminDashboardPage() {
     recentAnnouncements,
     recentActivities,
     todaySchedules,
-    recentMaterials,
     recentDailyNotes,
+    recentArticles = [],
     settings,
   } = await getAdminOverviewData();
 
@@ -75,11 +76,11 @@ export default async function AdminDashboardPage() {
       bg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     },
     {
-      title: "Materials",
-      value: (stats as any).materialsCount || 0,
-      href: "/admin/materials",
-      icon: FileCode,
-      bg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+      title: "Artikel",
+      value: (stats as any).articlesCount || 0,
+      href: "/admin/articles",
+      icon: BookOpen,
+      bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
     },
     {
       title: "Daily Notes",
@@ -94,13 +95,6 @@ export default async function AdminDashboardPage() {
       href: "/admin/achievements",
       icon: Trophy,
       bg: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
-    },
-    {
-      title: "Announcements",
-      value: stats.announcementsCount,
-      href: "/admin/announcements",
-      icon: Megaphone,
-      bg: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
     },
   ];
 
@@ -490,49 +484,67 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Recent Learning Materials */}
+            {/* Recent Articles Section */}
             <div className="card rounded-xl border border-border bg-card overflow-hidden shadow-xs">
               <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface">
                 <div className="flex items-center gap-2.5">
-                  <FileCode size={18} className="text-emerald-500" />
-                  <h2 className="text-base font-bold text-text-primary">Latest Course Materials</h2>
+                  <BookOpen size={18} className="text-blue-600 dark:text-blue-400" />
+                  <h2 className="text-base font-bold text-text-primary">Artikel Edukasi Terbaru</h2>
                 </div>
-                <Link
-                  href="/admin/materials"
-                  className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 transition-colors"
-                >
-                  Manage Materials
-                  <ArrowRight size={13} />
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/admin/articles/create"
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 transition-colors"
+                  >
+                    <Plus size={13} />
+                    Tulis Artikel
+                  </Link>
+                  <span className="text-border">•</span>
+                  <Link
+                    href="/admin/articles"
+                    className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1 transition-colors"
+                  >
+                    Kelola
+                    <ArrowRight size={13} />
+                  </Link>
+                </div>
               </div>
 
               <div className="divide-y divide-border">
-                {recentMaterials.length === 0 ? (
+                {recentArticles.length === 0 ? (
                   <div className="p-8 text-center text-text-muted text-sm">
-                    No course materials uploaded yet.
+                    Belum ada artikel yang diterbitkan.
                   </div>
                 ) : (
-                  recentMaterials.map((mat: any) => (
-                    <div key={mat.id} className="p-4 hover:bg-surface/50 transition-colors flex items-center justify-between gap-4">
+                  recentArticles.map((art: any) => (
+                    <div key={art.id} className="p-4 hover:bg-surface/50 transition-colors flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                            {mat.type}
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
+                              art.status === "PUBLISHED"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                : art.status === "DRAFT"
+                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                : "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                            }`}
+                          >
+                            {art.status}
                           </span>
-                          {mat.subject && (
+                          {art.subject && (
                             <span className="text-[11px] text-text-muted font-medium">
-                              {mat.subject.code} &bull; {mat.subject.name}
+                              {art.subject.code} &bull; {art.subject.name}
                             </span>
                           )}
                         </div>
-                        <h4 className="text-sm font-bold text-text-primary truncate">{mat.title}</h4>
+                        <h4 className="text-sm font-bold text-text-primary truncate">{art.title}</h4>
                       </div>
                       <Link
-                        href={`/materials/${mat.id}`}
+                        href={`/articles/${art.slug}`}
                         target="_blank"
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold text-text-primary bg-surface hover:bg-surface-elevated border border-border transition-colors shrink-0"
                       >
-                        Open
+                        Pratinjau
                       </Link>
                     </div>
                   ))
@@ -565,11 +577,11 @@ export default async function AdminDashboardPage() {
                   <span>Tasks</span>
                 </Link>
                 <Link
-                  href="/admin/materials"
+                  href="/admin/articles"
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-text-secondary hover:text-text-primary text-xs font-semibold transition-all"
                 >
-                  <FileCode size={15} className="text-emerald-500" />
-                  <span>Materials</span>
+                  <BookOpen size={15} className="text-blue-500" />
+                  <span>Artikel</span>
                 </Link>
                 <Link
                   href="/admin/daily-notes"

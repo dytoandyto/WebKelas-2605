@@ -87,8 +87,7 @@ export function Avatar({
     <div
       className={cn(
         "relative shrink-0 flex items-center justify-center font-semibold select-none overflow-hidden",
-        "bg-gradient-to-tr from-blue-600/30 to-cyan-500/30 border border-cyan-400/30 text-cyan-200",
-        "light:bg-blue-50 light:border-blue-200 light:text-blue-700",
+        "bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-950/50 dark:border-blue-800/60 dark:text-blue-300",
         shapeClasses,
         sizeClasses,
         className
@@ -112,7 +111,7 @@ export function Avatar({
       {status && (
         <span
           className={cn(
-            "absolute bottom-0 right-0 rounded-full border-2 border-[var(--surface-primary)] light:border-white",
+            "absolute bottom-0 right-0 rounded-full border-2 border-[var(--surface-primary)]",
             size === "xs" || size === "sm" ? "w-2 h-2" : "w-3 h-3",
             statusClasses[status]
           )}

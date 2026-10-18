@@ -62,7 +62,7 @@ export default async function ResourcesPage() {
             description="Tautan dan referensi akademik kelas akan segera ditambahkan di sini."
           />
         ) : (
-          <div className="space-y-10 max-w-5xl mx-auto">
+          <div className="space-y-10 w-full">
             {orderedCats.map((cat) => {
               const catResources = grouped[cat];
               if (!catResources || catResources.length === 0) return null;
@@ -77,7 +77,7 @@ export default async function ResourcesPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {catResources.map((res: any) => (
                       <a
                         key={res.id}

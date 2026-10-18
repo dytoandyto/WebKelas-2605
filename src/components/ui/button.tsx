@@ -6,32 +6,32 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all duration-150 select-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 light:focus-visible:ring-blue-500/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background active:scale-[0.99]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all duration-150 select-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30 dark:focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 active:scale-[0.99]",
   {
     variants: {
       variant: {
         primary:
-          "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-sm hover:shadow border border-cyan-400/30 font-semibold",
+          "bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs border border-blue-600/20 active:scale-[0.98]",
         secondary:
-          "bg-[var(--surface-primary)] hover:bg-[var(--surface-card-hover)] text-[var(--text-primary)] border border-cyan-500/20 hover:border-cyan-400/40 shadow-xs light:bg-slate-100 light:text-slate-800 light:border-slate-200 light:hover:bg-slate-200",
+          "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 shadow-xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700",
         outline:
-          "bg-transparent text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 hover:border-cyan-400/50 light:text-blue-700 light:border-slate-300 light:hover:bg-slate-100",
+          "bg-transparent text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-xs",
         ghost:
-          "bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-cyan-500/10 light:text-slate-600 light:hover:text-slate-900 light:hover:bg-slate-100",
+          "bg-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/70",
         destructive:
-          "bg-rose-600 hover:bg-rose-700 text-white shadow-sm border border-rose-600/40 font-medium",
+          "bg-rose-600 hover:bg-rose-700 text-white shadow-xs font-medium",
         danger:
-          "bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 hover:border-rose-400/50 shadow-xs light:bg-rose-50 light:text-rose-700 light:border-rose-200 light:hover:bg-rose-100",
+          "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60 dark:hover:bg-rose-950/70 shadow-xs",
         success:
-          "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/50 shadow-xs light:bg-emerald-50 light:text-emerald-700 light:border-emerald-200 light:hover:bg-emerald-100",
+          "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60 dark:hover:bg-emerald-950/70 shadow-xs",
         link:
-          "bg-transparent text-cyan-400 hover:underline p-0 h-auto font-normal light:text-blue-600 active:scale-100",
+          "bg-transparent text-blue-600 dark:text-blue-400 hover:underline p-0 h-auto font-normal active:scale-100",
       },
       size: {
-        sm: "h-8 px-2.5 text-xs rounded-lg gap-1.5",
-        md: "h-9.5 px-3.5 py-2 text-sm rounded-xl gap-2",
-        lg: "h-11 px-5 text-base rounded-xl gap-2.5",
-        icon: "h-9 w-9 p-0 rounded-xl flex items-center justify-center shrink-0",
+        sm: "h-8 px-2.5 text-xs rounded-md gap-1.5",
+        md: "h-9 px-3.5 py-2 text-sm rounded-lg gap-2",
+        lg: "h-10.5 px-4.5 text-sm sm:text-base rounded-lg gap-2.5",
+        icon: "h-9 w-9 p-0 rounded-lg flex items-center justify-center shrink-0",
       },
     },
     defaultVariants: {
@@ -71,18 +71,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size }), className)}
         {...props}
       >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin text-current shrink-0" />
-        ) : leftIcon ? (
-          <span className="shrink-0">{leftIcon}</span>
-        ) : null}
+        {isLoading && <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
+        {!isLoading && leftIcon && (
+          <span className="shrink-0 flex items-center justify-center">
+            {leftIcon}
+          </span>
+        )}
         {children}
-        {!isLoading && rightIcon ? (
-          <span className="shrink-0">{rightIcon}</span>
-        ) : null}
+        {!isLoading && rightIcon && (
+          <span className="shrink-0 flex items-center justify-center">
+            {rightIcon}
+          </span>
+        )}
       </button>
     );
   }
 );
-
 Button.displayName = "Button";

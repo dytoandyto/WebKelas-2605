@@ -76,7 +76,7 @@ export function Pagination({
         type="button"
         disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-cyan-400/40 disabled:opacity-40 disabled:pointer-events-none transition-colors light:bg-white light:border-slate-300"
+        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors"
         aria-label="Halaman Sebelumnya"
       >
         <ChevronLeft className="w-4 h-4" />
@@ -103,8 +103,8 @@ export function Pagination({
             className={cn(
               "w-9 h-9 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 select-none",
               isCurrent
-                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_12px_rgba(6,182,212,0.35)] border border-cyan-400/40"
-                : "bg-[var(--surface-primary)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-cyan-400/40 hover:text-[var(--text-primary)] light:bg-white light:border-slate-300"
+                ? "bg-[var(--brand-primary)] text-white shadow-xs border border-[var(--brand-primary)]"
+                : "bg-[var(--surface-primary)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-slate-400 dark:hover:border-slate-600 hover:text-[var(--text-primary)]"
             )}
             aria-current={isCurrent ? "page" : undefined}
           >
@@ -117,7 +117,7 @@ export function Pagination({
         type="button"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-cyan-400/40 disabled:opacity-40 disabled:pointer-events-none transition-colors light:bg-white light:border-slate-300"
+        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors"
         aria-label="Halaman Berikutnya"
       >
         <ChevronRight className="w-4 h-4" />

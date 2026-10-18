@@ -32,11 +32,71 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "drive.usercontent.google.com",
       },
-      {
-        protocol: "https",
-        hostname: "docs.google.com",
-      },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/materials",
+        destination: "/articles",
+        permanent: true,
+      },
+      {
+        source: "/materials/:path*",
+        destination: "/articles",
+        permanent: true,
+      },
+      {
+        source: "/learning",
+        destination: "/articles",
+        permanent: true,
+      },
+      {
+        source: "/learning/articles",
+        destination: "/articles",
+        permanent: true,
+      },
+      {
+        source: "/learning/articles/:slug*",
+        destination: "/articles/:slug*",
+        permanent: true,
+      },
+      {
+        source: "/learning/notes",
+        destination: "/daily-notes",
+        permanent: true,
+      },
+      {
+        source: "/learning/notes/:id*",
+        destination: "/daily-notes",
+        permanent: true,
+      },
+      {
+        source: "/learning/resources",
+        destination: "/articles",
+        permanent: true,
+      },
+      {
+        source: "/learning/subjects",
+        destination: "/subjects",
+        permanent: true,
+      },
+      {
+        source: "/learning/subjects/:code*",
+        destination: "/subjects/:code*",
+        permanent: true,
+      },
+      {
+        source: "/admin/materials",
+        destination: "/admin/articles",
+        permanent: false,
+      },
+      {
+        source: "/admin/materials/:path*",
+        destination: "/admin/articles",
+        permanent: false,
+      },
+    ];
   },
 };
 

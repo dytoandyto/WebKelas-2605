@@ -17,7 +17,7 @@ export default async function AdminDailyNotesPage() {
         title="Jurnal Harian Kuliah"
         description="Kelola entri catatan harian perkuliahan, poin-poin penting, rangkuman materi, dan tindak lanjut pembelajaran."
       />
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
         <DailyNotesManager
           initialNotes={dailyNotes as any}
           subjects={subjects as any}

@@ -80,10 +80,10 @@ const navGroups: NavGroup[] = [
         permission: "TASKS_MANAGE",
       },
       {
-        href: "/admin/materials",
-        label: "Materials",
-        icon: BookMarked,
-        permission: "MATERIALS_MANAGE",
+        href: "/admin/articles",
+        label: "Artikel",
+        icon: BookOpen,
+        permission: "ARTICLES_MANAGE",
       },
       {
         href: "/admin/daily-notes",

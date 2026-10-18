@@ -10,14 +10,14 @@ export function ContentContainer({
   size?: "default" | "narrow" | "wide" | "full";
 }) {
   const maxWidth = {
-    narrow: "max-w-4xl",
-    default: "max-w-7xl",
-    wide: "max-w-[1440px]",
+    narrow: "max-w-5xl",
+    default: "max-w-[1680px]",
+    wide: "max-w-[1720px]",
     full: "max-w-full",
   }[size];
 
   return (
-    <div className={`mx-auto px-4 sm:px-6 lg:px-8 w-full ${maxWidth} ${className}`}>
+    <div className={`mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 w-full ${maxWidth} ${className}`}>
       {children}
     </div>
   );
@@ -99,7 +99,7 @@ export function AdminShell({
 }) {
   return (
     <div className={`min-h-screen flex flex-col bg-[var(--bg-primary)] ${className}`}>
-      <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1536px] w-full mx-auto">{children}</div>
+      <div className="flex-1 p-4 sm:p-6 lg:px-8 xl:px-10 2xl:px-12 max-w-[1720px] w-full mx-auto">{children}</div>
     </div>
   );
 }

@@ -1,10 +1,28 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { getDefaultHomepageConfig, getDefaultSectionConfig } from "./defaults";
 import { validateHomepageConfig, normalizeHomepageConfig } from "./validation";
 import { SECTION_REGISTRY } from "./registry";
 import { SectionConfig, HomepageConfig, HeroSettings, CampusLinksSettings, StatsSettings } from "./types";
 import { hasPermission } from "@/lib/permissions";
 import { UserRole } from "@prisma/client";
+
+const inMemoryStore: Record<string, any> = {};
+
+vi.mock("@/lib/db", () => ({
+  default: {
+    homepageConfiguration: {
+      findUnique: vi.fn().mockImplementation(async ({ where }: any) => inMemoryStore[where.pageKey] || null),
+      upsert: vi.fn().mockImplementation(async ({ where, create, update }: any) => {
+        inMemoryStore[where.pageKey] = { ...(inMemoryStore[where.pageKey] || {}), ...create, ...update };
+        return inMemoryStore[where.pageKey];
+      }),
+    },
+    setting: {
+      findMany: vi.fn().mockResolvedValue([]),
+      upsert: vi.fn().mockResolvedValue({}),
+    },
+  },
+}));
 
 describe("Homepage CMS - Configuration & Defaults Tests", () => {
   it("generates a valid default homepage configuration", () => {

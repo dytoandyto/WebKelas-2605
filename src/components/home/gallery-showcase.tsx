@@ -39,8 +39,8 @@ export function GalleryShowcase({ items, settings, className }: GalleryShowcaseP
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 light:bg-blue-600" />
-            <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 light:text-blue-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+            <span className="text-xs font-mono uppercase tracking-wider text-blue-700 dark:text-blue-400 font-bold">
               {"// Momen & Dokumentasi"}
             </span>
           </div>
@@ -58,7 +58,7 @@ export function GalleryShowcase({ items, settings, className }: GalleryShowcaseP
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-cyan-400 light:text-blue-600 font-semibold"
+            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold cursor-pointer"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
             Lihat Galeri Lengkap

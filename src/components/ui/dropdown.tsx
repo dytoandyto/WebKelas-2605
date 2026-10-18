@@ -100,8 +100,7 @@ export function DropdownMenu({
   return (
     <div
       className={cn(
-        "absolute z-50 mt-1.5 min-w-[180px] rounded-xl border bg-[var(--surface-primary)] p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl border-cyan-500/25 animate-in fade-in-0 zoom-in-95 duration-150",
-        "light:bg-white light:border-slate-200 light:shadow-[0_10px_25px_rgba(18,32,44,0.12)]",
+        "absolute z-50 mt-1.5 min-w-[180px] rounded-xl border border-[var(--border-color)] bg-[var(--surface-primary)] p-1.5 shadow-lg backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150",
         align === "right" ? "right-0" : "left-0",
         className
       )}
@@ -137,8 +136,8 @@ export function DropdownItem({
       className={cn(
         "w-full flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium rounded-lg text-left transition-colors cursor-pointer select-none",
         danger
-          ? "text-red-400 hover:bg-red-500/15 light:text-red-600 light:hover:bg-red-50"
-          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-cyan-500/10 light:text-slate-700 light:hover:text-slate-900 light:hover:bg-slate-100",
+          ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15"
+          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-slate-100 dark:hover:bg-slate-800/60",
         disabled && "opacity-50 cursor-not-allowed pointer-events-none",
         className
       )}
@@ -153,7 +152,7 @@ export function DropdownSeparator({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "my-1.5 h-px bg-[var(--border-color)] light:bg-slate-200",
+        "my-1.5 h-px bg-[var(--border-color)]",
         className
       )}
     />

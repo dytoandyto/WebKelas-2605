@@ -40,8 +40,9 @@ export interface HomeDataProps {
     achievementsCount: number;
     subjectsCount: number;
     tasksCount: number;
-    materialsCount: number;
+    materialsCount?: number;
     dailyNotesCount: number;
+    articlesCount?: number;
   };
   upcomingTasks: TaskCardData[];
   latestAchievements: AchievementData[];
@@ -96,7 +97,7 @@ export function SectionRenderer({
       )}
 
       {/* Main Composed Sections Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 sm:space-y-20 pb-24">
+      <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 space-y-16 sm:space-y-20 pb-24">
         {contentSections.map((section, index) => {
           if (renderedKeys.has(section.key)) return null;
 
@@ -195,14 +196,8 @@ export function SectionRenderer({
           }
 
           if (section.key === "materials") {
-            return (
-              <HomeMaterialsPreview
-                key={section.key}
-                materials={homeData.latestMaterials}
-                totalCount={homeData.stats.materialsCount}
-                settings={section.settings as MaterialsSettings}
-              />
-            );
+            // Standalone materials feature is retired from active UI
+            return null;
           }
 
           if (section.key === "achievements") {

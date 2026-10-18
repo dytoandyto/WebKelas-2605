@@ -77,6 +77,12 @@ enum ResourceCategory {
   OTHER
 }
 
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model User {
   id           String       @id @default(cuid())
   name         String
@@ -96,6 +102,7 @@ model User {
   dailyNotes    DailyNote[]
   classEvents   ClassEvent[]
   activityLogs  ActivityLog[]
+  articles      LearningArticle[]
 
   @@map("users")
   @@index([email])
@@ -149,6 +156,8 @@ model Subject {
   materials        Material[]
   materialSections MaterialSection[]
   dailyNotes       DailyNote[]
+  articles         LearningArticle[]
+  resources        Resource[]
 
   @@map("subjects")
 }
@@ -262,12 +271,14 @@ model DailyNote {
   nextSteps       String?  @map("next_steps")
   subjectId       String?  @map("subject_id")
   authorId        String   @map("author_id")
+  articleId       String?  @map("article_id")
   tags            String?
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   subject   Subject?            @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   author    User                @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  article   LearningArticle?    @relation("ArticleDailyNotes", fields: [articleId], references: [id], onDelete: SetNull)
   materials DailyNoteMaterial[]
   tasks     DailyNoteTask[]
 
@@ -275,6 +286,7 @@ model DailyNote {
   @@index([date])
   @@index([subjectId])
   @@index([authorId])
+  @@index([articleId])
 }
 
 model DailyNoteMaterial {
@@ -377,14 +389,18 @@ model Resource {
   description String?
   url         String
   category    ResourceCategory
+  subjectId   String?          @map("subject_id")
   createdBy   String           @map("created_by")
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
-  creator User @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  subject  Subject?          @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  creator  User              @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  articles ArticleResource[]
 
   @@map("resources")
   @@index([category])
+  @@index([subjectId])
 }
 
 model ClassEvent {
@@ -444,5 +460,47 @@ model HomepageConfiguration {
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@map("homepage_configurations")
+}
+
+model LearningArticle {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  excerpt     String?
+  content     String
+  coverImage  String?       @map("cover_image")
+  status      ArticleStatus @default(DRAFT)
+  isFeatured  Boolean       @default(false) @map("is_featured")
+  readingTime Int?          @default(3) @map("reading_time")
+  tags        String?
+  subjectId   String?       @map("subject_id")
+  authorId    String        @map("author_id")
+  publishedAt DateTime?     @map("published_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  subject   Subject?          @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  notes     DailyNote[]       @relation("ArticleDailyNotes")
+  resources ArticleResource[]
+
+  @@map("learning_articles")
+  @@index([slug])
+  @@index([status])
+  @@index([subjectId])
+  @@index([publishedAt])
+  @@index([isFeatured])
+}
+
+model ArticleResource {
+  articleId  String   @map("article_id")
+  resourceId String   @map("resource_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  article  LearningArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  resource Resource        @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, resourceId])
+  @@map("article_resources")
 }
 

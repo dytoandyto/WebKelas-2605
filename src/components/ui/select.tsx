@@ -24,11 +24,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           disabled={disabled}
           className={cn(
             "flex h-10 w-full appearance-none rounded-xl border bg-[var(--surface-primary)] px-3.5 py-2 pr-9 text-sm text-[var(--text-primary)] transition-all duration-200 cursor-pointer",
-            "border-[var(--border-color)] hover:border-cyan-400/40 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20",
-            "light:bg-white light:border-slate-300 light:hover:border-blue-400 light:focus:border-blue-500 light:focus:ring-blue-500/20",
+            "border-[var(--border-color)] hover:border-blue-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
+            "dark:hover:border-blue-500/60 dark:focus:border-blue-400 dark:focus:ring-blue-400/20",
             "disabled:cursor-not-allowed disabled:opacity-50",
             icon && "pl-10",
-            error && "border-red-500/60 focus:border-red-500 text-red-300",
+            error && "border-red-500 focus:border-red-500 text-red-600 dark:text-red-400",
             className
           )}
           {...props}
@@ -39,7 +39,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           <ChevronDown className="w-4 h-4 opacity-70" />
         </div>
         {error && (
-          <p className="mt-1 text-xs text-red-400 font-medium">{error}</p>
+          <p className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">{error}</p>
         )}
       </div>
     );

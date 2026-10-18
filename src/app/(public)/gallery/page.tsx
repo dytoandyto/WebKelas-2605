@@ -36,7 +36,7 @@ export default async function GalleryPage() {
             description="Dokumentasi foto kegiatan kelas akan segera dipublikasikan di galeri ini."
           />
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-6 space-y-6">
             {gallery.map((photo: any) => (
               <div
                 key={photo.id}

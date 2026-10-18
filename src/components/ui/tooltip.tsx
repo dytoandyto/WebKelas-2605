@@ -39,8 +39,7 @@ export function Tooltip({
           role="tooltip"
           className={cn(
             "absolute z-50 px-2.5 py-1 text-xs font-medium rounded-lg whitespace-nowrap pointer-events-none transition-all duration-150 animate-in fade-in-0 zoom-in-95",
-            "bg-[#0a1d35] text-cyan-200 border border-cyan-500/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)]",
-            "light:bg-slate-900 light:text-white light:border-slate-800 light:shadow-md",
+            "bg-slate-900 text-white border border-slate-800 shadow-md dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100",
             positionClasses,
             className
           )}

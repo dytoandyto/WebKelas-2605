@@ -47,7 +47,7 @@ export function DataTable<T>({
       <div className="w-full overflow-x-auto">
         <table className="w-full border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-[var(--border-color)] bg-[var(--surface-primary)]/70 light:bg-slate-50">
+            <tr className="border-b border-[var(--border-color)] bg-slate-50 dark:bg-slate-900/60">
               {columns.map((col) => (
                 <th
                   key={col.key}
@@ -65,9 +65,9 @@ export function DataTable<T>({
                       <span className="text-[var(--text-muted)]">
                         {sortColumn === col.key ? (
                           sortDirection === "asc" ? (
-                            <ArrowUp className="w-3.5 h-3.5 text-cyan-400" />
+                            <ArrowUp className="w-3.5 h-3.5 text-[var(--brand-primary)]" />
                           ) : (
-                            <ArrowDown className="w-3.5 h-3.5 text-cyan-400" />
+                            <ArrowDown className="w-3.5 h-3.5 text-[var(--brand-primary)]" />
                           )
                         ) : (
                           <ArrowUpDown className="w-3.5 h-3.5 opacity-50" />

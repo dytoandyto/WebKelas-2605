@@ -7,7 +7,7 @@ import { ScheduleItem } from "@/components/schedule/schedule-grid";
 export const metadata: Metadata = {
   title: "Ruang Kelas Digital | JS1SI-26-REG-05",
   description:
-    "Ruang digital kelas S1 Sistem Informasi Telkom University Jakarta (JS1SI-26-REG-05) — jadwal kuliah, tugas & deadline, materi kuliah, dan kabar teman sekelas.",
+    "Ruang digital kelas S1 Sistem Informasi Telkom University Jakarta (JS1SI-26-REG-05) — jadwal kuliah, tugas & deadline, artikel perkuliahan, dan kabar teman sekelas.",
 };
 
 export default async function HomePage() {

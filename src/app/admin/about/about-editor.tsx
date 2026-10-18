@@ -63,16 +63,19 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
   // Parse initial values
   let initialValuesParsed: ValueItem[] = [
     {
-      title: "Integritas Akademik",
-      description: "Kejujuran dalam setiap penugasan, ujian, dan riset kelompok.",
+      title: "Harmony",
+      description:
+        "Build harmonious relationships, respect differences, and collaborate with people from diverse backgrounds.",
     },
     {
-      title: "Kolaborasi Terbuka",
-      description: "Berbagi wawasan, modul, dan pendampingan sebaya tanpa membeda-bedakan.",
+      title: "Excellence",
+      description:
+        "Continuously improve skills, produce high-quality work, and pursue excellence in learning and technology development.",
     },
     {
-      title: "Adaptif & Visioner",
-      description: "Cepat beradaptasi dengan perkembangan teknologi industri dan kecerdasan buatan.",
+      title: "Integrity",
+      description:
+        "Uphold honesty, responsibility, and ethical behavior in learning, collaboration, and technology development.",
     },
   ];
   if (initialSettings.aboutValues) {
@@ -135,6 +138,9 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
     aboutMission:
       initialSettings.aboutMission ||
       "Membangun atmosfer belajar yang kolaboratif, memperkuat keterampilan teknis dan soft skill, serta aktif berpartisipasi dalam kompetisi akademik dan inovasi digital.",
+    aboutAspiration:
+      initialSettings.aboutAspiration ||
+      "Selama menjadi mahasiswa Telkom University, saya berharap dapat terus mengembangkan kemampuan di bidang teknologi dan programming, khususnya dalam membangun sistem perangkat lunak yang efisien untuk memecahkan masalah nyata. Saya ingin mendapatkan pengalaman baru melalui berbagai proyek kampus, memperluas relasi, serta belajar berkolaborasi dengan individu dari berbagai latar belakang untuk mengasah kemampuan komunikasi dan problem-solving. Lebih dari sekadar fokus pada akademik, saya ingin menghasilkan karya teknologi yang bermanfaat dan mengaplikasikan nilai-nilai Harmony, Excellence, dan Integrity (HEI), guna mempersiapkan diri menjadi seorang profesional yang tangguh, adaptif, dan kompeten di industri teknologi masa depan.",
     aboutWaliDosenMessage:
       initialSettings.aboutWaliDosenMessage ||
       "Selamat datang di ruang digital kelas JS1SI-26-REG-05. Mari bersama kita bangun atmosfer perkuliahan yang saling mendukung, penuh integritas, dan siap menjadi talenta sistem informasi unggul untuk masa depan bangsa.",
@@ -167,6 +173,26 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
 
   function handleRemoveValue(index: number) {
     setValuesList(valuesList.filter((_, i) => i !== index));
+  }
+
+  function handleResetHEI() {
+    setValuesList([
+      {
+        title: "Harmony",
+        description:
+          "Build harmonious relationships, respect differences, and collaborate with people from diverse backgrounds.",
+      },
+      {
+        title: "Excellence",
+        description:
+          "Continuously improve skills, produce high-quality work, and pursue excellence in learning and technology development.",
+      },
+      {
+        title: "Integrity",
+        description:
+          "Uphold honesty, responsibility, and ethical behavior in learning, collaboration, and technology development.",
+      },
+    ]);
   }
 
   // Handlers for leaders
@@ -523,26 +549,53 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
               </div>
             </div>
 
+            <div>
+              <label className="text-xs font-semibold text-text-primary mb-1 block">
+                Aspirasi Mahasiswa (Our Aspiration)
+              </label>
+              <textarea
+                value={formData.aboutAspiration}
+                onChange={(e) => setFormData({ ...formData, aboutAspiration: e.target.value })}
+                rows={5}
+                placeholder="Tuliskan harapan dan aspirasi mahasiswa..."
+                className="form-input text-sm w-full bg-surface border-border text-text-primary leading-relaxed"
+              />
+              <p className="text-[11px] text-text-muted mt-1">
+                Pernyataan aspirasi resmi yang ditampilkan pada bagian &quot;Our Aspiration&quot; di halaman publik <code>/about</code>.
+              </p>
+            </div>
+
             {/* Core Values Dynamic List */}
             <div className="pt-4 border-t border-border space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="text-sm font-bold text-text-primary flex items-center gap-2">
                     <Compass size={16} className="text-brand-500" />
-                    <span>Daftar Nilai-Nilai Utama ({valuesList.length})</span>
+                    <span>Nilai-Nilai Utama / Core Values ({valuesList.length})</span>
                   </h4>
                   <p className="text-xs text-text-muted">
-                    Poin nilai yang akan dirender dengan tanda centang di kartu Nilai Utama.
+                    Nilai utama kelas yang ditampilkan dalam kartu interaktif (Standar Telkom University: Harmony, Excellence, Integrity).
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAddValue}
-                  className="btn btn-secondary btn-sm flex items-center gap-1.5 text-xs"
-                >
-                  <Plus size={14} />
-                  <span>Tambah Nilai</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetHEI}
+                    className="btn btn-secondary btn-sm flex items-center gap-1.5 text-xs text-cyan-600 dark:text-cyan-400"
+                    title="Gunakan 3 nilai standar HEI Telkom University: Harmony, Excellence, Integrity"
+                  >
+                    <Sparkles size={14} />
+                    <span>Reset Nilai HEI</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddValue}
+                    className="btn btn-secondary btn-sm flex items-center gap-1.5 text-xs"
+                  >
+                    <Plus size={14} />
+                    <span>Tambah Nilai</span>
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -807,6 +860,18 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
                 </p>
               </div>
 
+              {/* Our Aspiration Mockup */}
+              {formData.aboutAspiration && (
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-950/40 via-[#040d21] to-blue-950/40 border border-cyan-500/30 space-y-2 text-left">
+                  <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider">
+                    OUR ASPIRATION &bull; HARAPAN MAHASISWA
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic">
+                    &ldquo;{formData.aboutAspiration}&rdquo;
+                  </p>
+                </div>
+              )}
+
               {/* Visi & Nilai Mockup */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-cyan-500/20">
                 <div className="p-4 rounded-xl bg-[#040813]/80 border border-cyan-500/20 space-y-2">
@@ -826,7 +891,7 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
                 <div className="p-4 rounded-xl bg-[#040813]/80 border border-cyan-500/20 space-y-2">
                   <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
                     <Compass size={16} className="text-cyan-400" />
-                    <span>Nilai Utama Kelas</span>
+                    <span>Nilai Utama HEI ({valuesList.length})</span>
                   </h4>
                   <ul className="space-y-1.5 text-xs text-slate-300">
                     {valuesList.map((val, idx) => (
@@ -840,6 +905,26 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
                   </ul>
                 </div>
               </div>
+
+              {/* Official Instagram Link Mockup */}
+              {formData.instagramUrl && (
+                <div className="p-4 rounded-xl bg-gradient-to-r from-pink-950/30 via-[#0b1021] to-purple-950/30 border border-pink-500/30 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 flex items-center justify-center text-white">
+                      <InstagramIcon size={16} />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block">Official Class Instagram</span>
+                      <span className="text-[11px] text-pink-300/80 font-mono truncate max-w-xs block">
+                        {formData.instagramUrl}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/40">
+                    Terhubung
+                  </span>
+                </div>
+              )}
 
               {/* Sambutan Wali Dosen Mockup */}
               {formData.aboutWaliDosenMessage && (

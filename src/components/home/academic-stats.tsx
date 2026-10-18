@@ -12,7 +12,8 @@ export interface AcademicStatsData {
   studentsCount: number;
   subjectsCount: number;
   tasksCount: number;
-  materialsCount: number;
+  materialsCount?: number;
+  articlesCount?: number;
   achievementsCount: number;
 }
 
@@ -30,7 +31,7 @@ export function AcademicStats({ stats, settings, className }: AcademicStatsProps
       value: stats.studentsCount,
       href: "/students",
       icon: Users,
-      color: "text-blue-400",
+      color: "text-blue-600 dark:text-blue-400",
       accentBg: "bg-blue-500/10 border-blue-500/20",
     },
     {
@@ -39,7 +40,7 @@ export function AcademicStats({ stats, settings, className }: AcademicStatsProps
       value: stats.subjectsCount,
       href: "/subjects",
       icon: BookOpen,
-      color: "text-cyan-400",
+      color: "text-sky-600 dark:text-cyan-400",
       accentBg: "bg-cyan-500/10 border-cyan-500/20",
     },
     {
@@ -48,16 +49,16 @@ export function AcademicStats({ stats, settings, className }: AcademicStatsProps
       value: stats.tasksCount,
       href: "/tasks",
       icon: CheckSquare,
-      color: "text-amber-400",
+      color: "text-amber-600 dark:text-amber-400",
       accentBg: "bg-amber-500/10 border-amber-500/20",
     },
     {
-      key: "materials" as const,
-      defaultLabel: "Materi Kuliah",
-      value: stats.materialsCount,
-      href: "/materials",
-      icon: FileText,
-      color: "text-emerald-400",
+      key: "articles" as const,
+      defaultLabel: "Artikel Edukasi",
+      value: stats.articlesCount ?? stats.materialsCount ?? 0,
+      href: "/articles",
+      icon: BookOpen,
+      color: "text-emerald-600 dark:text-emerald-400",
       accentBg: "bg-emerald-500/10 border-emerald-500/20",
     },
     {
@@ -66,7 +67,7 @@ export function AcademicStats({ stats, settings, className }: AcademicStatsProps
       value: stats.achievementsCount,
       href: "/achievements",
       icon: Trophy,
-      color: "text-purple-400",
+      color: "text-purple-600 dark:text-purple-400",
       accentBg: "bg-purple-500/10 border-purple-500/20",
     },
   ];
@@ -74,7 +75,9 @@ export function AcademicStats({ stats, settings, className }: AcademicStatsProps
   const items = allItems
     .filter((item) => {
       if (!settings?.visibleCards) return true;
-      return settings.visibleCards[item.key] !== false;
+      const cardKey = item.key as string;
+      const isVisible = (settings.visibleCards as any)[cardKey] ?? (item.key === "articles" ? (settings.visibleCards as any).materials : true);
+      return isVisible !== false;
     })
     .map((item) => ({
       ...item,
@@ -126,7 +129,7 @@ export function AcademicStats({ stats, settings, className }: AcademicStatsProps
                   {item.label}
                 </div>
               </div>
-              <div className="text-[var(--text-muted)] group-hover:text-cyan-400 light:group-hover:text-blue-600 transition-colors shrink-0">
+              <div className="text-[var(--text-muted)] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0">
                 <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity hidden lg:inline mr-1">&rarr;</span>
               </div>
             </Card>

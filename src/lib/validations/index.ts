@@ -8,6 +8,7 @@ import {
   TaskStatus,
   AchievementCategory,
   ResourceCategory,
+  ArticleStatus,
 } from "@prisma/client";
 
 // URL validation helper allowing empty strings and auto-formatting domain-only URLs
@@ -320,8 +321,30 @@ export const resourceSchema = z.object({
   category: z.nativeEnum(ResourceCategory, {
     message: "Please select a valid resource category",
   }),
+  subjectId: z.string().optional().nullable(),
 });
 export type ResourceInput = z.infer<typeof resourceSchema>;
+
+// 12b. Learning Article Schemas
+export const articleSchema = z.object({
+  title: z.string().trim().min(3, "Judul artikel minimal 3 karakter"),
+  slug: z
+    .string()
+    .trim()
+    .min(3, "Slug artikel minimal 3 karakter")
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug harus berupa huruf kecil, angka, dan tanda hubung (-) saja"),
+  excerpt: z.string().trim().max(1000).optional().nullable(),
+  content: z.string().trim().min(10, "Konten artikel minimal 10 karakter"),
+  coverImage: optionalUrl,
+  status: z.nativeEnum(ArticleStatus).default(ArticleStatus.DRAFT),
+  isFeatured: z.boolean().default(false),
+  readingTime: z.coerce.number().int().min(1).max(120).optional().default(3),
+  subjectId: z.string().optional().nullable(),
+  tags: z.string().trim().max(255).optional().nullable(),
+  resourceIds: z.array(z.string()).default([]),
+  noteIds: z.array(z.string()).default([]),
+});
+export type ArticleInput = z.infer<typeof articleSchema>;
 
 // 13. Class Event Schema
 export const classEventSchema = z.object({
@@ -358,6 +381,7 @@ export const settingsSchema = z.object({
   instagramUrl: optionalUrl,
   discordUrl: optionalUrl,
   classMotto: z.string().trim().max(200).optional(),
+  aboutAspiration: z.string().trim().max(4000).optional(),
   aboutVision: z.string().trim().max(2000).optional(),
   aboutMission: z.string().trim().max(2000).optional(),
   aboutValues: z.string().optional(),
@@ -389,6 +413,7 @@ export const aboutSchema = z.object({
   academicYear: z.string().trim().min(1, "Periode akademik diperlukan"),
   waliDosen: z.string().trim().min(1, "Nama wali dosen diperlukan"),
   classDescription: z.string().trim().max(2000).optional(),
+  aboutAspiration: z.string().trim().max(4000).optional(),
   aboutVision: z.string().trim().max(2000).optional(),
   aboutMission: z.string().trim().max(2000).optional(),
   aboutValues: z.array(aboutValueItemSchema).default([]),
