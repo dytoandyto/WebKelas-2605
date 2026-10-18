@@ -10,6 +10,10 @@ import LinkExtension from "@tiptap/extension-link";
 import { ArticleImageExtension } from "@/lib/editor/article-image-extension";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import { Table as TiptapTable } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 
 import {
   ArrowLeft,
@@ -44,6 +48,7 @@ import {
   Upload,
   X,
   RotateCcw,
+  Table as TableIcon,
 } from "lucide-react";
 
 import { cn, generateSlug } from "@/lib/utils";
@@ -211,6 +216,15 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       Placeholder.configure({
         placeholder: "Ketik '/' untuk menambahkan gambar, heading, daftar, kutipan, atau kode...",
       }),
+      TiptapTable.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "table-auto w-full my-4 border-collapse",
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: initialHtml,
     immediatelyRender: false,
@@ -798,6 +812,19 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
         icon: LinkIcon,
         keywords: ["link", "tautan", "url", "href"],
         action: () => openLinkModal(),
+      },
+      {
+        id: "table",
+        title: "Tabel Data",
+        subtitle: "Sisipkan tabel baris dan kolom berstruktur 3x3",
+        icon: TableIcon,
+        keywords: ["table", "tabel", "baris", "kolom", "grid", "data", "sheet"],
+        badge: "Baru",
+        action: (ed) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (ed.chain().focus() as any)
+            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+            .run(),
       },
       {
         id: "paragraph",
@@ -1460,6 +1487,26 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
                   title="Sisipkan Gambar ke Artikel"
                 >
                   <ImageIcon size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any)
+                      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                      .run();
+                  }}
+                  className={cn(
+                    "p-1.5 rounded transition-colors cursor-pointer",
+                    editor.isActive("table")
+                      ? "bg-blue-50 text-blue-700 dark:bg-cyan-500/10 dark:text-cyan-400 font-bold"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                  )}
+                  title="Sisipkan Tabel Data (3x3)"
+                >
+                  <TableIcon size={16} />
                 </button>
 
                 <div className="w-px h-4 bg-slate-200 dark:bg-slate-800 mx-1" />
@@ -2605,6 +2652,86 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
               <Minus size={14} className="text-slate-400 shrink-0" />
               <span>Garis Pemisah (Divider)</span>
             </button>
+
+            {editor?.isActive("table") ? (
+              <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5">
+                <p className="px-2 text-[10px] font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-semibold">
+                  Tindakan Tabel
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextMenu(null);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any).addRowAfter().run();
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                >
+                  <TableIcon size={14} className="text-emerald-500 shrink-0" />
+                  <span>Tambah Baris di Bawah</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextMenu(null);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any).addColumnAfter().run();
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                >
+                  <TableIcon size={14} className="text-emerald-500 shrink-0" />
+                  <span>Tambah Kolom di Kanan</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextMenu(null);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any).deleteRow().run();
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer transition-colors"
+                >
+                  <span>Hapus Baris Ini</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextMenu(null);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any).deleteColumn().run();
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer transition-colors"
+                >
+                  <span>Hapus Kolom Ini</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextMenu(null);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any).deleteTable().run();
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer transition-colors font-semibold"
+                >
+                  <span>Hapus Tabel</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setContextMenu(null);
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (editor?.chain().focus() as any)
+                    ?.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                    ?.run();
+                }}
+                className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+              >
+                <TableIcon size={14} className="text-emerald-500 shrink-0" />
+                <span>Sisipkan Tabel Data (3x3)</span>
+              </button>
+            )}
           </div>
         </div>
       )}
