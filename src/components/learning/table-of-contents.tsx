@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   BookOpen,
   ChevronDown,
-  ChevronUp,
   Link2,
   Check,
   ArrowUp,
@@ -41,7 +40,8 @@ export function TableOfContents({
 
   const [activeId, setActiveId] = React.useState<string>("");
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
-  const [readingProgress, setReadingProgress] = React.useState<number>(0);
+  // Persentase membaca disembunyikan (di-comment sesuai instruksi)
+  // const [readingProgress, setReadingProgress] = React.useState<number>(0);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
   // Scrollspy to track active heading
@@ -70,7 +70,8 @@ export function TableOfContents({
     return () => observer.disconnect();
   }, [headings]);
 
-  // Track overall page reading progress percentage
+  // Track overall page reading progress percentage (di-comment sesuai permintaan)
+  /*
   React.useEffect(() => {
     let ticking = false;
 
@@ -94,6 +95,7 @@ export function TableOfContents({
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  */
 
   if (headings.length === 0) return null;
 
@@ -169,9 +171,10 @@ export function TableOfContents({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+          {/* Persentase membaca di-hide / di-comment */}
+          {/* <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
             {readingProgress}%
-          </span>
+          </span> */}
           <ChevronDown
             size={18}
             className={cn(
@@ -182,13 +185,13 @@ export function TableOfContents({
         </div>
       </button>
 
-      {/* Reading Progress Line */}
-      <div className="h-0.5 w-full bg-slate-100 dark:bg-slate-800">
+      {/* Reading Progress Line - di-hide / di-comment */}
+      {/* <div className="h-0.5 w-full bg-slate-100 dark:bg-slate-800">
         <div
           className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-150"
           style={{ width: `${readingProgress}%` }}
         />
-      </div>
+      </div> */}
 
       {/* Mobile Expanded Navigation Menu */}
       {isMobileOpen && (
@@ -230,7 +233,7 @@ export function TableOfContents({
         className
       )}
     >
-      {/* Header with Title & Live Progress */}
+      {/* Header with Title */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-blue-600 dark:text-cyan-400 uppercase">
@@ -242,8 +245,8 @@ export function TableOfContents({
           </span>
         </div>
 
-        {/* Progress Bar Container */}
-        <div className="space-y-1">
+        {/* Persentase & Kemajuan Membaca Container - di-hide / di-comment */}
+        {/* <div className="space-y-1">
           <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500">
             <span>Kemajuan Membaca</span>
             <span className="font-semibold text-slate-600 dark:text-slate-300">
@@ -256,7 +259,7 @@ export function TableOfContents({
               style={{ width: `${readingProgress}%` }}
             />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Hierarchical Navigation Tree */}

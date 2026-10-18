@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import LinkExtension from "@tiptap/extension-link";
@@ -62,6 +62,16 @@ interface LocalDraftData {
   tags: string;
   status: ArticleStatus;
   savedAt: number;
+}
+
+interface SlashCommandItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  keywords: string[];
+  action: (editor: Editor) => void;
+  badge?: string;
 }
 
 interface SubjectOption {
@@ -151,6 +161,21 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
 
   const uploadDirectRef = React.useRef<(file: File) => Promise<void>>(async () => {});
 
+  // Slash Command Menu state & refs
+  const [slashMenuOpen, setSlashMenuOpen] = React.useState(false);
+  const [slashQuery, setSlashQuery] = React.useState("");
+  const [slashIndex, setSlashIndex] = React.useState(0);
+  const [slashCoords, setSlashCoords] = React.useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [slashRange, setSlashRange] = React.useState<{ from: number; to: number } | null>(null);
+  const slashMenuRef = React.useRef<HTMLDivElement>(null);
+
+  const slashMenuOpenRef = React.useRef(false);
+  const slashIndexRef = React.useRef(0);
+  const slashRangeRef = React.useRef<{ from: number; to: number } | null>(null);
+  const filteredSlashCommandsRef = React.useRef<SlashCommandItem[]>([]);
+  const executeSlashCommandRef = React.useRef<(cmd: SlashCommandItem) => void>(() => {});
+  const checkSlashCommandRef = React.useRef<(currentEditor: Editor | null) => void>(() => {});
+
   // Initialize Tiptap editor
   const editor = useEditor({
     extensions: [
@@ -175,7 +200,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
         types: ["heading", "paragraph"],
       }),
       Placeholder.configure({
-        placeholder: "Mulai menulis artikel atau tekan '/' untuk panduan penulisan...",
+        placeholder: "Ketik '/' untuk menambahkan gambar, heading, daftar, kutipan, atau kode...",
       }),
     ],
     content: initialHtml,
@@ -183,6 +208,40 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     editorProps: {
       attributes: {
         class: "tiptap focus:outline-none min-h-[520px] text-base leading-relaxed text-slate-800 dark:text-slate-200",
+      },
+      handleKeyDown(view, event) {
+        if (slashMenuOpenRef.current && filteredSlashCommandsRef.current.length > 0) {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setSlashIndex((prev) => (prev + 1) % filteredSlashCommandsRef.current.length);
+            return true;
+          }
+          if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setSlashIndex(
+              (prev) =>
+                (prev - 1 + filteredSlashCommandsRef.current.length) %
+                filteredSlashCommandsRef.current.length
+            );
+            return true;
+          }
+          if (event.key === "Enter") {
+            event.preventDefault();
+            const currentItem =
+              filteredSlashCommandsRef.current[slashIndexRef.current] ||
+              filteredSlashCommandsRef.current[0];
+            if (currentItem) {
+              executeSlashCommandRef.current(currentItem);
+            }
+            return true;
+          }
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setSlashMenuOpen(false);
+            return true;
+          }
+        }
+        return false;
       },
       handlePaste(view, event) {
         const items = event.clipboardData?.items;
@@ -216,6 +275,10 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       setContent(html);
       setIsDirty(true);
       setSaveStatus("dirty");
+      checkSlashCommandRef.current(editor);
+    },
+    onSelectionUpdate: ({ editor }) => {
+      checkSlashCommandRef.current(editor);
     },
   });
 
@@ -471,10 +534,10 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     setIsUploadingImage(false);
   }, [filePreviewUrl]);
 
-  const openImageModal = () => {
+  const openImageModal = React.useCallback(() => {
     resetImageModal();
     setIsImageModalOpen(true);
-  };
+  }, [resetImageModal]);
 
   const handleSelectImageFile = (file: File) => {
     setImageModalError("");
@@ -639,6 +702,215 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
   React.useEffect(() => {
     uploadDirectRef.current = handleDirectImageUploadAndInsert;
   }, [handleDirectImageUploadAndInsert]);
+
+  // --------------------------------------------------------------------------
+  // SLASH COMMAND PALETTE LOGIC
+  // --------------------------------------------------------------------------
+  const SLASH_COMMANDS: SlashCommandItem[] = React.useMemo(
+    () => [
+      {
+        id: "image",
+        title: "Gambar / Media",
+        subtitle: "Unggah gambar (JPG, PNG, WebP) atau sisipkan dari URL",
+        icon: ImageIcon,
+        keywords: ["gambar", "image", "foto", "photo", "media", "unggah", "upload", "img", "pic"],
+        badge: "Populer",
+        action: () => openImageModal(),
+      },
+      {
+        id: "h1",
+        title: "Heading 1 (Judul Bab)",
+        subtitle: "Judul bagian materi tingkat pertama",
+        icon: Heading1,
+        keywords: ["h1", "heading1", "judul", "title", "bab", "utama"],
+        action: (ed) => ed.chain().focus().setHeading({ level: 1 }).run(),
+      },
+      {
+        id: "h2",
+        title: "Heading 2 (Subjudul)",
+        subtitle: "Subjudul bagian materi tingkat kedua",
+        icon: Heading2,
+        keywords: ["h2", "heading2", "subjudul", "subtitle"],
+        action: (ed) => ed.chain().focus().setHeading({ level: 2 }).run(),
+      },
+      {
+        id: "h3",
+        title: "Heading 3 (Sub-bagian)",
+        subtitle: "Subjudul pendukung materi tingkat ketiga",
+        icon: Heading3,
+        keywords: ["h3", "heading3", "subbab", "section"],
+        action: (ed) => ed.chain().focus().setHeading({ level: 3 }).run(),
+      },
+      {
+        id: "bulletList",
+        title: "Daftar Butir (Bullet List)",
+        subtitle: "Daftar butir tanpa nomor urut",
+        icon: List,
+        keywords: ["bullet", "list", "daftar", "ul", "poin"],
+        action: (ed) => ed.chain().focus().toggleBulletList().run(),
+      },
+      {
+        id: "orderedList",
+        title: "Daftar Berangka (Numbered List)",
+        subtitle: "Daftar urutan langkah berangka 1, 2, 3...",
+        icon: ListOrdered,
+        keywords: ["number", "numbered", "nomor", "angka", "ol", "langkah"],
+        action: (ed) => ed.chain().focus().toggleOrderedList().run(),
+      },
+      {
+        id: "blockquote",
+        title: "Kutipan / Catatan (Quote)",
+        subtitle: "Kotak sorotan teks atau kutipan rujukan",
+        icon: Quote,
+        keywords: ["quote", "kutipan", "callout", "catatan", "blockquote"],
+        action: (ed) => ed.chain().focus().toggleBlockquote().run(),
+      },
+      {
+        id: "codeBlock",
+        title: "Blok Kode Program",
+        subtitle: "Kotak penulisan kode program sintaks berwarna",
+        icon: Code,
+        keywords: ["code", "kode", "program", "script", "pre"],
+        action: (ed) => ed.chain().focus().toggleCodeBlock().run(),
+      },
+      {
+        id: "divider",
+        title: "Garis Pemisah (Divider)",
+        subtitle: "Garis horizontal pembatas materi",
+        icon: Minus,
+        keywords: ["divider", "garis", "separator", "hr", "line", "pemisah"],
+        action: (ed) => ed.chain().focus().setHorizontalRule().run(),
+      },
+      {
+        id: "link",
+        title: "Sisipkan Tautan (Link)",
+        subtitle: "Buka dialog pembuatan tautan web (Ctrl+K)",
+        icon: LinkIcon,
+        keywords: ["link", "tautan", "url", "href"],
+        action: () => openLinkModal(),
+      },
+      {
+        id: "paragraph",
+        title: "Teks Normal (Paragraf)",
+        subtitle: "Kembalikan ke format paragraf teks biasa",
+        icon: RemoveFormatting,
+        keywords: ["paragraph", "normal", "plain", "paragraf", "reset", "teks"],
+        action: (ed) => ed.chain().focus().setParagraph().run(),
+      },
+    ],
+    [openImageModal, openLinkModal]
+  );
+
+  const filteredSlashCommands = React.useMemo(() => {
+    if (!slashQuery.trim()) return SLASH_COMMANDS;
+    const q = slashQuery.toLowerCase().trim();
+    return SLASH_COMMANDS.filter(
+      (cmd) =>
+        cmd.title.toLowerCase().includes(q) ||
+        cmd.subtitle.toLowerCase().includes(q) ||
+        cmd.keywords.some((k) => k.includes(q))
+    );
+  }, [SLASH_COMMANDS, slashQuery]);
+
+  const executeSlashCommand = React.useCallback(
+    (cmd: SlashCommandItem) => {
+      if (!editor) return;
+      const range = slashRangeRef.current;
+      if (range) {
+        editor.chain().focus().deleteRange(range).run();
+      }
+      setSlashMenuOpen(false);
+      setSlashQuery("");
+      setSlashRange(null);
+
+      setTimeout(() => {
+        cmd.action(editor);
+      }, 20);
+    },
+    [editor]
+  );
+
+  const checkSlashCommand = React.useCallback((currentEditor: Editor | null) => {
+    if (!currentEditor || !currentEditor.isFocused) {
+      setSlashMenuOpen(false);
+      return;
+    }
+    const { from, to } = currentEditor.state.selection;
+    if (from !== to) {
+      setSlashMenuOpen(false);
+      return;
+    }
+
+    const $from = currentEditor.state.selection.$from;
+    const lineText = $from.parent.textContent;
+    const posInParent = $from.parentOffset;
+    const textUpToCursor = lineText.slice(0, posInParent);
+
+    const slashMatch = textUpToCursor.match(/(?:^|\s)\/([a-zA-Z0-9]*)$/);
+    if (slashMatch) {
+      const query = slashMatch[1] || "";
+      const slashFrom = from - query.length - 1;
+      const slashTo = from;
+
+      try {
+        const coords = currentEditor.view.coordsAtPos(slashFrom);
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const menuHeight = 320;
+        const left = Math.min(Math.max(16, coords.left), viewportWidth - 340);
+        let top = coords.bottom + 8;
+        if (top + menuHeight > viewportHeight && coords.top > menuHeight + 20) {
+          top = coords.top - menuHeight - 8;
+        }
+
+        setSlashCoords({ top, left });
+        setSlashQuery(query);
+        setSlashRange({ from: slashFrom, to: slashTo });
+        setSlashIndex(0);
+        setSlashMenuOpen(true);
+      } catch {
+        setSlashMenuOpen(false);
+      }
+    } else {
+      setSlashMenuOpen(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    slashMenuOpenRef.current = slashMenuOpen;
+  }, [slashMenuOpen]);
+
+  React.useEffect(() => {
+    slashIndexRef.current = slashIndex;
+  }, [slashIndex]);
+
+  React.useEffect(() => {
+    slashRangeRef.current = slashRange;
+  }, [slashRange]);
+
+  React.useEffect(() => {
+    filteredSlashCommandsRef.current = filteredSlashCommands;
+  }, [filteredSlashCommands]);
+
+  React.useEffect(() => {
+    executeSlashCommandRef.current = executeSlashCommand;
+  }, [executeSlashCommand]);
+
+  React.useEffect(() => {
+    checkSlashCommandRef.current = checkSlashCommand;
+  }, [checkSlashCommand]);
+
+  // Click outside to dismiss slash menu
+  React.useEffect(() => {
+    if (!slashMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (slashMenuRef.current && !slashMenuRef.current.contains(e.target as Node)) {
+        setSlashMenuOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [slashMenuOpen]);
 
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100 flex flex-col bg-slate-100/60 dark:bg-[#070d19]">
@@ -1958,6 +2230,83 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. FLOATING SLASH COMMAND MENU */}
+      {slashMenuOpen && filteredSlashCommands.length > 0 && (
+        <div
+          ref={slashMenuRef}
+          style={{ top: `${slashCoords.top}px`, left: `${slashCoords.left}px` }}
+          className="fixed z-50 w-72 sm:w-84 max-h-80 overflow-y-auto bg-white dark:bg-[#0c1427] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100"
+        >
+          <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400 dark:text-slate-500">
+            <span className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+              <Sparkles size={12} className="text-blue-600 dark:text-cyan-400" />
+              <span>Perintah Cepat</span>
+            </span>
+            {slashQuery ? (
+              <span className="px-1.5 py-0.2 rounded bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400 font-bold">
+                /{slashQuery}
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-400">Pilih atau ketik kata kunci</span>
+            )}
+          </div>
+
+          <div className="py-1 space-y-0.5">
+            {filteredSlashCommands.map((cmd, idx) => {
+              const Icon = cmd.icon;
+              const isSelected = idx === slashIndex;
+              return (
+                <button
+                  key={cmd.id}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    executeSlashCommand(cmd);
+                  }}
+                  onMouseEnter={() => setSlashIndex(idx)}
+                  className={cn(
+                    "w-full px-2.5 py-2 rounded-xl flex items-center gap-3 text-left transition-colors cursor-pointer",
+                    isSelected
+                      ? "bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-300 font-semibold shadow-2xs"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors",
+                      isSelected
+                        ? "bg-blue-600 text-white dark:bg-cyan-400 dark:text-slate-950 border-transparent shadow-xs"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+                    )}
+                  >
+                    <Icon size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-xs font-bold truncate">{cmd.title}</p>
+                      {cmd.badge && (
+                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20">
+                          {cmd.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                      {cmd.subtitle}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="px-2.5 py-1.5 border-t border-slate-100 dark:border-slate-800 text-[10px] font-mono text-slate-400 dark:text-slate-500 flex items-center justify-between">
+            <span>↑↓ Navigasi</span>
+            <span>↵ Terapkan</span>
+            <span>Esc Tutup</span>
           </div>
         </div>
       )}
