@@ -30,6 +30,17 @@ export function SearchInput({
   // Global Ctrl+K / Cmd+K listener
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const activeEl = document.activeElement;
+      const targetEl = e.target as Element | null;
+      if (
+        (activeEl instanceof HTMLElement && activeEl.isContentEditable) ||
+        (targetEl instanceof HTMLElement && targetEl.isContentEditable) ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(activeEl?.tagName || "") ||
+        activeEl?.closest?.('[contenteditable="true"], .tiptap, [role="textbox"]')
+      ) {
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         inputRef.current?.focus();

@@ -44,13 +44,38 @@ export function SearchDialog() {
 
   // Keyboard shortcut Ctrl+K or '/' and custom event 'open-global-search'
   useEffect(() => {
+    function isUserTyping(el: Element | null): boolean {
+      if (!el) return false;
+      if (el instanceof HTMLElement && el.isContentEditable) return true;
+      const tagName = el.tagName?.toUpperCase();
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tagName)) return true;
+      if (el.closest?.('[contenteditable="true"], .tiptap, [role="textbox"]')) return true;
+      return false;
+    }
+
     function handleKeyDown(e: KeyboardEvent) {
+      const activeEl = document.activeElement;
+      const targetEl = e.target as Element | null;
+      const isTyping = isUserTyping(activeEl) || isUserTyping(targetEl);
+
+      // If user is currently typing in an input, textarea, or contentEditable editor:
+      // - Do NOT intercept '/' (prevents collision when typing slashes, URLs, or commands)
+      // - Do NOT intercept 'Ctrl+K' (lets rich text editors use Ctrl+K for Insert Link)
+      if (isTyping) {
+        if (e.key === "Escape") {
+          setOpen(false);
+        }
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((v) => !v);
       } else if (
         e.key === "/" &&
-        !["INPUT", "TEXTAREA"].includes((document.activeElement?.tagName || ""))
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
       ) {
         e.preventDefault();
         setOpen(true);

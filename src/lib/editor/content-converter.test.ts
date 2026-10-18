@@ -45,4 +45,19 @@ describe("Content Converter Tests", () => {
     expect(generateHeadingId("1. Pengantar Sistem Enterprise")).toBe("1-pengantar-sistem-enterprise");
     expect(generateHeadingId("C# & .NET: Panduan Lengkap!")).toBe("c-net-panduan-lengkap");
   });
+
+  it("detects and preserves articleImage figure and figcaption blocks", () => {
+    const figureHtml = '<figure class="article-image align-center size-medium"><img src="https://example.com/diagram.png" alt="Diagram" /><figcaption class="article-caption">Gambar 1. Diagram Alur</figcaption></figure>';
+    expect(isHtmlContent(figureHtml)).toBe(true);
+    // When markdownToHtml receives rich HTML, it returns it untouched
+    expect(markdownToHtml(figureHtml)).toBe(figureHtml);
+  });
+
+  it("converts markdown image syntax to img tag within paragraph", () => {
+    const mdWithImg = "Berikut adalah diagram arsitektur:\n\n![Arsitektur Sistem](https://example.com/arch.png)\n\nPenjelasan lebih lanjut.";
+    const html = markdownToHtml(mdWithImg);
+    expect(html).toContain('<img src="https://example.com/arch.png" alt="Arsitektur Sistem" />');
+    expect(html).toContain("<p>Berikut adalah diagram arsitektur:</p>");
+    expect(html).toContain("<p>Penjelasan lebih lanjut.</p>");
+  });
 });

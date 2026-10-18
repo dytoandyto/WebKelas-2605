@@ -15,7 +15,7 @@ export interface TocHeadingItem {
 export function isHtmlContent(content: string): boolean {
   if (!content) return false;
   const trimmed = content.trim();
-  return /<\/?(p|h[1-6]|ul|ol|li|blockquote|pre|code|table|tr|th|td|div|hr|img|a)\b/i.test(trimmed);
+  return /<\/?(p|h[1-6]|ul|ol|li|blockquote|pre|code|table|tr|th|td|div|hr|img|a|figure|figcaption)\b/i.test(trimmed);
 }
 
 /**
@@ -252,14 +252,16 @@ export function extractHeadings(content: string): TocHeadingItem[] {
 
   if (isHtmlContent(content)) {
     // Regex match for <h1-3 ...>text</h1-3>
-    const headingRegex = /<h([1-3])(?:\s+id=["']([^"']*)["'])?[^>]*>(.*?)<\/h\1>/gi;
+    const headingRegex = /<h([1-3])([^>]*)>(.*?)<\/h\1>/gi;
     let match;
     while ((match = headingRegex.exec(content)) !== null) {
       const level = parseInt(match[1], 10);
-      const existingId = match[2];
+      const attrs = match[2] || "";
       const rawText = match[3].replace(/<[^>]+>/g, "").trim();
       if (!rawText) continue;
 
+      const idMatch = attrs.match(/\bid=["']([^"']*)["']/i);
+      const existingId = idMatch ? idMatch[1] : undefined;
       const id = existingId || generateHeadingId(rawText);
       headings.push({ id, text: rawText, level });
     }

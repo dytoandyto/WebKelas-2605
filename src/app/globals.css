@@ -559,6 +559,7 @@ tr:hover td {
   margin-bottom: 1rem;
   color: var(--text-primary);
   line-height: 1.25;
+  scroll-margin-top: 6.5rem;
 }
 
 .tiptap h2,
@@ -572,6 +573,7 @@ tr:hover td {
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
   line-height: 1.3;
+  scroll-margin-top: 6.5rem;
 }
 
 .tiptap h3,
@@ -582,6 +584,7 @@ tr:hover td {
   margin-bottom: 0.75rem;
   color: var(--text-primary);
   line-height: 1.4;
+  scroll-margin-top: 6.5rem;
 }
 
 .tiptap p,
@@ -703,6 +706,80 @@ tr:hover td {
   margin: 1.5rem auto;
   display: block;
   border: 1px solid var(--border-color);
+}
+
+/* Article Figure & Image Block (WordPress Gutenberg style) */
+.tiptap figure.article-image,
+.article-rich-content figure.article-image {
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.tiptap figure.article-image.align-left,
+.article-rich-content figure.article-image.align-left {
+  margin-left: 0;
+  margin-right: auto;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.tiptap figure.article-image.align-center,
+.article-rich-content figure.article-image.align-center {
+  margin-left: auto;
+  margin-right: auto;
+  align-items: center;
+  text-align: center;
+}
+
+.tiptap figure.article-image.align-right,
+.article-rich-content figure.article-image.align-right {
+  margin-left: auto;
+  margin-right: 0;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.tiptap figure.article-image.size-small,
+.article-rich-content figure.article-image.size-small {
+  max-width: 380px;
+}
+
+.tiptap figure.article-image.size-medium,
+.article-rich-content figure.article-image.size-medium {
+  max-width: 640px;
+}
+
+.tiptap figure.article-image.size-full,
+.article-rich-content figure.article-image.size-full {
+  max-width: 100%;
+  width: 100%;
+}
+
+.tiptap figure.article-image img,
+.article-rich-content figure.article-image img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  margin: 0;
+  display: block;
+}
+
+.tiptap figure.article-image figcaption,
+.article-rich-content figure.article-image figcaption,
+.article-rich-content .article-caption {
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-style: italic;
+  line-height: 1.5;
+  padding: 0 0.5rem;
+  text-align: inherit;
 }
 
 .tiptap hr,

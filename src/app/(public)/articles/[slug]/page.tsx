@@ -223,8 +223,13 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
         {/* Main 2-Column Pedagogical Layout: Content + Sticky Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pt-8">
           {/* Main Article Content */}
-          <main className="lg:col-span-8 2xl:col-span-9 space-y-10">
-            {/* Rich Markdown Article Body */}
+          <main className="lg:col-span-8 2xl:col-span-9 space-y-8 sm:space-y-10">
+            {/* Mobile Quick Jump Table of Contents */}
+            <div className="lg:hidden">
+              <TableOfContents content={article.content} variant="mobile" />
+            </div>
+
+            {/* Rich Article Body */}
             <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-10 shadow-xs">
               <ArticleContentRenderer content={article.content} />
             </article>
@@ -358,7 +363,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
           <aside className="lg:col-span-4 2xl:col-span-3 space-y-6">
             <div className="sticky top-28 space-y-6">
               {/* Table of Contents */}
-              <TableOfContents content={article.content} />
+              <TableOfContents content={article.content} variant="desktop" />
 
               {/* Subject Info Card */}
               {subject && (

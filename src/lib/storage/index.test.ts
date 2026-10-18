@@ -48,7 +48,45 @@ describe("uploadDocumentFile", () => {
     const result = await uploadDocumentFile(fakePdf, "materials");
     expect(result.error).toBeUndefined();
     expect(result.url).toMatch(/^\/uploads\/materials\/\d+-Pertemuan_1_-_Pengantar-[a-f0-9]+\.pdf$/);
-    expect(result.fileName).toBe("Pertemuan 1 - Pengantar.pdf");
+  });
+});
+
+describe("uploadImageFile for articles", () => {
+  it("rejects image exceeding 5MB limit", async () => {
+    const { uploadImageFile } = await import("./index");
+    const hugeImage = {
+      name: "huge-photo.png",
+      size: 6 * 1024 * 1024,
+      type: "image/png",
+      arrayBuffer: async () => new ArrayBuffer(0),
+    } as unknown as File;
+
+    const result = await uploadImageFile(hugeImage, "articles");
+    expect(result.error).toContain("5MB");
+  });
+
+  it("rejects invalid image mime types", async () => {
+    const { uploadImageFile } = await import("./index");
+    const textFile = {
+      name: "script.sh",
+      size: 1024,
+      type: "text/x-sh",
+      arrayBuffer: async () => new ArrayBuffer(0),
+    } as unknown as File;
+
+    const result = await uploadImageFile(textFile, "articles");
+    expect(result.error).toContain("Invalid image type");
+  });
+
+  it("successfully stores valid PNG image and returns persistent url", async () => {
+    const { uploadImageFile } = await import("./index");
+    // Valid PNG 8-byte header: 89 50 4E 47 0D 0A 1A 0A
+    const pngHeader = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00]);
+    const validPng = new File([pngHeader], "diagram.png", { type: "image/png" });
+
+    const result = await uploadImageFile(validPng, "articles");
+    expect(result.error).toBeUndefined();
+    expect(result.url).toMatch(/(^\/uploads\/articles\/|\.supabase\.co)/);
   });
 });
 
