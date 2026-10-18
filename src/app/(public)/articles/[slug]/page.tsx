@@ -188,6 +188,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
                     alt={article.author.name}
                     width={40}
                     height={40}
+                    unoptimized
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -207,12 +208,13 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
 
           {/* Cover image if available */}
           {article.coverImage && (
-            <div className="relative aspect-[21/9] sm:aspect-[2/1] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm mt-4">
+            <div className="relative aspect-[21/9] sm:aspect-[2/1] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm mt-4 bg-slate-100 dark:bg-slate-900">
               <Image
                 src={article.coverImage}
                 alt={article.title}
                 fill
                 priority
+                unoptimized
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 896px"
               />

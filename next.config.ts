@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+      {
+        protocol: "https",
         hostname: "images.unsplash.com",
       },
       {
@@ -31,6 +39,22 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "drive.usercontent.google.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media2.dev.to",
+      },
+      {
+        protocol: "https",
+        hostname: "*.dev.to",
+      },
+      {
+        protocol: "https",
+        hostname: "iili.io",
+      },
+      {
+        protocol: "https",
+        hostname: "*.iili.io",
       },
     ],
   },
