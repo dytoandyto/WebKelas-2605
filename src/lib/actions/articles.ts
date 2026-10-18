@@ -267,3 +267,24 @@ export async function deleteArticleAction(id: string): Promise<ActionResult> {
     return { success: false, error: err.message || "Gagal menghapus artikel." };
   }
 }
+
+export async function uploadArticleImageAction(formData: FormData): Promise<ActionResult> {
+  try {
+    await assertPermission("ARTICLES_MANAGE");
+    const file = formData.get("file");
+    if (!file || !(file instanceof File)) {
+      return { success: false, error: "Tidak ada berkas gambar yang dipilih." };
+    }
+
+    const { uploadImageFile } = await import("@/lib/storage");
+    const result = await uploadImageFile(file, "articles");
+    if (result.error || !result.url) {
+      return { success: false, error: result.error || "Gagal mengunggah gambar." };
+    }
+
+    return { success: true, data: { url: result.url } };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Gagal mengunggah gambar." };
+  }
+}
+

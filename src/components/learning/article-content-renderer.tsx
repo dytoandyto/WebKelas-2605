@@ -3,8 +3,9 @@
 import * as React from "react";
 import { Check, Copy, Info, AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isHtmlContent, extractHeadings, generateHeadingId } from "@/lib/editor/content-converter";
 
-interface TocItem {
+export interface TocItem {
   id: string;
   text: string;
   level: number;
@@ -17,26 +18,10 @@ interface ArticleContentRendererProps {
 }
 
 /**
- * Extracts H2 and H3 headings for the Table of Contents
+ * Extracts H1, H2, and H3 headings for the Table of Contents from both HTML and Markdown
  */
 export function extractHeadingsFromMarkdown(content: string): TocItem[] {
-  const lines = content.split("\n");
-  const headings: TocItem[] = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("## ")) {
-      const text = trimmed.replace(/^##\s+/, "").replace(/[*_`]/g, "").trim();
-      const id = text.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
-      headings.push({ id, text, level: 2 });
-    } else if (trimmed.startsWith("### ")) {
-      const text = trimmed.replace(/^###\s+/, "").replace(/[*_`]/g, "").trim();
-      const id = text.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
-      headings.push({ id, text, level: 3 });
-    }
-  }
-
-  return headings;
+  return extractHeadings(content);
 }
 
 function CodeBlock({ code, language }: { code: string; language?: string }) {
@@ -422,9 +407,57 @@ export function ArticleContentRenderer({
     return parts;
   };
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // Enhance code blocks with copy buttons when HTML content is rendered
+  React.useEffect(() => {
+    if (!containerRef.current || !isHtmlContent(content)) return;
+    const pres = containerRef.current.querySelectorAll("pre");
+    pres.forEach((pre) => {
+      if (pre.querySelector(".code-copy-btn")) return;
+      pre.classList.add("relative", "group");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "code-copy-btn absolute top-2 right-2 px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-1 shadow-sm z-10";
+      btn.innerHTML = `<span>Salin</span>`;
+      btn.onclick = () => {
+        const code = pre.querySelector("code")?.innerText || pre.innerText;
+        navigator.clipboard.writeText(code);
+        btn.innerHTML = `<span class="text-emerald-400 font-semibold">Tersalin ✓</span>`;
+        setTimeout(() => {
+          btn.innerHTML = `<span>Salin</span>`;
+        }, 2000);
+      };
+      pre.appendChild(btn);
+    });
+  }, [content]);
+
+  if (isHtmlContent(content)) {
+    // Inject heading anchor IDs if not present
+    const processed = content.replace(/<h([1-3])([^>]*)>(.*?)<\/h\1>/gi, (match, level, attrs, text) => {
+      if (/id=/i.test(attrs)) return match;
+      const cleanText = text.replace(/<[^>]+>/g, "").trim();
+      const id = generateHeadingId(cleanText);
+      return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+    });
+
+    return (
+      <article
+        ref={containerRef}
+        className={cn(
+          "article-rich-content prose-custom max-w-none text-slate-800 dark:text-slate-200",
+          className
+        )}
+        dangerouslySetInnerHTML={{ __html: processed }}
+      />
+    );
+  }
+
   return (
     <article className={cn("prose-custom max-w-none text-slate-800 dark:text-slate-200", className)}>
       {renderBlocks()}
     </article>
   );
 }
+

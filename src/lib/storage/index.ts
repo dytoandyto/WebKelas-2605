@@ -69,7 +69,7 @@ export interface UploadResult {
 
 export async function uploadImageFile(
   file: File,
-  folder: "students" | "gallery" | "achievements" | "announcements"
+  folder: "students" | "gallery" | "achievements" | "announcements" | "articles"
 ): Promise<UploadResult> {
   if (!file) {
     return { url: "", error: "No file provided" };
