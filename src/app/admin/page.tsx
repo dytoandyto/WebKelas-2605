@@ -350,9 +350,9 @@ export default async function AdminDashboardPage() {
                       <Clock size={18} className="text-amber-500" />
                       <h2 className="text-base font-bold text-text-primary">Task Deadlines</h2>
                       {overdueCount > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
-                          <AlertCircle size={10} />
-                          {overdueCount} Overdue
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                          <Clock size={11} className="text-slate-400 dark:text-slate-500" />
+                          <span>{overdueCount} sudah lewat</span>
                         </span>
                       )}
                     </div>
@@ -381,9 +381,7 @@ export default async function AdminDashboardPage() {
                           <div
                             key={task.id}
                             className={`p-4 transition-colors flex items-center justify-between gap-4 ${
-                              isOverdue
-                                ? "bg-red-50/60 hover:bg-red-50 border-l-2 border-red-400"
-                                : isToday
+                              isToday
                                 ? "bg-amber-50/50 hover:bg-amber-50/80 border-l-2 border-amber-400"
                                 : "hover:bg-slate-50/80 dark:hover:bg-white/[0.025]"
                             }`}
@@ -396,28 +394,23 @@ export default async function AdminDashboardPage() {
                                     {task.subject.code}
                                   </span>
                                 )}
-                                {isOverdue && (
-                                  <span className="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <AlertCircle size={9} />
-                                    Sudah Lewat
-                                  </span>
-                                )}
                               </div>
-                              <h4 className={`text-sm font-bold truncate ${isOverdue ? "text-red-800 dark:text-red-300" : "text-slate-900 dark:text-white"}`}>
+                              <h4 className="text-sm font-bold truncate text-slate-900 dark:text-white">
                                 {task.title}
                               </h4>
-                              <p className={`text-xs mt-1 flex items-center gap-1.5 font-mono ${isOverdue ? "text-red-500" : "text-slate-500 dark:text-slate-400"}`}>
-                                <Calendar size={12} className={isOverdue ? "text-red-400" : "text-blue-500 dark:text-cyan-400"} />
+                              <p className="text-xs mt-1 flex items-center gap-1.5 font-mono text-slate-500 dark:text-slate-400">
+                                <Calendar size={12} className="text-slate-400 dark:text-slate-500" />
                                 <span>Deadline: {formatDate(task.deadline)}</span>
+                                {isOverdue && (
+                                  <span className="text-slate-400 dark:text-slate-500 font-normal">
+                                    • sudah lewat
+                                  </span>
+                                )}
                               </p>
                             </div>
                             <Link
                               href="/admin/tasks"
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 ${
-                                isOverdue
-                                  ? "text-red-700 bg-red-100 hover:bg-red-200 border-red-200"
-                                  : "text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700"
-                              }`}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700"
                             >
                               Kelola
                             </Link>

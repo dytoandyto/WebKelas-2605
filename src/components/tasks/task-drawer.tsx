@@ -95,16 +95,16 @@ export function TaskDrawer({
             </div>
           </div>
 
-          {/* Overdue Alert Banner */}
+          {/* Overdue Informational Notice */}
           {deadlineInfo.isOverdue && !isNoDeadline && task.status !== "COMPLETED" && (
-            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs flex items-start gap-2.5">
-              <AlertCircle size={16} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs flex items-start gap-2.5">
+              <Clock size={16} className="text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <div className="font-bold text-rose-700 dark:text-rose-300">
-                  Batas Waktu Pengumpulan Telah Berakhir (Sudah Lewat)
+                <div className="font-semibold text-slate-800 dark:text-slate-200">
+                  Keterangan: Batas Waktu Pengumpulan Sudah Lewat
                 </div>
-                <p className="text-rose-600 dark:text-rose-400 leading-relaxed">
-                  Tenggat waktu untuk tugas ini telah berakhir ({deadlineInfo.text}). Tautan pengumpulan pada portal LMS Telkom mungkin sudah ditutup. Hubungi dosen pengampu atau pengurus kelas jika Anda memerlukan perpanjangan tenggat.
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Tenggat waktu untuk tugas ini telah lewat ({deadlineInfo.text}). Tautan pengumpulan pada portal LMS Telkom mungkin sudah ditutup. Hubungi dosen pengampu atau pengurus kelas jika Anda memerlukan konfirmasi lebih lanjut.
                 </p>
               </div>
             </div>

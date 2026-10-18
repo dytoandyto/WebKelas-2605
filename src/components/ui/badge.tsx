@@ -162,8 +162,12 @@ export function TaskStatusBadge({
       );
     case "OVERDUE":
       return (
-        <Badge variant="red" dot className={className}>
-          Terlambat
+        <Badge
+          variant="default"
+          dot
+          className={cn("text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium", className)}
+        >
+          Sudah Lewat
         </Badge>
       );
     case "TODO":
@@ -212,7 +216,7 @@ export function DeadlineBadge({
           className
         )}
       >
-        Lewat Tenggat
+        Sudah Lewat
       </Badge>
     );
   }

@@ -55,7 +55,7 @@ export function TaskCard({
         className={cn(
           "w-full text-left px-2 py-1 rounded-md text-[11px] font-medium truncate cursor-pointer transition-all duration-150 border",
           isPast
-            ? "bg-red-500/15 text-red-200 border-red-500/30 light:bg-red-50 light:text-red-700 light:border-red-200"
+            ? "bg-slate-500/15 text-slate-300 border-slate-500/30 light:bg-slate-100 light:text-slate-600 light:border-slate-300"
             : "bg-cyan-500/15 text-cyan-200 border-cyan-500/30 hover:bg-cyan-500/25 light:bg-blue-50 light:text-blue-700 light:border-blue-200",
           className
         )}

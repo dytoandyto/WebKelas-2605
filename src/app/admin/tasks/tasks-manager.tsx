@@ -595,11 +595,11 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
               className={cn(
                 "px-3 py-1.5 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer",
                 deadlineFilter === "PAST_DEADLINE"
-                  ? "bg-rose-500 text-white dark:bg-rose-500/20 dark:text-rose-300 dark:border dark:border-rose-500/30 font-semibold"
+                  ? "bg-slate-700 text-white dark:bg-slate-800 dark:text-slate-200 dark:border dark:border-slate-700 font-semibold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
               )}
             >
-              Lewat Deadline ({counts.past})
+              Sudah Lewat ({counts.past})
             </button>
           </div>
 
@@ -1123,12 +1123,12 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
 
             {/* Current overdue notice if deadline passed */}
             {new Date(quickDeadlineTask.deadline).getTime() < Date.now() && (
-              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
-                <AlertCircle size={15} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
+                <Clock size={15} className="shrink-0 mt-0.5 text-slate-400 dark:text-slate-500" />
                 <div>
-                  <p className="font-semibold">Tugas Sudah Melewati Tenggat (Sudah Lewat)</p>
-                  <p className="text-[11px] text-amber-700 dark:text-amber-400/90 mt-0.5">
-                    Pilih tanggal di masa depan menggunakan tombol preset di bawah untuk mengaktifkan kembali tugas ini bagi mahasiswa.
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">Keterangan: Tenggat tugas ini sudah lewat</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Pilih tanggal di masa depan menggunakan tombol preset di bawah jika ingin memperpanjang jadwal pengumpulan tugas bagi mahasiswa.
                   </p>
                 </div>
               </div>
@@ -1196,10 +1196,10 @@ export function TasksManager({ initialTasks, subjects }: TasksManagerProps) {
             {quickDeadlineValue && (
               <div className="pt-1">
                 {new Date(quickDeadlineValue).getTime() < Date.now() ? (
-                  <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-400 flex items-center gap-2">
-                    <AlertCircle size={14} className="shrink-0" />
+                  <div className="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <Clock size={14} className="shrink-0 text-slate-400" />
                     <span>
-                      Tenggat baru di masa lalu. Status tugas akan menjadi <strong>OVERDUE (Sudah Lewat)</strong>.
+                      Keterangan: Tanggal yang dipilih berada di masa lalu (status: <strong>Sudah Lewat</strong>).
                     </span>
                   </div>
                 ) : (

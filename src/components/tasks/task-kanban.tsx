@@ -23,7 +23,7 @@ const KANBAN_COLUMNS: {
   { status: TaskStatus.IN_PROGRESS, label: "Sedang Dikerjakan" },
   { status: TaskStatus.SUBMITTED, label: "Sudah Dikumpulkan" },
   { status: TaskStatus.COMPLETED, label: "Selesai" },
-  { status: TaskStatus.OVERDUE, label: "Terlambat" },
+  { status: TaskStatus.OVERDUE, label: "Sudah Lewat" },
 ];
 
 export function TaskKanban({
