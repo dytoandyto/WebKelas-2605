@@ -15,9 +15,6 @@ import {
   ArrowLeft,
   Save,
   Globe,
-  Archive,
-  Eye,
-  FileText,
   Sparkles,
   Undo2,
   Redo2,
@@ -35,31 +32,37 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignJustify,
   RemoveFormatting,
   Heading1,
   Heading2,
   Heading3,
-  Columns2,
-  Maximize2,
   SidebarClose,
   SidebarOpen,
   CheckCircle2,
   AlertCircle,
-  Clock,
   Loader2,
   Upload,
   X,
-  ExternalLink,
-  ChevronDown,
   RotateCcw,
 } from "lucide-react";
 
-import { cn, generateSlug, calculateReadingTime } from "@/lib/utils";
+import { cn, generateSlug } from "@/lib/utils";
 import { createArticleAction, updateArticleAction, uploadArticleImageAction } from "@/lib/actions/articles";
 import { ArticleContentRenderer } from "@/components/learning/article-content-renderer";
 import { isHtmlContent, markdownToHtml } from "@/lib/editor/content-converter";
 import { ArticleStatus } from "@prisma/client";
+
+interface LocalDraftData {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImage: string;
+  subjectId: string;
+  tags: string;
+  status: ArticleStatus;
+  savedAt: number;
+}
 
 interface SubjectOption {
   id: string;
@@ -132,7 +135,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
   const [urlTestError, setUrlTestError] = React.useState(false);
 
   // Local draft recovery notification
-  const [recoveredDraft, setRecoveredDraft] = React.useState<any | null>(null);
+  const [recoveredDraft, setRecoveredDraft] = React.useState<LocalDraftData | null>(null);
 
   // Storage key for local recovery
   const localDraftKey = React.useMemo(() => {
@@ -242,7 +245,9 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
         const parsed = JSON.parse(stored);
         const serverUpdatedAt = initialData?.updatedAt ? new Date(initialData.updatedAt).getTime() : 0;
         if (parsed.savedAt && parsed.savedAt > serverUpdatedAt && parsed.content && parsed.content !== initialData?.content) {
-          setRecoveredDraft(parsed);
+          queueMicrotask(() => {
+            setRecoveredDraft(parsed);
+          });
         }
       }
     } catch {
@@ -392,9 +397,9 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
             router.push(`/admin/articles`);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setSaveStatus("error");
-        setStatusMessage(err.message || "Terjadi kesalahan saat menyimpan artikel.");
+        setStatusMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan artikel.");
       }
     });
   };
@@ -421,7 +426,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     setLinkText("");
   };
 
-  const openLinkModal = () => {
+  const openLinkModal = React.useCallback(() => {
     if (!editor) return;
     const previousUrl = editor.getAttributes("link").href || "";
     const selection = editor.state.doc.textBetween(
@@ -432,7 +437,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     setLinkUrl(previousUrl);
     setLinkText(selection);
     setIsLinkModalOpen(true);
-  };
+  }, [editor]);
 
   // Keyboard shortcut Ctrl+K / Cmd+K to open Link Modal when editor is focused
   React.useEffect(() => {
@@ -447,7 +452,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor]);
+  }, [editor, openLinkModal]);
 
   // Image Upload, Paste, Drag-and-Drop & Modal Logic
   const resetImageModal = React.useCallback(() => {
@@ -531,8 +536,8 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       } else {
         setImageModalError(res.error || "Gagal mengunggah berkas gambar ke server.");
       }
-    } catch (err: any) {
-      setImageModalError(err.message || "Terjadi kesalahan saat mengunggah gambar.");
+    } catch (err: unknown) {
+      setImageModalError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah gambar.");
     } finally {
       setIsUploadingImage(false);
     }
@@ -623,8 +628,8 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
           setStatusMessage(res.error || "Gagal mengunggah gambar.");
           setSaveStatus("error");
         }
-      } catch (err: any) {
-        setStatusMessage(err.message || "Gagal mengunggah gambar.");
+      } catch (err: unknown) {
+        setStatusMessage(err instanceof Error ? err.message : "Gagal mengunggah gambar.");
         setSaveStatus("error");
       }
     },
@@ -1413,6 +1418,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
               </div>
               {coverImage && (
                 <div className="relative mt-2 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-video bg-slate-100 dark:bg-slate-900">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={coverImage} alt="Cover preview" className="w-full h-full object-cover" />
                   <button
                     type="button"

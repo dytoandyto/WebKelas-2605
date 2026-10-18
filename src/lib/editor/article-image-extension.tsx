@@ -7,7 +7,6 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Maximize2,
   Trash2,
   Settings2,
   Check,
@@ -384,12 +383,19 @@ export const ArticleImageExtension = Node.create({
         tag: "img[src]",
         getAttrs: (el) => {
           const img = el as HTMLElement;
+          const alignAttr = img.getAttribute("data-align");
+          const sizeAttr = img.getAttribute("data-size");
+          const align: "left" | "center" | "right" =
+            alignAttr === "left" || alignAttr === "right" ? alignAttr : "center";
+          const size: "small" | "medium" | "full" =
+            sizeAttr === "small" || sizeAttr === "medium" ? sizeAttr : "full";
+
           return {
             src: img.getAttribute("src"),
             alt: img.getAttribute("alt") || "",
             caption: img.getAttribute("title") || img.getAttribute("data-caption") || "",
-            align: (img.getAttribute("data-align") as any) || "center",
-            size: (img.getAttribute("data-size") as any) || "full",
+            align,
+            size,
           };
         },
       },
@@ -404,15 +410,21 @@ export const ArticleImageExtension = Node.create({
       `size-${size || "full"}`,
     ].join(" ");
 
-    const children: any[] = [
-      ["img", { src, alt: alt || "", class: "rounded-xl border border-slate-200 dark:border-slate-800" }],
+    const imgEl: [string, Record<string, string>] = [
+      "img",
+      { src, alt: alt || "", class: "rounded-xl border border-slate-200 dark:border-slate-800" },
     ];
 
     if (caption && caption.trim()) {
-      children.push(["figcaption", { class: "article-caption" }, caption.trim()]);
+      const figcaptionEl: [string, Record<string, string>, string] = [
+        "figcaption",
+        { class: "article-caption" },
+        caption.trim(),
+      ];
+      return ["figure", mergeAttributes({ class: figureClasses }), imgEl, figcaptionEl];
     }
 
-    return ["figure", mergeAttributes({ class: figureClasses }), ...children];
+    return ["figure", mergeAttributes({ class: figureClasses }), imgEl];
   },
 
   addNodeView() {
