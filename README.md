@@ -1,36 +1,39 @@
 # ClassHub — Modern Class & Cohort Management Web Application
 
-<p align="center">
-  <strong>A full-stack, production-ready web portal designed for university classes, student cohorts, and academic communities.</strong>
-</p>
+A modern web application for managing university class activities, academic schedules, student profiles, assignments, achievements, announcements, and shared learning resources.
+
+ClassHub is designed to help students and class administrators organize academic information in one centralized, accessible, and responsive platform.
 
 ---
 
 ## 🌟 Key Features
 
 ### 🎓 Public Portal
-- **Interactive Home Dashboard**: Live overview featuring today's schedule, pending task deadlines, highlighted achievements, latest announcements, featured classmates, and class gallery moments.
-- **Weekly Schedule Timetable**: Day-grouped class slots with start/end times, room locations, lecturer names, and direct links to syllabus details.
-- **Coursework & Task Deadlines**: Dynamic countdowns and status indicators (*Upcoming*, *Due Soon*, *Overdue*, *Completed*) with filterable priority levels.
-- **Student Cohort Directory**: Student profile cards featuring bios, student numbers (NIM), career aspirations, portfolios, social links (GitHub, LinkedIn), and achievements.
-- **Detailed Student Profiles (`/students/[id]`)**: Deep-dive into each student's bio, motivation, career dream, and individual or team achievements.
-- **Hall of Fame & Achievements (`/achievements`)**: Categorized honors (Competitions, Academic, Volunteering, Technology, Leadership) with participant tags and awards.
-- **Class Bulletins & Announcements (`/announcements`)**: Formatted announcements with publish controls and category badges.
-- **Campus & Activity Gallery (`/gallery`)**: Visual memories and photo albums from workshops, study groups, hackathons, and gatherings.
-- **Shared Class Resources (`/resources`)**: Curated links to official cloud drives, GitHub Classroom organizations, textbooks, and development tools.
+
+- **Interactive Home Dashboard** — Overview of today's schedule, upcoming deadlines, achievements, announcements, featured students, and class activities.
+- **Weekly Schedule (`/schedule`)** — Weekly timetable with course names, class times, room locations, and lecturer information.
+- **Tasks & Deadlines (`/tasks`)** — View assignments, deadlines, task priorities, and completion status.
+- **Student Directory (`/students`)** — Browse student profiles, biographies, career aspirations, portfolio links, and social media.
+- **Student Details (`/students/[id]`)** — Individual profiles with personal introductions, motivation, career goals, and achievements.
+- **Achievements (`/achievements`)** — Showcase academic accomplishments, competitions, volunteering, technology projects, and leadership activities.
+- **Announcements (`/announcements`)** — Centralized class announcements and academic updates.
+- **Class Gallery (`/gallery`)** — Photos and memories from class activities, workshops, competitions, and gatherings.
+- **Shared Resources (`/resources`)** — Useful links to learning materials, cloud storage, development tools, and academic resources.
+- **About (`/about`)** — Information about the class, its identity, community, and background.
 
 ### 🛡️ Administrative Portal (`/admin`)
-- **Executive Dashboard**: Key metrics (enrolled students, courses, pending tasks, awards, active announcements) with recent audit activity feeds.
-- **Schedule Management**: Full CRUD for weekly class timetables, rooms, and lecturer assignments.
-- **Tasks & Assignments Management**: Create, update, toggle completion status, and set deadlines with automated due-date computation.
-- **Subjects Curriculum Management**: Manage course codes, subject syllabi, and faculty lecturers.
-- **Student Roster Management**: Add student records, edit biographies, career dreams, and social links.
-- **Achievements Management**: Record honors with multi-student participant tagging.
-- **Announcements Management**: Draft notices, toggle publish status, and upload banner graphics.
-- **Photo Gallery Management**: Curate and upload class memories with event dates.
-- **Resources Management**: Manage category-indexed learning links and shared files.
-- **User & Access Management (RBAC)**: Manage administrators, lecturers, and class assistants with role-based permissions and active/inactive switches.
-- **Class Settings & Branding**: Configure class name, academic year, motto/tagline, contact email, and official community channels (GitHub, Instagram, Discord).
+
+- **Dashboard** — Overview of students, subjects, assignments, achievements, and announcements.
+- **Schedule Management** — Create, update, and delete class schedules.
+- **Task Management** — Manage assignments, priorities, deadlines, and completion status.
+- **Subject Management** — Maintain course codes, subject details, and lecturer information.
+- **Student Management** — Manage student profiles, biographies, career aspirations, and social links.
+- **Achievement Management** — Record accomplishments and associate participating students.
+- **Announcement Management** — Create announcements and control publication status.
+- **Gallery Management** — Organize class photos and activity documentation.
+- **Resource Management** — Maintain shared links and learning resources.
+- **User Management** — Manage administrative accounts and role-based access, where configured.
+- **Class Settings** — Configure class information, branding, and community links, where supported.
 
 ---
 
@@ -38,92 +41,118 @@
 
 | Layer | Technology |
 |---|---|
-| **Framework** | [Next.js 16](https://nextjs.org/) (App Router, Server Components & Server Actions) |
-| **Language** | [TypeScript 5](https://www.typescriptlang.org/) (Strict mode, full type-safety) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) with custom design tokens, glassmorphism, and responsive layout |
-| **Database ORM** | [Prisma 6.19](https://www.prisma.io/) with PostgreSQL adapter |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) (Compatible with Supabase, Neon, AWS RDS, Railway, or local Postgres) |
-| **Authentication** | Lightweight stateless JWT session cookies via [jose](https://github.com/panva/jose) (`httpOnly`, `sameSite=lax`, `secure`) |
-| **Validation** | [Zod v4](https://zod.dev/) for robust client/server input parsing |
-| **Icons** | [Lucide React](https://lucide.dev/) + Custom SVG Brand Icons |
-| **Security** | `bcryptjs` password hashing, RBAC permission checks, route protection via Next.js Middleware |
+| Framework | [Next.js](https://nextjs.org/) with App Router |
+| Language | [TypeScript](https://www.typescriptlang.org/) |
+| Styling | [Tailwind CSS](https://tailwindcss.com/) |
+| Database ORM | [Prisma](https://www.prisma.io/) |
+| Database | [PostgreSQL](https://www.postgresql.org/) |
+| Authentication | [jose](https://github.com/panva/jose), if configured |
+| Validation | [Zod](https://zod.dev/) |
+| Icons | [Lucide](https://lucide.dev/) |
+| Password Hashing | `bcryptjs`, if configured |
+
+> **Note:** Confirm the installed package versions and enabled features against `package.json`, the Prisma schema, and the application source code.
 
 ---
 
 ## 🔐 Role-Based Access Control (RBAC)
 
-ClassHub enforces granular permissions across administrative roles:
+ClassHub can use role-based permissions to separate administrative responsibilities. The exact roles and their permissions depend on the current application configuration.
 
-| Role | Permissions & Scope |
+| Role | Intended Scope |
 |---|---|
-| **ADMIN** | Full system access: manage users, settings, schedules, tasks, curriculum, students, content, and audit logs. |
-| **CLASS_ADMIN** | Class administration: manage schedules, assignments, student directory, achievements, announcements, and gallery. |
-| **LECTURER** | Academic manager: post tasks, assignments, announcements, and resources. |
-| **ASSISTANT** | Teaching assistant: update task statuses, laboratory schedules, and assist student directory maintenance. |
+| `ADMIN` | Full system administration and access management |
+| `CLASS_ADMIN` | Class operations, schedules, students, and class content |
+| `LECTURER` | Academic tasks, announcements, and learning resources |
+| `ASSISTANT` | Assistance with academic and class administration |
 
-### 🔑 Demo Credentials (Offline / First-Time Login)
+Only document roles that are actually implemented and enforced on the server.
+
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js** v20.x or v22.x+
-- **npm** or **pnpm**
-- (Optional) PostgreSQL database instance (e.g. [Supabase](https://supabase.com), [Neon](https://neon.tech), or local Docker)
 
-### 2. Installation
-Clone the repository and install dependencies:
+Install the following tools:
+
+- [Node.js](https://nodejs.org/) compatible with the project dependencies
+- npm, pnpm, or the package manager specified by the repository
+- A PostgreSQL database, such as [Neon](https://neon.tech/), [Supabase](https://supabase.com/), or a local PostgreSQL instance
+
+### 2. Clone the Repository
+
+Replace the example URL with your actual GitHub repository URL.
+
 ```bash
-git clone <repository-url>
-cd ProjectCampus
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+cd YOUR_REPOSITORY
+```
+
+### 3. Install Dependencies
+
+```bash
 npm install
 ```
 
-### 3. Environment Variables
-Copy the template file to `.env`:
-```bash
-cp .env.example .env
-```
-Configure your environment parameters:
+### 4. Configure Environment Variables
+
+Create a local `.env` file based on `.env.example`, if the repository provides one.
+
 ```env
+DATABASE_URL="your-postgresql-connection-string"
+AUTH_SECRET="your-long-random-secret"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-### 4. Database Setup & Migrations
-Generate Prisma Client:
+Update the values according to your environment and the variables required by the application.
+
+**Security notes:**
+- Never commit `.env` files containing secrets.
+- Keep database credentials and authentication secrets private.
+- Use separate environment variables for local development, preview deployments, and production.
+- Use a strong, randomly generated authentication secret.
+
+### 5. Set Up the Database
+
+Run only the commands supported by the repository's `package.json` and Prisma configuration.
+
+Generate the Prisma Client:
+
 ```bash
 npx prisma generate
 ```
 
-Push schema to your database (when PostgreSQL is active):
+Apply database changes using the project's established workflow. For a project using Prisma migrations:
+
 ```bash
-npx prisma db push
+npx prisma migrate dev
 ```
 
-Seed database with rich initial academic data:
+If the project intentionally uses `prisma db push` during development, follow that workflow instead.
+
+To seed initial data, run the configured seed command, if available:
+
 ```bash
 npm run db:seed
 ```
 
-> **Zero-Config Local Database Included**: ClassHub includes an embedded PostgreSQL engine powered by PGlite (`scripts/dev-db.mjs`) on port 5433. Simply running `npm run dev` automatically spins up both the embedded persistent database and Next.js. No Docker or external PostgreSQL installation is required for local development!
->
-> **Note on Zero-Downtime Resilience**: If PostgreSQL is temporarily offline or unconfigured, ClassHub automatically switches to its comprehensive `initial-data.ts` fallback layer. The app will build and run without throwing unhandled exceptions.
+> **Important:** Verify database setup instructions before running commands against production. Do not reset or overwrite a production database to initialize the application.
 
-### 5. Running Locally
-Start the development server (automatically launches embedded database + Next.js):
+### 6. Run the Development Server
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Available development scripts:
-- `npm run dev`: Starts both embedded PGlite DB and Next.js dev server.
-- `npm run dev:db`: Starts only the embedded PGlite database server on port 5433.
-- `npm run dev:next`: Starts only Next.js (when external DB or existing dev:db is active).
-- `npm test`: Runs all unit and integration test suites via Vitest.
-- `npm run db:push`: Synchronizes Prisma schema with the database.
-- `npm run db:seed`: Seeds database with realistic cohort data and administrator accounts.
+Open the application at:
 
-To verify production bundle compilation:
+- Public website: [http://localhost:3000](http://localhost:3000)
+- Login page: [http://localhost:3000/login](http://localhost:3000/login)
+- Admin portal: [http://localhost:3000/admin](http://localhost:3000/admin), subject to authentication and permissions
+
+### 7. Build for Production
+
 ```bash
 npm run build
 npm run start
@@ -131,73 +160,116 @@ npm run start
 
 ---
 
-## 📁 Project Architecture
+## 📁 Project Structure
 
-```
-ProjectCampus/
+The following is an illustrative structure. Update it to match the actual repository.
+
+```text
+classhub/
 ├── prisma/
-│   ├── schema.prisma              # Complete database schema & relationships
-│   └── seed.ts                    # Database seeder with realistic class data
+│   ├── schema.prisma
+│   └── seed.ts
+├── public/
+├── scripts/
 ├── src/
 │   ├── app/
-│   │   ├── (public)/              # Public route group with PublicNav & Footer
-│   │   │   ├── layout.tsx         # Public layout
-│   │   │   ├── page.tsx           # Home landing page
-│   │   │   ├── schedule/page.tsx  # Timetable schedule view
-│   │   │   ├── tasks/page.tsx     # Coursework and assignments view
-│   │   │   ├── students/          # Student directory & detail pages
-│   │   │   ├── achievements/      # Achievements showcase
-│   │   │   ├── announcements/     # Class bulletins
-│   │   │   ├── gallery/           # Campus photo albums
-│   │   │   └── resources/         # Download & link resources
-│   │   ├── admin/                 # Protected admin management dashboard
-│   │   │   ├── layout.tsx         # Server auth & permission check layout
-│   │   │   ├── layout-client.tsx  # Admin responsive sidebar
-│   │   │   ├── page.tsx           # Admin overview metrics
-│   │   │   ├── schedule/          # Timetable management
-│   │   │   ├── tasks/             # Assignment management
-│   │   │   ├── subjects/          # Course curriculum management
-│   │   │   ├── students/          # Student records management
-│   │   │   ├── achievements/      # Honors management
-│   │   │   ├── announcements/     # Bulletin manager
-│   │   │   ├── gallery/           # Photo album manager
-│   │   │   ├── resources/         # Link manager
-│   │   │   ├── users/             # Team & RBAC manager
-│   │   │   └── settings/          # Class identity & configuration
-│   │   ├── login/page.tsx         # Glassmorphic admin sign-in page
-│   │   ├── globals.css            # Complete design system & custom tokens
-│   │   └── layout.tsx             # Root layout with Inter font
+│   │   ├── (public)/
+│   │   │   ├── page.tsx
+│   │   │   ├── schedule/
+│   │   │   ├── tasks/
+│   │   │   ├── students/
+│   │   │   ├── achievements/
+│   │   │   ├── announcements/
+│   │   │   ├── gallery/
+│   │   │   ├── resources/
+│   │   │   └── about/
+│   │   ├── admin/
+│   │   ├── login/
+│   │   ├── layout.tsx
+│   │   └── globals.css
 │   ├── components/
-│   │   ├── public-nav.tsx         # Sticky public header with mobile navigation
-│   │   ├── public-footer.tsx      # Multi-column footer with live settings
-│   │   ├── icons.tsx              # Custom SVG brand icons (GitHub, LinkedIn, Discord)
-│   │   └── admin/                 # Reusable admin UI primitives
-│   │       ├── admin-header.tsx   # Consistent admin title bar
-│   │       ├── modal.tsx          # Accessible modal dialog with backdrop
-│   │       └── delete-dialog.tsx  # Confirmation dialog with pending transition
+│   │   ├── admin/
+│   │   └── ui/
 │   ├── lib/
-│   │   ├── actions/               # Server Actions (Mutations & DB operations)
-│   │   ├── auth/                  # JWT session management & bcrypt password hashing
-│   │   ├── data/                  # Resilient data access layer with fallback
-│   │   ├── permissions/           # RBAC matrix and role definitions
-│   │   ├── validations/           # Zod schemas for all models
-│   │   ├── db.ts                  # Prisma client singleton
-│   │   └── utils.ts               # Utility helpers (formatDate, cn, relative deadlines)
-│   └── middleware.ts              # Route protection for /admin routes
-└── package.json
+│   │   ├── actions/
+│   │   ├── auth/
+│   │   ├── data/
+│   │   ├── permissions/
+│   │   └── validations/
+│   └── middleware.ts
+├── .env.example
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 🔒 Security Best Practices Implemented
+## 🔒 Security Best Practices
 
-1. **HttpOnly Cookies**: Session tokens are encrypted and transmitted solely via secure, HTTP-only cookies to eliminate XSS token theft.
-2. **Server-Side Authorization**: Every Server Action invokes `assertPermission(...)` before executing database mutations.
-3. **Database Guardrails**: Deletion of the final active System Administrator is strictly blocked at the action level to prevent system lockout.
-4. **Input Sanitization**: All form inputs are validated using strict Zod schemas with trim, character limits, and URL pattern enforcement.
-5. **No Secrets in Bundles**: Sensitive variables (`DATABASE_URL`, `AUTH_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`) are strictly server-only.
+- **Protected Credentials:** Store secrets in environment variables and never expose them in client-side code.
+- **Password Security:** Hash passwords securely before storing them.
+- **Server-Side Authorization:** Validate permissions on the server for every protected data mutation.
+- **Input Validation:** Validate incoming data before processing or saving it.
+- **Public Profile Privacy:** Publish only student information intended for public display. Avoid exposing student identification numbers or other sensitive data unnecessarily.
+- **Safe Database Operations:** Use migrations and backups when modifying production data.
+- **Session Security:** Configure authentication cookies and session handling appropriately for the deployment environment.
+
+---
+
+## 🌐 Deployment
+
+ClassHub can be deployed to a platform that supports Next.js, such as [Vercel](https://vercel.com/).
+
+General deployment workflow:
+
+1. Push the project to GitHub.
+2. Import the repository into Vercel.
+3. Configure the required production environment variables.
+4. Connect the production PostgreSQL database.
+5. Apply the required database migrations using the project's deployment workflow.
+6. Deploy the application.
+7. Verify public pages, authentication, admin permissions, and database-backed features.
+
+Make sure the production database is correctly configured. A successful deployment does not automatically mean that the application is connected to the intended database.
+
+---
+
+## 🧪 Available Scripts
+
+Check `package.json` for the commands available in your project.
+
+Common scripts include:
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the development server |
+| `npm run build` | Build the production application |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run linting, if configured |
+| `npx prisma generate` | Generate Prisma Client |
+| `npx prisma migrate dev` | Apply development database migrations |
+| `npm run db:seed` | Seed initial data, if configured |
+
+---
+
+## 🤝 Contributing
+
+Contributions and suggestions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Implement and test your changes.
+4. Commit your changes with a descriptive message.
+5. Open a pull request.
+
+Please avoid committing credentials, private student information, or production database records.
 
 ---
 
 ## 📄 License
-This project is open-source and available under the [MIT License](LICENSE).
+
+Add a `LICENSE` file and specify the project's license before distributing or reusing the code.
+
+---
+
+**ClassHub** — Bringing classmates, academic activities, and shared knowledge together in one place.
