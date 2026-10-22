@@ -66,11 +66,11 @@ export const SECTION_REGISTRY: Record<SectionKey, SectionMeta> = {
   },
   materials: {
     key: "materials",
-    label: "Materi Kuliah",
-    badge: "Repositori",
-    description: "Pratinjau slide presentasi dan materi terbaru.",
+    label: "Artikel Pembelajaran",
+    badge: "Artikel",
+    description: "Pratinjau artikel edukatif, rangkuman kuliah, dan materi terbaru.",
     icon: BookOpen,
-    accentColor: "from-emerald-500 to-teal-600",
+    accentColor: "from-blue-600 to-indigo-600",
   },
   achievements: {
     key: "achievements",

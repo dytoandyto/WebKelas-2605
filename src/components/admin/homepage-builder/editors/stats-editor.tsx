@@ -36,7 +36,7 @@ export function StatsEditor({ settings, onChange }: StatsEditorProps) {
     { key: "students", label: "Mahasiswa", desc: "Jumlah rekan mahasiswa yang terdaftar di kelas", icon: Users },
     { key: "subjects", label: "Mata Kuliah", desc: "Jumlah mata kuliah semester ini", icon: BookOpen },
     { key: "tasks", label: "Tugas Aktif", desc: "Jumlah tugas dengan deadline mendatang", icon: CheckSquare },
-    { key: "materials", label: "Materi Kuliah", desc: "Total file dan modul materi perkuliahan", icon: Layers },
+    { key: "materials", label: "Artikel & Materi", desc: "Total artikel dan modul materi perkuliahan", icon: Layers },
     { key: "achievements", label: "Prestasi Kelas", desc: "Total prestasi dan penghargaan kelas", icon: Trophy },
     { key: "dailyNotes", label: "Catatan Kelas", desc: "Jumlah rangkuman materi dan jurnal kuliah", icon: FileText },
   ];

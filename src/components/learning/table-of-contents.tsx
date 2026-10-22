@@ -44,46 +44,49 @@ export function TableOfContents({
   // const [readingProgress, setReadingProgress] = React.useState<number>(0);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
-  // Scrollspy to track active heading
+  const desktopNavRef = React.useRef<HTMLElement>(null);
+  const mobileNavRef = React.useRef<HTMLElement>(null);
+
+  // Scrollspy to accurately track active heading as user scrolls
   React.useEffect(() => {
     if (headings.length === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find visible entry closest to top
-        const visibleEntries = entries.filter((e) => e.isIntersecting);
-        if (visibleEntries.length > 0) {
-          setActiveId(visibleEntries[0].target.id);
-        }
-      },
-      {
-        rootMargin: "-90px 0px -65% 0px",
-        threshold: 0.1,
-      }
-    );
-
-    headings.forEach((heading) => {
-      const el = document.getElementById(heading.id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [headings]);
-
-  // Track overall page reading progress percentage (di-comment sesuai permintaan)
-  /*
-  React.useEffect(() => {
     let ticking = false;
+
+    const updateActiveHeading = () => {
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = window.innerHeight;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+      // 1. If at or near the very bottom of the page, activate the last heading
+      if (scrollY + clientHeight >= scrollHeight - 90) {
+        setActiveId(headings[headings.length - 1].id);
+        return;
+      }
+
+      // 2. Find the last heading whose top position is at or above the reading line (140px below top)
+      const offset = 140;
+      let currentActive = headings[0].id;
+
+      for (let i = 0; i < headings.length; i++) {
+        const el = document.getElementById(headings[i].id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= offset) {
+            currentActive = headings[i].id;
+          } else {
+            break;
+          }
+        }
+      }
+
+      setActiveId(currentActive);
+    };
 
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-          if (totalHeight > 0) {
-            const current = window.pageYOffset;
-            const pct = Math.min(100, Math.max(0, Math.round((current / totalHeight) * 100)));
-            setReadingProgress(pct);
-          }
+          updateActiveHeading();
           ticking = false;
         });
         ticking = true;
@@ -91,13 +94,74 @@ export function TableOfContents({
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    window.addEventListener("resize", handleScroll, { passive: true });
+    // Initial check on mount
+    updateActiveHeading();
 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-  */
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [headings]);
 
-  if (headings.length === 0) return null;
+  // Auto-scroll the Table of Contents container so that active heading stays visible in sidebar
+  React.useEffect(() => {
+    if (!activeId) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Desktop TOC auto-scroll
+    if (desktopNavRef.current) {
+      const activeEl = desktopNavRef.current.querySelector(
+        `[data-toc-id="${activeId}"]`
+      ) as HTMLElement | null;
+      if (activeEl) {
+        const navRect = desktopNavRef.current.getBoundingClientRect();
+        const itemRect = activeEl.getBoundingClientRect();
+
+        // If the active item is near or outside the edges of the TOC nav container, scroll it smoothly into view
+        if (itemRect.top < navRect.top + 36 || itemRect.bottom > navRect.bottom - 36) {
+          activeEl.scrollIntoView({
+            block: "nearest",
+            inline: "nearest",
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+          });
+        }
+      }
+    }
+
+    // Mobile TOC auto-scroll (if menu is open)
+    if (isMobileOpen && mobileNavRef.current) {
+      const activeEl = mobileNavRef.current.querySelector(
+        `[data-toc-id="${activeId}"]`
+      ) as HTMLElement | null;
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+        });
+      }
+    }
+  }, [activeId, isMobileOpen]);
+
+  if (headings.length === 0) {
+    return (
+      <div
+        className={cn(
+          "rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md p-5 text-center shadow-xs",
+          className
+        )}
+      >
+        <div className="flex items-center justify-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500">
+          <BookOpen size={14} />
+          <span>Belum ada daftar isi untuk artikel ini.</span>
+        </div>
+      </div>
+    );
+  }
 
   const scrollToHeading = (id: string, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -105,7 +169,10 @@ export function TableOfContents({
     if (el) {
       const yOffset = -95;
       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: "smooth" });
+      const prefersReducedMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: y, behavior: prefersReducedMotion ? "auto" : "smooth" });
       window.history.pushState(null, "", `#${id}`);
       setActiveId(id);
       setIsMobileOpen(false);
@@ -113,7 +180,10 @@ export function TableOfContents({
   };
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
     setActiveId("");
   };
 
@@ -130,9 +200,6 @@ export function TableOfContents({
 
   // Find active heading title for compact preview
   const currentHeading = headings.find((h) => h.id === activeId) || headings[0];
-
-  // Primary H1/H2 counter index
-  let majorIndex = 0;
 
   // ----------------------------------------------------
   // MOBILE COLLAPSIBLE QUICK JUMP BAR
@@ -195,12 +262,16 @@ export function TableOfContents({
 
       {/* Mobile Expanded Navigation Menu */}
       {isMobileOpen && (
-        <nav className="p-3 border-t border-slate-100 dark:border-slate-800/80 max-h-72 overflow-y-auto space-y-1">
+        <nav
+          ref={mobileNavRef}
+          className="p-3 border-t border-slate-100 dark:border-slate-800/80 max-h-72 overflow-y-auto space-y-1 scroll-smooth"
+        >
           {headings.map((heading) => {
             const isActive = activeId === heading.id;
             return (
               <a
                 key={heading.id}
+                data-toc-id={heading.id}
                 href={`#${heading.id}`}
                 onClick={(e) => scrollToHeading(heading.id, e)}
                 className={cn(
@@ -226,68 +297,56 @@ export function TableOfContents({
   // ----------------------------------------------------
   // DESKTOP RICH STICKY CARD
   // ----------------------------------------------------
-  const renderDesktop = () => (
-    <div
-      className={cn(
-        "rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white/90 dark:bg-[#070d19]/90 backdrop-blur-md p-5 shadow-xs transition-all space-y-4",
-        className
-      )}
-    >
-      {/* Header with Title */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-blue-600 dark:text-cyan-400 uppercase">
-            <BookOpen size={15} />
-            <span>Daftar Isi Materi</span>
-          </div>
-          <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/50 dark:border-blue-900/40 text-[10px] font-mono font-semibold text-blue-700 dark:text-cyan-300">
-            {headings.length} Bab
-          </span>
-        </div>
-
-        {/* Persentase & Kemajuan Membaca Container - di-hide / di-comment */}
-        {/* <div className="space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500">
-            <span>Kemajuan Membaca</span>
-            <span className="font-semibold text-slate-600 dark:text-slate-300">
-              {readingProgress}%
+  const renderDesktop = () => {
+    let majorIndex = 0;
+    return (
+      <div
+        className={cn(
+          "rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white/90 dark:bg-[#070d19]/90 backdrop-blur-md p-5 shadow-xs transition-all space-y-4",
+          className
+        )}
+      >
+        {/* Header with Title */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-blue-600 dark:text-cyan-400 uppercase">
+              <BookOpen size={15} />
+              <span>Daftar Isi Materi</span>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/50 dark:border-blue-900/40 text-[10px] font-mono font-semibold text-blue-700 dark:text-cyan-300">
+              {headings.length} Bab
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 rounded-full transition-all duration-200"
-              style={{ width: `${readingProgress}%` }}
-            />
-          </div>
-        </div> */}
-      </div>
+        </div>
 
-      {/* Hierarchical Navigation Tree */}
-      <nav
-        className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1 space-y-1 relative border-l border-slate-200/80 dark:border-slate-800 ml-1.5"
-        aria-label="Daftar Isi Materi"
-      >
-        {headings.map((heading) => {
-          const isActive = activeId === heading.id;
-          const isMajor = heading.level <= 2;
-          if (isMajor) majorIndex++;
+        {/* Hierarchical Navigation Tree */}
+        <nav
+          ref={desktopNavRef}
+          className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1 space-y-1 relative border-l border-slate-200/80 dark:border-slate-800 ml-1.5 scroll-smooth"
+          aria-label="Daftar Isi Materi"
+        >
+          {headings.map((heading) => {
+            const isActive = activeId === heading.id;
+            const isMajor = heading.level <= 2;
+            if (isMajor) majorIndex++;
 
-          return (
-            <div
-              key={heading.id}
-              className={cn(
-                "group relative flex items-center justify-between rounded-lg transition-all",
-                heading.level === 3 ? "ml-4" : "ml-0"
-              )}
-            >
-              {/* Active Guide Indicator on Left Border */}
-              {isActive && (
-                <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-blue-600 dark:bg-cyan-400 ring-4 ring-white dark:ring-slate-900" />
-              )}
+            return (
+              <div
+                key={heading.id}
+                data-toc-id={heading.id}
+                className={cn(
+                  "group relative flex items-center justify-between rounded-lg transition-all",
+                  heading.level === 3 ? "ml-4" : "ml-0"
+                )}
+              >
+                {/* Active Guide Indicator on Left Border */}
+                {isActive && (
+                  <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-blue-600 dark:bg-cyan-400 ring-4 ring-white dark:ring-slate-900" />
+                )}
 
-              <a
-                href={`#${heading.id}`}
-                onClick={(e) => scrollToHeading(heading.id, e)}
+                <a
+                  href={`#${heading.id}`}
+                  onClick={(e) => scrollToHeading(heading.id, e)}
                 title={heading.text}
                 className={cn(
                   "flex-1 py-1.5 pl-3 pr-2 text-xs rounded-md transition-all truncate flex items-center gap-2",
@@ -347,14 +406,10 @@ export function TableOfContents({
           <ArrowUp size={12} />
           <span>Kembali ke Atas</span>
         </button>
-
-        <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
-          <Sparkles size={11} className="text-amber-500" />
-          <span>Materi Terverifikasi</span>
-        </span>
       </div>
     </div>
   );
+};
 
   if (variant === "mobile") {
     return renderMobile();

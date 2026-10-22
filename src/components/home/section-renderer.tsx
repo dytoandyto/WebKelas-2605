@@ -49,6 +49,7 @@ export interface HomeDataProps {
   featuredStudents: StudentData[];
   galleryPreview: GalleryItem[];
   latestMaterials: HomeMaterialItem[];
+  latestArticles?: any[];
   latestDailyNotes: DailyNoteData[];
   settings: Record<string, string>;
   todayDayOfWeek: string;
@@ -196,8 +197,15 @@ export function SectionRenderer({
           }
 
           if (section.key === "materials") {
-            // Standalone materials feature is retired from active UI
-            return null;
+            return (
+              <HomeMaterialsPreview
+                key={section.key}
+                articles={homeData.latestArticles}
+                materials={homeData.latestMaterials}
+                totalCount={homeData.stats.articlesCount || homeData.latestArticles?.length || 0}
+                settings={section.settings as MaterialsSettings}
+              />
+            );
           }
 
           if (section.key === "achievements") {

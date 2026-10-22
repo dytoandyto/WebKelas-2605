@@ -20,6 +20,8 @@ import { ArticleContentRenderer } from "@/components/learning/article-content-re
 import { TableOfContents } from "@/components/learning/table-of-contents";
 import { ArticleCard } from "@/components/learning/article-card";
 
+export const dynamic = "force-dynamic";
+
 interface ArticleDetailPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -71,6 +73,8 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
 
   const readingTime = calculateReadingTime(article.content);
   const subject = article.subject;
+  const weekMatch = (article.title as string).match(/\bweek\s*(\d+)\b|\bminggu\s*(\d+)\b/i);
+  const weekNumber = weekMatch ? (weekMatch[1] || weekMatch[2]) : null;
   const tags = article.tags
     ? article.tags
         .split(",")
@@ -156,9 +160,15 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
               </Link>
             )}
 
+            {weekNumber && (
+              <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 font-semibold">
+                Minggu {weekNumber}
+              </span>
+            )}
+
             <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
               <Calendar size={12} className="text-blue-600 dark:text-blue-400" />
-              <span>{formatDate(article.publishedAt || article.createdAt)}</span>
+              <span>{formatDate(article.updatedAt || article.publishedAt || article.createdAt)}</span>
             </span>
 
             <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 flex items-center gap-1.5">

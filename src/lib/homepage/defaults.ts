@@ -115,15 +115,15 @@ export const DEFAULT_HOMEPAGE_SECTIONS: SectionConfig[] = [
   },
   {
     key: "materials",
-    label: "Materi Kuliah Terbaru",
-    description: "Pratinjau slide, dokumen perkuliahan, dan referensi belajar terbaru yang dibagikan.",
-    visible: false,
+    label: "Artikel Pembelajaran Terbaru",
+    description: "Pratinjau artikel edukatif, rangkuman perkuliahan, dan panduan belajar terbaru.",
+    visible: true,
     order: 5,
     settings: {
-      title: "Materi Kuliah Terbaru",
-      description: "Slide kuliah dan modul belajar yang dibagikan dosen atau teman sekelas.",
-      maxItems: 4,
-      buttonText: "Buka Repositori Materi",
+      title: "Artikel & Materi Pembelajaran Terbaru",
+      description: "Artikel edukatif, ringkasan perkuliahan, dan panduan belajar kelas JS1SI-26-REG-05.",
+      maxItems: 3,
+      buttonText: "Lihat Semua Artikel",
     },
   },
   {

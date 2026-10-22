@@ -14,6 +14,11 @@ import { Table as TiptapTable } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import Highlight from "@tiptap/extension-highlight";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 
 import {
   ArrowLeft,
@@ -49,6 +54,16 @@ import {
   X,
   RotateCcw,
   Table as TableIcon,
+  CheckSquare,
+  Highlighter,
+  Palette,
+  Plus,
+  GripVertical,
+  Copy,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  Info,
 } from "lucide-react";
 
 import { cn, generateSlug } from "@/lib/utils";
@@ -190,6 +205,20 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
   const contextMenuRef = React.useRef<HTMLDivElement>(null);
 
+  // Notion-style Block Handle & Block Actions Menu state & refs
+  const editorContainerRef = React.useRef<HTMLDivElement>(null);
+  const [hoveredBlockEl, setHoveredBlockEl] = React.useState<HTMLElement | null>(null);
+  const [blockHandleCoords, setBlockHandleCoords] = React.useState<{ top: number; left: number } | null>(null);
+  const [blockMenuOpen, setBlockMenuOpen] = React.useState(false);
+  const [blockMenuCoords, setBlockMenuCoords] = React.useState<{ top: number; left: number } | null>(null);
+  const blockMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Floating Selection Color Picker state
+  const [isColorPickerOpen, setIsColorPickerOpen] = React.useState(false);
+
+  // Cover image upload state
+  const [isUploadingCover, setIsUploadingCover] = React.useState(false);
+
   // Initialize Tiptap editor
   const editor = useEditor({
     extensions: [
@@ -225,6 +254,15 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       TableRow,
       TableHeader,
       TableCell,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+      Highlight.configure({
+        multicolor: true,
+      }),
+      TextStyle,
+      Color,
     ],
     content: initialHtml,
     immediatelyRender: false,
@@ -305,6 +343,111 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       checkBubbleMenuRef.current(editor);
     },
   });
+
+  // Block manipulation helpers (Notion block actions)
+  const getActiveBlockInfo = React.useCallback((ed: Editor) => {
+    const { state } = ed;
+    const { selection } = state;
+    const $from = selection.$from;
+    const depth = 1;
+    if ($from.depth < 1) return null;
+    const index = $from.index(0);
+    const node = state.doc.child(index);
+    return { index, node, $from };
+  }, []);
+
+  const duplicateCurrentBlock = React.useCallback(
+    (ed: Editor) => {
+      const info = getActiveBlockInfo(ed);
+      if (!info) return;
+      const afterPos = info.$from.after(1);
+      ed.chain().focus().insertContentAt(afterPos, info.node.toJSON()).run();
+    },
+    [getActiveBlockInfo]
+  );
+
+  const deleteCurrentBlock = React.useCallback(
+    (ed: Editor) => {
+      const info = getActiveBlockInfo(ed);
+      if (!info) return;
+      const from = info.$from.before(1);
+      const to = info.$from.after(1);
+      ed.chain().focus().deleteRange({ from, to }).run();
+    },
+    [getActiveBlockInfo]
+  );
+
+  const insertBlockBefore = React.useCallback(
+    (ed: Editor) => {
+      const info = getActiveBlockInfo(ed);
+      if (!info) return;
+      const beforePos = info.$from.before(1);
+      ed.chain().focus().insertContentAt(beforePos, { type: "paragraph" }).run();
+    },
+    [getActiveBlockInfo]
+  );
+
+  const insertBlockAfter = React.useCallback(
+    (ed: Editor) => {
+      const info = getActiveBlockInfo(ed);
+      if (!info) return;
+      const afterPos = info.$from.after(1);
+      ed.chain().focus().insertContentAt(afterPos, { type: "paragraph" }).run();
+    },
+    [getActiveBlockInfo]
+  );
+
+  const moveCurrentBlockUp = React.useCallback(
+    (ed: Editor) => {
+      const info = getActiveBlockInfo(ed);
+      if (!info || info.index <= 0) return;
+      const prevNode = ed.state.doc.child(info.index - 1);
+      const prevStart = info.$from.before(1) - prevNode.nodeSize;
+      const currStart = info.$from.before(1);
+      const currEnd = info.$from.after(1);
+
+      const tr = ed.state.tr;
+      const currSlice = ed.state.doc.slice(currStart, currEnd);
+      tr.delete(currStart, currEnd);
+      tr.insert(prevStart, currSlice.content);
+      ed.view.dispatch(tr);
+      ed.commands.focus();
+    },
+    [getActiveBlockInfo]
+  );
+
+  const moveCurrentBlockDown = React.useCallback(
+    (ed: Editor) => {
+      const info = getActiveBlockInfo(ed);
+      if (!info || info.index >= ed.state.doc.childCount - 1) return;
+      const nextNode = ed.state.doc.child(info.index + 1);
+      const currStart = info.$from.before(1);
+      const currEnd = info.$from.after(1);
+
+      const tr = ed.state.tr;
+      const currSlice = ed.state.doc.slice(currStart, currEnd);
+      tr.delete(currStart, currEnd);
+      tr.insert(currStart + nextNode.nodeSize, currSlice.content);
+      ed.view.dispatch(tr);
+      ed.commands.focus();
+    },
+    [getActiveBlockInfo]
+  );
+
+  const selectBlockFromDOM = React.useCallback(
+    (el: HTMLElement) => {
+      if (!editor || !el) return;
+      try {
+        const pos = editor.view.posAtDOM(el, 0);
+        if (typeof pos === "number" && pos >= 0) {
+          editor.commands.setTextSelection(pos);
+        }
+      } catch {
+        // ignore
+      }
+    },
+    [editor]
+  );
 
   // Track slug generation
   const handleTitleChange = (newTitle: string) => {
@@ -491,6 +634,22 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     });
   };
 
+  const handleSaveRef = React.useRef(handleSave);
+  React.useEffect(() => {
+    handleSaveRef.current = handleSave;
+  });
+
+  // Debounced Server Autosave for Existing Articles (after 6 seconds of inactivity)
+  React.useEffect(() => {
+    if (!isEdit || !initialData?.id || !isDirty || saveStatus !== "dirty") return;
+
+    const timer = setTimeout(() => {
+      handleSaveRef.current();
+    }, 6000);
+
+    return () => clearTimeout(timer);
+  }, [isDirty, saveStatus, isEdit, initialData?.id]);
+
   // Link Dialog submission
   const handleApplyLink = () => {
     if (!editor) return;
@@ -526,7 +685,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
     setIsLinkModalOpen(true);
   }, [editor]);
 
-  // Keyboard shortcut Ctrl+K / Cmd+K to open Link Modal when editor is focused
+  // Keyboard shortcut Ctrl+K / Cmd+K (Link) and Ctrl+S / Cmd+S (Save)
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -536,10 +695,15 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
           openLinkModal();
         }
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSave();
+      }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor, openLinkModal]);
+  }, [editor, openLinkModal, handleSave]);
 
   // Image Upload, Paste, Drag-and-Drop & Modal Logic
   const resetImageModal = React.useCallback(() => {
@@ -733,17 +897,16 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
   const SLASH_COMMANDS: SlashCommandItem[] = React.useMemo(
     () => [
       {
-        id: "image",
-        title: "Gambar / Media",
-        subtitle: "Unggah gambar (JPG, PNG, WebP) atau sisipkan dari URL",
-        icon: ImageIcon,
-        keywords: ["gambar", "image", "foto", "photo", "media", "unggah", "upload", "img", "pic"],
-        badge: "Populer",
-        action: () => openImageModal(),
+        id: "text",
+        title: "Teks Paragraf (/text)",
+        subtitle: "Teks paragraf biasa untuk isi materi pembelajaran",
+        icon: RemoveFormatting,
+        keywords: ["text", "teks", "paragraf", "paragraph", "normal", "plain", "p"],
+        action: (ed) => ed.chain().focus().setParagraph().run(),
       },
       {
         id: "h1",
-        title: "Heading 1 (Judul Bab)",
+        title: "Heading 1 (/h1)",
         subtitle: "Judul bagian materi tingkat pertama",
         icon: Heading1,
         keywords: ["h1", "heading1", "judul", "title", "bab", "utama"],
@@ -751,7 +914,7 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       },
       {
         id: "h2",
-        title: "Heading 2 (Subjudul)",
+        title: "Heading 2 (/h2)",
         subtitle: "Subjudul bagian materi tingkat kedua",
         icon: Heading2,
         keywords: ["h2", "heading2", "subjudul", "subtitle"],
@@ -759,67 +922,76 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       },
       {
         id: "h3",
-        title: "Heading 3 (Sub-bagian)",
-        subtitle: "Subjudul pendukung materi tingkat ketiga",
+        title: "Heading 3 (/h3)",
+        subtitle: "Sub-bagian pendukung materi tingkat ketiga",
         icon: Heading3,
         keywords: ["h3", "heading3", "subbab", "section"],
         action: (ed) => ed.chain().focus().setHeading({ level: 3 }).run(),
       },
       {
-        id: "bulletList",
-        title: "Daftar Butir (Bullet List)",
-        subtitle: "Daftar butir tanpa nomor urut",
+        id: "bullet",
+        title: "Daftar Butir (/bullet)",
+        subtitle: "Daftar butir tanpa nomor urut (bullet points)",
         icon: List,
-        keywords: ["bullet", "list", "daftar", "ul", "poin"],
+        keywords: ["bullet", "bulletlist", "list", "daftar", "ul", "poin"],
         action: (ed) => ed.chain().focus().toggleBulletList().run(),
       },
       {
-        id: "orderedList",
-        title: "Daftar Berangka (Numbered List)",
+        id: "numbered",
+        title: "Daftar Berangka (/numbered)",
         subtitle: "Daftar urutan langkah berangka 1, 2, 3...",
         icon: ListOrdered,
-        keywords: ["number", "numbered", "nomor", "angka", "ol", "langkah"],
+        keywords: ["numbered", "number", "nomor", "angka", "ol", "langkah", "urutan"],
         action: (ed) => ed.chain().focus().toggleOrderedList().run(),
       },
       {
-        id: "blockquote",
-        title: "Kutipan / Catatan (Quote)",
-        subtitle: "Kotak sorotan teks atau kutipan rujukan",
+        id: "todo",
+        title: "Daftar Tugas / Checklist (/todo)",
+        subtitle: "Daftar tugas dengan kotak centang interaktif",
+        icon: CheckSquare,
+        keywords: ["todo", "task", "checklist", "centang", "tugas", "check"],
+        badge: "Baru",
+        action: (ed) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (ed.chain().focus() as any).toggleTaskList().run(),
+      },
+      {
+        id: "quote",
+        title: "Kutipan / Quote (/quote)",
+        subtitle: "Kotak sorotan teks atau rujukan akademik",
         icon: Quote,
-        keywords: ["quote", "kutipan", "callout", "catatan", "blockquote"],
+        keywords: ["quote", "kutipan", "sitasi", "blockquote"],
         action: (ed) => ed.chain().focus().toggleBlockquote().run(),
       },
       {
-        id: "codeBlock",
-        title: "Blok Kode Program",
-        subtitle: "Kotak penulisan kode program sintaks berwarna",
+        id: "callout",
+        title: "Kotak Callout / Catatan (/callout)",
+        subtitle: "Kotak sorotan informasi penting atau tips pembelajaran",
+        icon: Info,
+        keywords: ["callout", "catatan", "tips", "peringatan", "info", "alert", "notice"],
+        badge: "Baru",
+        action: (ed) =>
+          ed
+            .chain()
+            .focus()
+            .toggleBlockquote()
+            .insertContent("💡 **Catatan Penting:** ")
+            .run(),
+      },
+      {
+        id: "code",
+        title: "Blok Kode Program (/code)",
+        subtitle: "Kotak kode program dengan penyorotan sintaks berwarna",
         icon: Code,
-        keywords: ["code", "kode", "program", "script", "pre"],
+        keywords: ["code", "kode", "program", "script", "pre", "syntax"],
         action: (ed) => ed.chain().focus().toggleCodeBlock().run(),
       },
       {
-        id: "divider",
-        title: "Garis Pemisah (Divider)",
-        subtitle: "Garis horizontal pembatas materi",
-        icon: Minus,
-        keywords: ["divider", "garis", "separator", "hr", "line", "pemisah"],
-        action: (ed) => ed.chain().focus().setHorizontalRule().run(),
-      },
-      {
-        id: "link",
-        title: "Sisipkan Tautan (Link)",
-        subtitle: "Buka dialog pembuatan tautan web (Ctrl+K)",
-        icon: LinkIcon,
-        keywords: ["link", "tautan", "url", "href"],
-        action: () => openLinkModal(),
-      },
-      {
         id: "table",
-        title: "Tabel Data",
+        title: "Tabel Data (/table)",
         subtitle: "Sisipkan tabel baris dan kolom berstruktur 3x3",
         icon: TableIcon,
         keywords: ["table", "tabel", "baris", "kolom", "grid", "data", "sheet"],
-        badge: "Baru",
         action: (ed) =>
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (ed.chain().focus() as any)
@@ -827,12 +999,29 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
             .run(),
       },
       {
-        id: "paragraph",
-        title: "Teks Normal (Paragraf)",
-        subtitle: "Kembalikan ke format paragraf teks biasa",
-        icon: RemoveFormatting,
-        keywords: ["paragraph", "normal", "plain", "paragraf", "reset", "teks"],
-        action: (ed) => ed.chain().focus().setParagraph().run(),
+        id: "image",
+        title: "Gambar / Media (/image)",
+        subtitle: "Unggah gambar (JPG, PNG, WebP) atau sisipkan dari URL",
+        icon: ImageIcon,
+        keywords: ["image", "gambar", "foto", "photo", "media", "unggah", "upload", "img", "pic"],
+        badge: "Media",
+        action: () => openImageModal(),
+      },
+      {
+        id: "divider",
+        title: "Garis Pemisah (/divider)",
+        subtitle: "Garis horizontal pembatas materi",
+        icon: Minus,
+        keywords: ["divider", "garis", "separator", "hr", "line", "pemisah"],
+        action: (ed) => ed.chain().focus().setHorizontalRule().run(),
+      },
+      {
+        id: "link",
+        title: "Sisipkan Tautan (/link)",
+        subtitle: "Buka dialog pembuatan tautan web (Ctrl+K)",
+        icon: LinkIcon,
+        keywords: ["link", "tautan", "url", "href"],
+        action: () => openLinkModal(),
       },
     ],
     [openImageModal, openLinkModal]
@@ -975,6 +1164,9 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       if (slashMenuRef.current && !slashMenuRef.current.contains(e.target as Node)) {
         setSlashMenuOpen(false);
       }
+      if (blockMenuRef.current && !blockMenuRef.current.contains(e.target as Node)) {
+        setBlockMenuOpen(false);
+      }
     };
     const handleScroll = () => {
       setContextMenu(null);
@@ -987,6 +1179,8 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
         setContextMenu(null);
         setBubbleMenuOpen(false);
         setSlashMenuOpen(false);
+        setBlockMenuOpen(false);
+        setIsColorPickerOpen(false);
       }
     };
     window.addEventListener("mousedown", handleGlobalClick);
@@ -998,6 +1192,55 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [editor]);
+
+  const handleEditorMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (blockMenuOpen) return;
+    const target = e.target as HTMLElement;
+    const blockEl = target.closest(".tiptap > *") as HTMLElement;
+    if (blockEl && editorContainerRef.current) {
+      const containerRect = editorContainerRef.current.getBoundingClientRect();
+      const blockRect = blockEl.getBoundingClientRect();
+      setBlockHandleCoords({
+        top: blockRect.top - containerRect.top + 2,
+        left: Math.max(0, blockRect.left - containerRect.left - 42),
+      });
+      setHoveredBlockEl(blockEl);
+    }
+  };
+
+  const handleEditorMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const related = e.relatedTarget as HTMLElement;
+    if (related && (related.closest(".block-action-handle") || related.closest(".block-action-menu"))) {
+      return;
+    }
+    if (!blockMenuOpen) {
+      setBlockHandleCoords(null);
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await uploadArticleImageAction(formData);
+      if (res.success && res.data?.url) {
+        setCoverImage(res.data.url);
+        setIsDirty(true);
+        setSaveStatus("dirty");
+        setStatusMessage("Gambar sampul berhasil diunggah.");
+      } else {
+        setStatusMessage(res.error || "Gagal mengunggah gambar sampul.");
+      }
+    } catch {
+      setStatusMessage("Terjadi kesalahan saat mengunggah sampul.");
+    } finally {
+      setIsUploadingCover(false);
+      e.target.value = "";
+    }
+  };
 
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100 flex flex-col bg-slate-100/60 dark:bg-[#070d19]">
@@ -1041,12 +1284,12 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
           {/* Center: Live Save Status Indicator */}
           <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400">
             {saveStatus === "saving" ? (
-              <span className="flex items-center gap-1.5 text-blue-600 dark:text-cyan-400">
+              <span className="flex items-center gap-1.5 text-blue-600 dark:text-cyan-400 font-semibold">
                 <Loader2 size={13} className="animate-spin" />
                 <span>Menyimpan perubahan...</span>
               </span>
             ) : saveStatus === "saved" ? (
-              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
                 <CheckCircle2 size={13} />
                 <span>Semua perubahan tersimpan</span>
               </span>
@@ -1054,11 +1297,18 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
               <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
                 <AlertCircle size={13} />
                 <span>{statusMessage || "Gagal menyimpan"}</span>
+                <button
+                  type="button"
+                  onClick={() => handleSave()}
+                  className="ml-1 px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950/60 hover:bg-rose-200 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 font-bold transition-colors cursor-pointer text-[11px]"
+                >
+                  Coba Lagi
+                </button>
               </span>
             ) : isDirty ? (
               <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span>Ada perubahan belum disimpan</span>
+                <span>Ada perubahan belum disimpan (Ctrl+S)</span>
               </span>
             ) : (
               <span className="text-slate-400 dark:text-slate-500">Draft siap</span>
@@ -1594,7 +1844,12 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
           >
             {/* 2A. Main Document Sheet */}
             {viewMode !== "preview" && (
-              <div className="w-full max-w-4xl bg-white dark:bg-[#0c1427] border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-xs p-6 sm:p-10 lg:p-14 flex flex-col transition-colors">
+              <div
+                ref={editorContainerRef}
+                onMouseMove={handleEditorMouseMove}
+                onMouseLeave={handleEditorMouseLeave}
+                className="w-full max-w-4xl bg-white dark:bg-[#0c1427] border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-xs p-6 sm:p-10 lg:p-14 flex flex-col transition-colors relative"
+              >
                 {/* Large Title Area */}
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-800 pb-6">
                   <textarea
@@ -1615,6 +1870,53 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
                     </div>
                   )}
                 </div>
+
+                {/* Floating Block Action Handle (+ and GripVertical) */}
+                {blockHandleCoords && !blockMenuOpen && (
+                  <div
+                    style={{
+                      top: `${blockHandleCoords.top}px`,
+                      left: `${blockHandleCoords.left}px`,
+                    }}
+                    className="block-action-handle absolute z-30 flex items-center gap-0.5 bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-slate-800 rounded-lg p-0.5 shadow-sm backdrop-blur-xs select-none transition-opacity"
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (hoveredBlockEl && editor) {
+                          selectBlockFromDOM(hoveredBlockEl);
+                          insertBlockAfter(editor);
+                        }
+                      }}
+                      className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      title="Sisipkan blok baru di bawah"
+                    >
+                      <Plus size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (hoveredBlockEl && editor) {
+                          selectBlockFromDOM(hoveredBlockEl);
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setBlockMenuCoords({
+                            top: rect.bottom + 6,
+                            left: Math.min(rect.left, window.innerWidth - 240),
+                          });
+                          setBlockMenuOpen((prev) => !prev);
+                        }
+                      }}
+                      className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      title="Pilihan & tindakan blok"
+                    >
+                      <GripVertical size={13} />
+                    </button>
+                  </div>
+                )}
 
                 {/* Tiptap Block Editor Content */}
                 <div
@@ -1804,6 +2106,26 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
                   placeholder="https://..."
                   className="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 font-mono"
                 />
+                <label
+                  className={cn(
+                    "px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors",
+                    isUploadingCover && "opacity-60 pointer-events-none"
+                  )}
+                  title="Unggah gambar sampul dari perangkat"
+                >
+                  {isUploadingCover ? (
+                    <Loader2 size={13} className="animate-spin text-blue-600 dark:text-cyan-400" />
+                  ) : (
+                    <Upload size={13} />
+                  )}
+                  <span>Unggah</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handleCoverUpload}
+                  />
+                </label>
               </div>
               {coverImage && (
                 <div className="relative mt-2 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-video bg-slate-100 dark:bg-slate-900">
@@ -2788,6 +3110,35 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
             type="button"
             onMouseDown={(e) => {
               e.preventDefault();
+              editor.chain().focus().toggleStrike().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("strike") ? "bg-blue-600 text-white font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Coretan (Strikethrough)"
+          >
+            <Strikethrough size={14} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (editor.chain().focus() as any).toggleHighlight().run();
+            }}
+            className={cn(
+              "p-1.5 rounded-lg transition-colors cursor-pointer",
+              editor.isActive("highlight") ? "bg-amber-500 text-slate-900 font-bold" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+            )}
+            title="Sorotan Teks (Highlight)"
+          >
+            <Highlighter size={14} />
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
               editor.chain().focus().toggleCode().run();
             }}
             className={cn(
@@ -2798,6 +3149,63 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
           >
             <Code size={14} />
           </button>
+
+          {/* Color Palette Picker Popover */}
+          <div className="relative">
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsColorPickerOpen((prev) => !prev);
+              }}
+              className={cn(
+                "p-1.5 rounded-lg transition-colors cursor-pointer",
+                isColorPickerOpen ? "bg-blue-600 text-white" : "hover:bg-slate-800 text-slate-300 hover:text-white"
+              )}
+              title="Warna Teks"
+            >
+              <Palette size={14} />
+            </button>
+            {isColorPickerOpen && (
+              <div className="absolute top-full left-0 mt-1 p-1.5 bg-slate-900 border border-slate-700 rounded-xl shadow-xl flex items-center gap-1 z-50">
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (editor.chain().focus() as any).unsetColor().run();
+                    setIsColorPickerOpen(false);
+                  }}
+                  className="w-5 h-5 rounded-full border border-slate-600 bg-white/20 hover:scale-110 transition-transform flex items-center justify-center text-[9px] font-bold"
+                  title="Warna Standar"
+                >
+                  ✕
+                </button>
+                {[
+                  { label: "Biru", color: "#2563eb" },
+                  { label: "Sky", color: "#0284c7" },
+                  { label: "Zamrud", color: "#059669" },
+                  { label: "Amber", color: "#d97706" },
+                  { label: "Mawar", color: "#e11d48" },
+                  { label: "Ungu", color: "#7c3aed" },
+                ].map((c) => (
+                  <button
+                    key={c.color}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (editor.chain().focus() as any).setColor(c.color).run();
+                      setIsColorPickerOpen(false);
+                    }}
+                    style={{ backgroundColor: c.color }}
+                    className="w-5 h-5 rounded-full hover:scale-110 transition-transform shadow-xs"
+                    title={c.label}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="w-px h-3.5 bg-slate-700/80 mx-0.5" />
 
@@ -2856,6 +3264,185 @@ export function ArticleEditor({ initialData, subjects, isEdit = false }: Article
             title="Kutipan"
           >
             <Quote size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* 8. NOTION-STYLE BLOCK ACTIONS POPUP MENU */}
+      {blockMenuOpen && blockMenuCoords && editor && (
+        <div
+          ref={blockMenuRef}
+          style={{ top: `${blockMenuCoords.top}px`, left: `${blockMenuCoords.left}px` }}
+          className="block-action-menu fixed z-50 w-56 rounded-xl bg-white dark:bg-[#0c1427] border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 text-xs text-slate-700 dark:text-slate-200 animate-in fade-in zoom-in-95 duration-100 select-none pointer-events-auto"
+        >
+          <div className="px-2 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+            Ubah Tipe Blok
+          </div>
+          <div className="grid grid-cols-2 gap-1 mb-1">
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().setParagraph().run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <RemoveFormatting size={12} className="text-slate-400" />
+              <span>Teks</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().setHeading({ level: 1 }).run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Heading1 size={12} className="text-slate-400" />
+              <span>Heading 1</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().setHeading({ level: 2 }).run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Heading2 size={12} className="text-slate-400" />
+              <span>Heading 2</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().setHeading({ level: 3 }).run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Heading3 size={12} className="text-slate-400" />
+              <span>Heading 3</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleBulletList().run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <List size={12} className="text-slate-400" />
+              <span>Poin</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleOrderedList().run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <ListOrdered size={12} className="text-slate-400" />
+              <span>Nomor</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (editor.chain().focus() as any).toggleTaskList().run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <CheckSquare size={12} className="text-slate-400" />
+              <span>To-do</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().toggleBlockquote().run();
+                setBlockMenuOpen(false);
+              }}
+              className="px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Quote size={12} className="text-slate-400" />
+              <span>Kutipan</span>
+            </button>
+          </div>
+
+          <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+
+          <div className="px-2 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+            Tindakan Blok
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              moveCurrentBlockUp(editor);
+              setBlockMenuOpen(false);
+            }}
+            className="w-full px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <ArrowUp size={13} className="text-slate-400" />
+            <span>Pindahkan ke Atas</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              moveCurrentBlockDown(editor);
+              setBlockMenuOpen(false);
+            }}
+            className="w-full px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <ArrowDown size={13} className="text-slate-400" />
+            <span>Pindahkan ke Bawah</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              duplicateCurrentBlock(editor);
+              setBlockMenuOpen(false);
+            }}
+            className="w-full px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <Copy size={13} className="text-slate-400" />
+            <span>Duplikasi Blok</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              insertBlockBefore(editor);
+              setBlockMenuOpen(false);
+            }}
+            className="w-full px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <Plus size={13} className="text-slate-400" />
+            <span>Sisipkan Blok di Atas</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              insertBlockAfter(editor);
+              setBlockMenuOpen(false);
+            }}
+            className="w-full px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <Plus size={13} className="text-slate-400" />
+            <span>Sisipkan Blok di Bawah</span>
+          </button>
+
+          <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              deleteCurrentBlock(editor);
+              setBlockMenuOpen(false);
+            }}
+            className="w-full px-2 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-left transition-colors flex items-center gap-2 font-semibold cursor-pointer"
+          >
+            <Trash2 size={13} />
+            <span>Hapus Blok</span>
           </button>
         </div>
       )}

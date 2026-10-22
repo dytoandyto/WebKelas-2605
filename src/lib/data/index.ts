@@ -100,6 +100,7 @@ export async function getHomeData() {
       featuredStudentsRaw,
       galleryPreview,
       latestMaterialsRaw,
+      latestArticlesRaw,
       latestDailyNotesRaw,
       settingsRaw,
     ] = await Promise.all([
@@ -153,6 +154,15 @@ export async function getHomeData() {
         take: 4,
         include: { subject: true },
       }),
+      prisma.learningArticle.findMany({
+        where: { status: ArticleStatus.PUBLISHED },
+        orderBy: { publishedAt: "desc" },
+        take: 6,
+        include: {
+          subject: true,
+          author: { select: { id: true, name: true, role: true } },
+        },
+      }).catch(() => []),
       prisma.dailyNote.findMany({
         orderBy: { date: "desc" },
         take: 3,
@@ -198,6 +208,7 @@ export async function getHomeData() {
       featuredStudents: sortedFeaturedStudents.map((s) => sanitizePublicStudent(s)),
       galleryPreview,
       latestMaterials: latestMaterialsRaw,
+      latestArticles: latestArticlesRaw,
       latestDailyNotes: latestDailyNotesRaw,
       settings: { ...initialSettings, ...settings },
     };
@@ -233,6 +244,7 @@ export async function getHomeData() {
       featuredStudents: sortedInitialStudents.map((s) => sanitizePublicStudent(s)),
       galleryPreview: initialGallery.slice(0, 6),
       latestMaterials: initialMaterials.slice(0, 4),
+      latestArticles: initialArticles.filter((a) => a.status === ArticleStatus.PUBLISHED).slice(0, 4),
       latestDailyNotes: initialDailyNotes.slice(0, 3),
       settings: initialSettings,
     };
