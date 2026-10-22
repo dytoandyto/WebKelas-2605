@@ -157,11 +157,26 @@ export function formatInstagramUrl(handleOrUrl?: string | null): string {
 export function formatGithubUrl(handleOrUrl?: string | null): string {
   if (!handleOrUrl) return "";
   const trimmed = handleOrUrl.trim();
-  if (!trimmed) return "";
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (
+    !trimmed ||
+    trimmed === "-" ||
+    trimmed === "--" ||
+    trimmed.toLowerCase() === "none" ||
+    trimmed.toLowerCase() === "null" ||
+    trimmed.toLowerCase() === "n/a"
+  ) {
+    return "";
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    if (trimmed.endsWith("/-") || trimmed.endsWith("/--")) return "";
+    return trimmed;
+  }
   const clean = trimmed.replace(/^@/, "").replace(/^\/+/, "");
+  if (clean === "-" || clean === "") return "";
   if (clean.includes("github.com")) {
-    return `https://${clean.replace(/^https?:\/\//, "")}`;
+    const url = `https://${clean.replace(/^https?:\/\//, "")}`;
+    if (url.endsWith("/-") || url.endsWith("/--")) return "";
+    return url;
   }
   return `https://github.com/${clean}`;
 }

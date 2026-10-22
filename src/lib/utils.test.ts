@@ -75,6 +75,10 @@ describe("Utils tests", () => {
     expect(formatGithubUrl("desakpradnyani")).toBe("https://github.com/desakpradnyani");
     expect(formatGithubUrl("@desakpradnyani")).toBe("https://github.com/desakpradnyani");
     expect(formatGithubUrl("https://github.com/desakpradnyani")).toBe("https://github.com/desakpradnyani");
+    expect(formatGithubUrl("-")).toBe("");
+    expect(formatGithubUrl("https://github.com/-")).toBe("");
+    expect(formatGithubUrl("none")).toBe("");
+    expect(formatGithubUrl("")).toBe("");
 
     // LinkedIn URL checks
     expect(formatLinkedinUrl("desakpradnyani")).toBe("https://linkedin.com/in/desakpradnyani");

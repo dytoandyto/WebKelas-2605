@@ -118,7 +118,7 @@ export default async function StudentDetailPage({
 
               {/* Social links */}
               <div className="flex items-center gap-2.5 flex-wrap">
-                {student.githubUrl && (
+                {student.githubUrl && formatGithubUrl(student.githubUrl) && (
                   <a
                     href={formatGithubUrl(student.githubUrl)}
                     target="_blank"

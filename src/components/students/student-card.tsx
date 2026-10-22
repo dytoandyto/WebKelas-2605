@@ -115,7 +115,7 @@ export function StudentCard({ student, onClick, className }: StudentCardProps) {
       {/* Social Links & Profile Action */}
       <div className="pt-3 border-t border-[var(--border-color)]/70 flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
-          {student.githubUrl && (
+          {student.githubUrl && formatGithubUrl(student.githubUrl) && (
             <a
               href={formatGithubUrl(student.githubUrl)}
               target="_blank"

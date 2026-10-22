@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mail, Layers, ArrowUpRight } from "lucide-react";
-import { GithubIcon, InstagramIcon, DiscordIcon, LinkedinIcon } from "@/components/icons";
+import { InstagramIcon, DiscordIcon, LinkedinIcon } from "@/components/icons";
 
 interface PublicFooterProps {
   settings?: Record<string, string>;
@@ -35,7 +35,6 @@ export function PublicFooter({ settings }: PublicFooterProps) {
   const waliDosen = settings?.waliDosen || "Muhammad Ardiansyah";
   const classMotto = settings?.classMotto || "LEARN. BUILD. GROW. TOGETHER.";
 
-  const githubUrl = settings?.githubUrl;
   const instagramUrl = settings?.instagramUrl;
 
   return (
@@ -79,17 +78,6 @@ export function PublicFooter({ settings }: PublicFooterProps) {
 
             {/* Social channels */}
             <div className="flex items-center gap-2.5 pt-2">
-              {githubUrl && (
-                <a
-                  href={githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition-colors text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
-                  aria-label="GitHub"
-                >
-                  <GithubIcon size={15} />
-                </a>
-              )}
               {instagramUrl && (
                 <a
                   href={instagramUrl}

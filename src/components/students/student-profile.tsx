@@ -178,7 +178,7 @@ export function StudentProfile({
 
           {/* Social Profiles */}
           <div className="flex items-center gap-3 pt-2">
-            {student.githubUrl && (
+            {student.githubUrl && formatGithubUrl(student.githubUrl) && (
               <a
                 href={formatGithubUrl(student.githubUrl)}
                 target="_blank"

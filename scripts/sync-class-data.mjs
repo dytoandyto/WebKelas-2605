@@ -19,7 +19,7 @@ async function main() {
     classHeadline: "LEARN. BUILD. GROW. TOGETHER.",
     classDescription: "Academic class hub and digital ecosystem for S1 Sistem Informasi Telkom University Jakarta class JS1SI-26-REG-05.",
     contactEmail: "si2605@telkomuniversity.ac.id",
-    githubUrl: "https://github.com/dytoandyto/WebKelas-2605",
+    githubUrl: "",
     linkedinUrl: "https://linkedin.com",
     instagramUrl: "https://instagram.com",
     discordUrl: "https://discord.gg",
