@@ -142,6 +142,40 @@ export async function uploadImageFile(
 
 const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024; // 50 MB
 
+// Whitelist of safe document, archive, and presentation file extensions
+export const ALLOWED_DOCUMENT_EXTENSIONS = new Set([
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".ppt",
+  ".pptx",
+  ".txt",
+  ".csv",
+  ".rtf",
+  ".odt",
+  ".ods",
+  ".odp",
+  ".zip",
+  ".rar",
+  ".7z",
+  ".tar",
+  ".gz",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+]);
+
+// Explicitly blocked executable, script, and active content extensions
+const BLOCKED_EXTENSIONS = new Set([
+  ".exe", ".bat", ".cmd", ".sh", ".bash", ".ps1", ".vbs",
+  ".js", ".mjs", ".ts", ".tsx", ".jsx", ".html", ".htm", ".xhtml",
+  ".php", ".phtml", ".asp", ".aspx", ".jsp", ".cgi", ".py", ".pl",
+  ".svg", ".dll", ".so", ".dylib", ".bin", ".scr", ".com", ".msi"
+]);
+
 export interface UploadDocumentResult {
   url: string;
   fileName: string;
@@ -161,18 +195,31 @@ export async function uploadDocumentFile(
     return { url: "", fileName: file.name, size: "", error: "Ukuran berkas melebihi batas 50MB" };
   }
 
+  const rawExt = path.extname(file.name) || "";
+  const ext = rawExt.toLowerCase();
+
+  // Validate against extension whitelist to prevent script and executable uploads
+  if (!ext || !ALLOWED_DOCUMENT_EXTENSIONS.has(ext) || BLOCKED_EXTENSIONS.has(ext)) {
+    return {
+      url: "",
+      fileName: file.name,
+      size: "",
+      error: "Ekstensi berkas tidak diizinkan. Hanya dokumen resmi (PDF, Word, Excel, PowerPoint, teks, arsip) yang diperbolehkan.",
+    };
+  }
+
+  const safeFolder = folder === "materials" || folder === "tasks" || folder === "general" ? folder : "materials";
+
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const rawExt = path.extname(file.name) || "";
-  const ext = rawExt.toLowerCase() || ".bin";
   const baseName = path
     .basename(file.name, rawExt)
     .replace(/[^a-zA-Z0-9_-]/g, "_")
     .slice(0, 40);
   const uniqueId = crypto.randomBytes(6).toString("hex");
   const fileName = `${Date.now()}-${baseName || "doc"}-${uniqueId}${ext}`;
-  const filePath = `${folder}/${fileName}`;
+  const filePath = `${safeFolder}/${fileName}`;
 
   const sizeInMB = file.size / (1024 * 1024);
   const formattedSize =

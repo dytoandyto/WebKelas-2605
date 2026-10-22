@@ -1,23 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractGoogleDriveFileId } from "@/lib/utils";
+import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 
+// Strict Google Drive file ID pattern (alphanumeric, underscores, hyphens, 10-100 chars)
+const GOOGLE_DRIVE_ID_REGEX = /^[a-zA-Z0-9_-]{10,100}$/;
+
 /**
- * Bulletproof image proxy for Google Drive photos.
- * Ensures images display seamlessly even if the client browser or network
- * encounters CORS, third-party cookie, or referrer restrictions.
+ * Bulletproof image proxy for Google Drive photos with defense-in-depth protection.
+ * Validates file ID formats, prevents SSRF, and blocks SVG/active content.
  */
 export async function GET(request: NextRequest) {
+  // Rate limit avatar proxy requests (max 100 requests per minute per IP)
+  const clientIp = getClientIp(request.headers);
+  const rateLimit = checkRateLimit(`avatar:${clientIp}`, 100, 60 * 1000);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: "Terlalu banyak permintaan proxy avatar. Silakan coba lagi nanti." },
+      { status: 429 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const idParam = searchParams.get("id");
   const urlParam = searchParams.get("url");
 
   const fileId = idParam || extractGoogleDriveFileId(urlParam);
 
-  if (!fileId) {
+  if (!fileId || !GOOGLE_DRIVE_ID_REGEX.test(fileId)) {
     return NextResponse.json(
-      { error: "Parameter id atau url Google Drive tidak valid." },
+      { error: "Format ID atau URL Google Drive tidak valid." },
       { status: 400 }
     );
   }
@@ -36,7 +49,7 @@ export async function GET(request: NextRequest) {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+          Accept: "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*;q=0.8",
         },
         redirect: "follow",
         cache: "no-store",
@@ -44,8 +57,12 @@ export async function GET(request: NextRequest) {
 
       const contentType = response.headers.get("content-type") || "";
 
-      // Ensure response is an image, not an HTML error or virus-scan page
-      if (response.ok && contentType.startsWith("image/")) {
+      // Ensure response is an image, reject SVG and active scripts to prevent Stored/Reflected XSS
+      if (
+        response.ok &&
+        contentType.startsWith("image/") &&
+        !contentType.includes("svg")
+      ) {
         const imageBuffer = await response.arrayBuffer();
 
         return new NextResponse(imageBuffer, {
@@ -54,7 +71,8 @@ export async function GET(request: NextRequest) {
             "Content-Type": contentType,
             "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
             "Content-Disposition": "inline",
-            "Access-Control-Allow-Origin": "*",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'none'",
           },
         });
       }

@@ -1,12 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { loginSchema, LoginInput, changePasswordSchema, ChangePasswordInput } from "@/lib/validations";
 import { verifyPassword, hashPassword } from "@/lib/auth/password";
 import { createSession, destroySession, getCurrentUser, getSession } from "@/lib/auth/session";
 import prisma from "@/lib/db";
 import { initialUsers } from "@/lib/data/initial-data";
 import { logActivity } from "./common";
+import { checkRateLimit, resetRateLimit, getClientIp } from "@/lib/security/rate-limit";
 
 export interface ActionResult<T = any> {
   success: boolean;
@@ -24,9 +26,37 @@ export async function loginAction(input: LoginInput): Promise<ActionResult> {
   }
 
   const { email, password } = validation.data;
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Safely extract client IP and enforce rate limiting
+  let clientIp = "127.0.0.1";
+  try {
+    const headerList = await headers();
+    clientIp = getClientIp(headerList);
+  } catch {
+    // In environments where headers() is unavailable
+  }
+
+  // IP-level rate limit: max 20 attempts per 15 minutes
+  const ipLimit = checkRateLimit(`login:ip:${clientIp}`, 20, 15 * 60 * 1000);
+  if (!ipLimit.success) {
+    return {
+      success: false,
+      error: "Terlalu banyak percobaan masuk dari alamat IP ini. Silakan coba lagi beberapa saat lagi.",
+    };
+  }
+
+  // Account + IP rate limit: max 5 failed attempts per 15 minutes
+  const accountLimitKey = `login:account:${clientIp}:${normalizedEmail}`;
+  const accountLimit = checkRateLimit(accountLimitKey, 5, 15 * 60 * 1000);
+  if (!accountLimit.success) {
+    return {
+      success: false,
+      error: "Terlalu banyak percobaan masuk yang gagal untuk akun ini. Silakan coba lagi beberapa saat lagi.",
+    };
+  }
 
   try {
-    const normalizedEmail = email.toLowerCase().trim();
     let user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
@@ -38,34 +68,37 @@ export async function loginAction(input: LoginInput): Promise<ActionResult> {
     }
 
     if (!user) {
-      // Check fallback initial users for local demo resilience
-      const fallbackUser = initialUsers.find(
-        (u) =>
-          u.email.toLowerCase() === normalizedEmail ||
-          ((normalizedEmail === "ardiansyah@telkomuniversity.ac.id" || normalizedEmail === "admin@classhub.edu") &&
-            u.role === "ADMIN")
-      );
-      if (fallbackUser) {
-        // Fallback demo credentials check
-        const validDemoPasswords: Record<string, string> = {
-          "admin@classhub.edu": "AdminClassHub2026!",
-          "ardiansyah@telkomuniversity.ac.id": "AdminClassHub2026!",
-          "classadmin@classhub.edu": "ClassAdmin2026!",
-          "lecturer@classhub.edu": "Lecturer2026!",
-          "assistant@classhub.edu": "Assistant2026!",
-        };
-        if (
-          validDemoPasswords[fallbackUser.email] === password ||
-          validDemoPasswords[normalizedEmail] === password ||
-          password === "AdminClassHub2026!"
-        ) {
-          await createSession({
-            id: fallbackUser.id,
-            email: fallbackUser.email,
-            name: fallbackUser.name,
-            role: fallbackUser.role,
-          });
-          return { success: true };
+      // Check fallback initial users strictly in non-production environments
+      if (process.env.NODE_ENV !== "production") {
+        const fallbackUser = initialUsers.find(
+          (u) =>
+            u.email.toLowerCase() === normalizedEmail ||
+            ((normalizedEmail === "ardiansyah@telkomuniversity.ac.id" || normalizedEmail === "admin@classhub.edu") &&
+              u.role === "ADMIN")
+        );
+        if (fallbackUser) {
+          // Fallback demo credentials check for local development only
+          const validDemoPasswords: Record<string, string> = {
+            "admin@classhub.edu": "AdminClassHub2026!",
+            "ardiansyah@telkomuniversity.ac.id": "AdminClassHub2026!",
+            "classadmin@classhub.edu": "ClassAdmin2026!",
+            "lecturer@classhub.edu": "Lecturer2026!",
+            "assistant@classhub.edu": "Assistant2026!",
+          };
+          if (
+            validDemoPasswords[fallbackUser.email] === password ||
+            validDemoPasswords[normalizedEmail] === password ||
+            password === "AdminClassHub2026!"
+          ) {
+            resetRateLimit(accountLimitKey);
+            await createSession({
+              id: fallbackUser.id,
+              email: fallbackUser.email,
+              name: fallbackUser.name,
+              role: fallbackUser.role,
+            });
+            return { success: true };
+          }
         }
       }
 
@@ -81,6 +114,7 @@ export async function loginAction(input: LoginInput): Promise<ActionResult> {
       return { success: false, error: "Invalid email or password" };
     }
 
+    resetRateLimit(accountLimitKey);
     await createSession({
       id: user.id,
       email: user.email,
@@ -91,25 +125,28 @@ export async function loginAction(input: LoginInput): Promise<ActionResult> {
     return { success: true };
   } catch (err) {
     console.error("Login action error:", err);
-    // Fallback demo check if database is temporarily offline
-    const fallbackUser = initialUsers.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
-    if (fallbackUser) {
-      const validDemoPasswords: Record<string, string> = {
-        "admin@classhub.edu": "AdminClassHub2026!",
-        "classadmin@classhub.edu": "ClassAdmin2026!",
-        "lecturer@classhub.edu": "Lecturer2026!",
-        "assistant@classhub.edu": "Assistant2026!",
-      };
-      if (validDemoPasswords[fallbackUser.email] === password) {
-        await createSession({
-          id: fallbackUser.id,
-          email: fallbackUser.email,
-          name: fallbackUser.name,
-          role: fallbackUser.role,
-        });
-        return { success: true };
+    // Fallback demo check strictly for non-production environments when database is offline
+    if (process.env.NODE_ENV !== "production") {
+      const fallbackUser = initialUsers.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase()
+      );
+      if (fallbackUser) {
+        const validDemoPasswords: Record<string, string> = {
+          "admin@classhub.edu": "AdminClassHub2026!",
+          "classadmin@classhub.edu": "ClassAdmin2026!",
+          "lecturer@classhub.edu": "Lecturer2026!",
+          "assistant@classhub.edu": "Assistant2026!",
+        };
+        if (validDemoPasswords[fallbackUser.email] === password) {
+          resetRateLimit(accountLimitKey);
+          await createSession({
+            id: fallbackUser.id,
+            email: fallbackUser.email,
+            name: fallbackUser.name,
+            role: fallbackUser.role,
+          });
+          return { success: true };
+        }
       }
     }
 
@@ -126,6 +163,15 @@ export async function changePasswordAction(input: ChangePasswordInput): Promise<
   const session = await getSession();
   if (!session) {
     return { success: false, error: "Sesi Anda telah berakhir. Silakan login kembali." };
+  }
+
+  // Rate limit password change attempts: max 5 attempts per 15 minutes per user
+  const pwLimit = checkRateLimit(`change-password:${session.id}`, 5, 15 * 60 * 1000);
+  if (!pwLimit.success) {
+    return {
+      success: false,
+      error: "Terlalu banyak percobaan pergantian password. Silakan coba lagi beberapa saat lagi.",
+    };
   }
 
   const validation = changePasswordSchema.safeParse(input);
@@ -149,42 +195,44 @@ export async function changePasswordAction(input: ChangePasswordInput): Promise<
       });
     }
 
-    // Handle fallback demo account if DB doesn't have the user yet
+    // Handle fallback demo account if DB doesn't have the user yet (non-production only)
     if (!user) {
-      const fallbackUser = initialUsers.find(
-        (u) => u.id === session.id || u.email.toLowerCase() === session.email.toLowerCase()
-      );
-      if (fallbackUser) {
-        const validDemoPasswords: Record<string, string> = {
-          "admin@classhub.edu": "AdminClassHub2026!",
-          "ardiansyah@telkomuniversity.ac.id": "AdminClassHub2026!",
-          "classadmin@classhub.edu": "ClassAdmin2026!",
-          "lecturer@classhub.edu": "Lecturer2026!",
-          "assistant@classhub.edu": "Assistant2026!",
-        };
-        const expectedOld = validDemoPasswords[fallbackUser.email] || "ClassAdmin2026!";
-        if (currentPassword !== expectedOld) {
-          return { success: false, error: "Password saat ini salah." };
-        }
-
-        const passwordHash = await hashPassword(newPassword);
-        user = await prisma.user.create({
-          data: {
-            id: fallbackUser.id,
-            name: fallbackUser.name,
-            email: fallbackUser.email.toLowerCase(),
-            passwordHash,
-            role: fallbackUser.role,
-            isActive: true,
-          },
-        });
-        await logActivity(
-          "UPDATE_PASSWORD",
-          "USER",
-          user.id,
-          `Pengguna ${user.name} (${user.role}) memperbarui password akun.`
+      if (process.env.NODE_ENV !== "production") {
+        const fallbackUser = initialUsers.find(
+          (u) => u.id === session.id || u.email.toLowerCase() === session.email.toLowerCase()
         );
-        return { success: true, data: { message: "Password berhasil diperbarui!" } };
+        if (fallbackUser) {
+          const validDemoPasswords: Record<string, string> = {
+            "admin@classhub.edu": "AdminClassHub2026!",
+            "ardiansyah@telkomuniversity.ac.id": "AdminClassHub2026!",
+            "classadmin@classhub.edu": "ClassAdmin2026!",
+            "lecturer@classhub.edu": "Lecturer2026!",
+            "assistant@classhub.edu": "Assistant2026!",
+          };
+          const expectedOld = validDemoPasswords[fallbackUser.email] || "ClassAdmin2026!";
+          if (currentPassword !== expectedOld) {
+            return { success: false, error: "Password saat ini salah." };
+          }
+
+          const passwordHash = await hashPassword(newPassword);
+          user = await prisma.user.create({
+            data: {
+              id: fallbackUser.id,
+              name: fallbackUser.name,
+              email: fallbackUser.email.toLowerCase(),
+              passwordHash,
+              role: fallbackUser.role,
+              isActive: true,
+            },
+          });
+          await logActivity(
+            "UPDATE_PASSWORD",
+            "USER",
+            user.id,
+            `Pengguna ${user.name} (${user.role}) memperbarui password akun.`
+          );
+          return { success: true, data: { message: "Password berhasil diperbarui!" } };
+        }
       }
       return { success: false, error: "Data pengguna tidak ditemukan di sistem." };
     }

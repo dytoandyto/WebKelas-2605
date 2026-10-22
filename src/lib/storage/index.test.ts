@@ -49,6 +49,23 @@ describe("uploadDocumentFile", () => {
     expect(result.error).toBeUndefined();
     expect(result.url).toMatch(/^\/uploads\/materials\/\d+-Pertemuan_1_-_Pengantar-[a-f0-9]+\.pdf$/);
   });
+
+  it("rejects dangerous or unwhitelisted document extensions", async () => {
+    const { uploadDocumentFile } = await import("./index");
+    const maliciousFiles = [
+      new File(["malicious"], "exploit.php", { type: "application/x-php" }),
+      new File(["payload"], "payload.exe", { type: "application/x-msdownload" }),
+      new File(["<script>alert(1)</script>"], "attack.html", { type: "text/html" }),
+      new File(["@echo off"], "run.bat", { type: "text/plain" }),
+      new File(["<svg onload=alert(1)>"], "xss.svg", { type: "image/svg+xml" }),
+    ];
+
+    for (const f of maliciousFiles) {
+      const result = await uploadDocumentFile(f, "materials");
+      expect(result.error).toContain("Ekstensi berkas tidak diizinkan");
+      expect(result.url).toBe("");
+    }
+  });
 });
 
 describe("uploadImageFile for articles", () => {

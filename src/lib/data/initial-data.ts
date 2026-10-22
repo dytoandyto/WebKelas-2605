@@ -25,7 +25,7 @@ export const initialSettings = {
   contactEmail: "si2605@telkomuniversity.ac.id",
   logoUrl: "",
   heroImageUrl: "",
-  githubUrl: "https://github.com/dytoandyto/WebKelas-2605",
+  githubUrl: "",
   linkedinUrl: "https://linkedin.com",
   instagramUrl: "https://instagram.com",
   discordUrl: "https://discord.gg",

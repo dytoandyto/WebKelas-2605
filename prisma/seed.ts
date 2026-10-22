@@ -4,10 +4,20 @@ import {
   DayOfWeek,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // Production guard to prevent accidental database wiping
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    console.error(
+      "🛑 [SECURITY ERROR] Seeding in production is blocked to prevent accidental data loss.\n" +
+      "If you intentionally want to bootstrap or reset production data, set ALLOW_PRODUCTION_SEED=true."
+    );
+    process.exit(1);
+  }
+
   console.log("🌱 Starting Clean Admin Setup for ClassHub (JS1SI-26-REG-05)...");
 
   // 1. Clean existing records in dependency order
@@ -29,8 +39,15 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.setting.deleteMany();
 
-  // 2. Hash default password for System Administrator
-  const adminPassword = await bcrypt.hash("AdminClassHub2026!", 12);
+  // 2. Hash password for System Administrator (configurable or randomized for production)
+  const defaultDevPassword = "AdminClassHub2026!";
+  const rawAdminPassword =
+    process.env.SEED_ADMIN_PASSWORD ||
+    (process.env.NODE_ENV === "production"
+      ? crypto.randomBytes(16).toString("hex") + "A1!"
+      : defaultDevPassword);
+
+  const adminPassword = await bcrypt.hash(rawAdminPassword, 12);
 
   // 3. Create System Administrator (Single authoritative admin account)
   console.log("Creating SuperAdmin account...");
@@ -43,6 +60,13 @@ async function main() {
       isActive: true,
     },
   });
+
+  if (process.env.NODE_ENV === "production" && !process.env.SEED_ADMIN_PASSWORD) {
+    console.log("🔑 [SECURITY NOTICE] Generated initial SuperAdmin password for bootstrap:");
+    console.log("   Username: admin@classhub.edu");
+    console.log(`   Password: ${rawAdminPassword}`);
+    console.log("   ⚠️ Please record this password and change it immediately upon login!");
+  }
 
   // 4. Create Settings (Clean Class Identity Baseline)
   console.log("Configuring baseline class identity settings...");
@@ -59,7 +83,7 @@ async function main() {
     { key: "classHeadline", value: "LEARN. BUILD. GROW. TOGETHER." },
     { key: "classDescription", value: "Academic class hub and digital ecosystem for S1 Sistem Informasi Telkom University Jakarta class JS1SI-26-REG-05." },
     { key: "contactEmail", value: "si2605@telkomuniversity.ac.id" },
-    { key: "githubUrl", value: "https://github.com/dytoandyto/WebKelas-2605" },
+    { key: "githubUrl", value: "" },
     { key: "instagramUrl", value: "https://instagram.com/telkomuniversity_jakarta" },
     { key: "discordUrl", value: "https://discord.gg/telkomuniversity" },
     { key: "classMotto", value: "LEARN. BUILD. GROW. TOGETHER." },

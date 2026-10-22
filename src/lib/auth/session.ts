@@ -14,7 +14,17 @@ export interface SessionUser {
 }
 
 function getJwtSecret(): Uint8Array {
-  const secret = process.env.AUTH_SECRET || "default_development_secret_do_not_use_in_production_min_32_chars";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FATAL: AUTH_SECRET must be configured with at least 32 characters in production."
+      );
+    }
+    return new TextEncoder().encode(
+      "default_development_secret_do_not_use_in_production_min_32_chars"
+    );
+  }
   return new TextEncoder().encode(secret);
 }
 
