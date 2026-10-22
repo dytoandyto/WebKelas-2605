@@ -275,23 +275,23 @@ export function ArticleContentRenderer({
             .map((r) => r.split("|").slice(1, -1).map((s) => s.trim()));
 
           elements.push(
-            <div key={`table-${i}`} className="my-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 w-full">
-              <table className="w-full text-left text-sm border-collapse">
-                <thead className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-semibold">
+            <div key={`table-${i}`} className="table-responsive-wrapper my-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 w-full shadow-2xs">
+              <table className="w-full min-w-[600px] text-left text-sm border-collapse">
+                <thead className="bg-slate-100 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-semibold">
                   <tr>
                     {headerRow.map((cell, idx) => (
-                      <th key={idx} className="px-4 py-3 font-semibold">
-                        {cell}
+                      <th key={idx} className="px-4 py-3 font-semibold whitespace-nowrap text-xs sm:text-sm">
+                        {formatInline(cell)}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-[#070d19]/40">
                   {dataRows.map((row, rIdx) => (
-                    <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <tr key={rIdx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                       {row.map((cell, cIdx) => (
-                        <td key={cIdx} className="px-4 py-2.5 text-slate-700 dark:text-slate-300">
-                          {cell}
+                        <td key={cIdx} className="px-4 py-3 text-slate-700 dark:text-slate-300 align-top min-w-[130px] leading-relaxed text-xs sm:text-sm">
+                          {formatInline(cell)}
                         </td>
                       ))}
                     </tr>
@@ -521,16 +521,46 @@ export function ArticleContentRenderer({
         pre.insertBefore(header, pre.firstChild);
       }
     });
+
+    // Enhance and wrap tables for mobile responsiveness
+    const tables = containerRef.current.querySelectorAll("table");
+    tables.forEach((table) => {
+      table.style.minWidth = "600px";
+      table.style.width = "100%";
+
+      // Reset restrictive inline col width styles from rich-text editor
+      const cols = table.querySelectorAll("col");
+      cols.forEach((col) => {
+        col.removeAttribute("width");
+        col.style.width = "";
+        col.style.minWidth = "120px";
+      });
+
+      // Wrap in responsive overflow container if not yet wrapped
+      if (!table.parentElement?.classList.contains("table-responsive-wrapper")) {
+        const wrapper = document.createElement("div");
+        wrapper.className =
+          "table-responsive-wrapper my-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d19]/60 shadow-2xs relative";
+        table.parentNode?.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      }
+    });
   }, [content]);
 
   if (isHtmlContent(content)) {
     // Inject heading anchor IDs if not present
-    const processed = content.replace(/<h([1-3])([^>]*)>(.*?)<\/h\1>/gi, (match, level, attrs, text) => {
+    let processed = content.replace(/<h([1-3])([^>]*)>(.*?)<\/h\1>/gi, (match, level, attrs, text) => {
       if (/id=/i.test(attrs)) return match;
       const cleanText = text.replace(/<[^>]+>/g, "").trim();
       const id = generateHeadingId(cleanText);
       return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
     });
+
+    // Wrap tables in responsive scroll wrapper for immediate SSR render
+    processed = processed.replace(
+      /(<table\b[^>]*>[\s\S]*?<\/table>)/gi,
+      '<div class="table-responsive-wrapper my-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d19]/60 shadow-2xs">$1</div>'
+    );
 
     return (
       <article

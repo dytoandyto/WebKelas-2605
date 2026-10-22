@@ -1123,3 +1123,104 @@ pre[class*="language-"] code,
 .token.italic {
   font-style: italic;
 }
+
+/* ==========================================================================
+   RESPONSIVE ARTICLE TABLES
+   ========================================================================== */
+
+.table-responsive-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.5rem 0;
+  border-radius: 0.75rem;
+}
+
+/* Custom subtle scrollbar for tables */
+.table-responsive-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 9999px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.dark .table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+.article-rich-content table,
+.prose-custom table {
+  width: 100% !important;
+  min-width: 580px !important; /* Prevents columns from being squashed and cutting off text on mobile */
+  border-collapse: collapse !important;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.article-rich-content table col,
+.prose-custom table col {
+  min-width: 120px !important;
+}
+
+.article-rich-content table th,
+.prose-custom table th {
+  padding: 0.85rem 1rem !important;
+  font-weight: 700 !important;
+  font-size: 0.8125rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  white-space: nowrap !important;
+  vertical-align: middle;
+}
+
+.dark .article-rich-content table th,
+.dark .prose-custom table th {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-bottom: 2px solid #1e293b !important;
+}
+
+.article-rich-content table td,
+.prose-custom table td {
+  padding: 0.85rem 1rem !important;
+  vertical-align: top !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  min-width: 120px !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  line-height: 1.6 !important;
+}
+
+.dark .article-rich-content table td,
+.dark .prose-custom table td {
+  border-bottom: 1px solid #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+.article-rich-content table tr:hover td,
+.prose-custom table tr:hover td {
+  background-color: rgba(248, 250, 252, 0.7);
+}
+
+.dark .article-rich-content table tr:hover td,
+.dark .prose-custom table tr:hover td {
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.article-rich-content table p,
+.prose-custom table p {
+  margin: 0 !important;
+  line-height: 1.6 !important;
+}
+
