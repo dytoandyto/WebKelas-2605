@@ -372,7 +372,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
           </main>
 
           {/* Sticky Sidebar: Table of Contents & Subject Quick Info */}
-          <aside className="lg:col-span-4 2xl:col-span-3 space-y-6">
+          <aside className="hidden lg:block lg:col-span-4 2xl:col-span-3 space-y-6">
             <div className="sticky top-28 space-y-6">
               {/* Table of Contents */}
               <TableOfContents content={article.content} variant="desktop" />

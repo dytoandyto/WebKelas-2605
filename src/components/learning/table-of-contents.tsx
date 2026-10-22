@@ -58,13 +58,19 @@ export function TableOfContents({
       const clientHeight = window.innerHeight;
       const scrollY = window.pageYOffset || document.documentElement.scrollTop;
 
-      // 1. If at or near the very bottom of the page, activate the last heading
-      if (scrollY + clientHeight >= scrollHeight - 90) {
+      // 1. If at the top of the article (within first 180px), always highlight the first heading
+      if (scrollY < 180) {
+        setActiveId(headings[0].id);
+        return;
+      }
+
+      // 2. If at or near the very bottom of the page, activate the last heading
+      if (scrollHeight > clientHeight + 150 && scrollY + clientHeight >= scrollHeight - 90) {
         setActiveId(headings[headings.length - 1].id);
         return;
       }
 
-      // 2. Find the last heading whose top position is at or above the reading line (140px below top)
+      // 3. Find the heading whose position is nearest above the reading line (140px below top)
       const offset = 140;
       let currentActive = headings[0].id;
 
@@ -104,7 +110,8 @@ export function TableOfContents({
     };
   }, [headings]);
 
-  // Auto-scroll the Table of Contents container so that active heading stays visible in sidebar
+  // Auto-scroll the Table of Contents container so that active heading stays visible in desktop sidebar
+  // NOTE: Uses container.scrollTo so it NEVER affects or scrolls the browser window/page!
   React.useEffect(() => {
     if (!activeId) return;
 
@@ -112,40 +119,30 @@ export function TableOfContents({
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Desktop TOC auto-scroll
+    // Desktop TOC internal scroll only (never scrolls window)
     if (desktopNavRef.current) {
-      const activeEl = desktopNavRef.current.querySelector(
+      const container = desktopNavRef.current;
+      const activeEl = container.querySelector(
         `[data-toc-id="${activeId}"]`
       ) as HTMLElement | null;
       if (activeEl) {
-        const navRect = desktopNavRef.current.getBoundingClientRect();
-        const itemRect = activeEl.getBoundingClientRect();
+        const elTop = activeEl.offsetTop;
+        const elHeight = activeEl.offsetHeight;
+        const containerScrollTop = container.scrollTop;
+        const containerHeight = container.clientHeight;
 
-        // If the active item is near or outside the edges of the TOC nav container, scroll it smoothly into view
-        if (itemRect.top < navRect.top + 36 || itemRect.bottom > navRect.bottom - 36) {
-          activeEl.scrollIntoView({
-            block: "nearest",
-            inline: "nearest",
+        if (
+          elTop < containerScrollTop + 32 ||
+          elTop + elHeight > containerScrollTop + containerHeight - 32
+        ) {
+          container.scrollTo({
+            top: Math.max(0, elTop - containerHeight / 2 + elHeight / 2),
             behavior: prefersReducedMotion ? "auto" : "smooth",
           });
         }
       }
     }
-
-    // Mobile TOC auto-scroll (if menu is open)
-    if (isMobileOpen && mobileNavRef.current) {
-      const activeEl = mobileNavRef.current.querySelector(
-        `[data-toc-id="${activeId}"]`
-      ) as HTMLElement | null;
-      if (activeEl) {
-        activeEl.scrollIntoView({
-          block: "nearest",
-          inline: "nearest",
-          behavior: prefersReducedMotion ? "auto" : "smooth",
-        });
-      }
-    }
-  }, [activeId, isMobileOpen]);
+  }, [activeId]);
 
   if (headings.length === 0) {
     return (
@@ -266,6 +263,19 @@ export function TableOfContents({
           ref={mobileNavRef}
           className="p-3 border-t border-slate-100 dark:border-slate-800/80 max-h-72 overflow-y-auto space-y-1 scroll-smooth"
         >
+          {/* Quick jump to start reading from the very beginning / title */}
+          <button
+            type="button"
+            onClick={() => {
+              scrollToTop();
+              setIsMobileOpen(false);
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 mb-1.5 transition-colors text-left cursor-pointer"
+          >
+            <ArrowUp size={13} className="shrink-0" />
+            <span>Mulai Membaca dari Awal (Judul)</span>
+          </button>
+
           {headings.map((heading) => {
             const isActive = activeId === heading.id;
             return (
