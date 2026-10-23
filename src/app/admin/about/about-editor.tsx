@@ -134,13 +134,13 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
       "Rumah digital dan wadah kolaboratif mahasiswa S1 Sistem Informasi Telkom University Jakarta kelas JS1SI-26-REG-05 untuk saling bertumbuh, berbagi materi, dan belajar bersama setiap hari.",
     aboutVision:
       initialSettings.aboutVision ||
-      "Mewujudkan kelas JS1SI-26-REG-05 sebagai lingkungan akademik yang solid, inovatif, dan berdaya saing tinggi, dengan penguasaan mendalam di bidang sistem enterprise, arsitektur data, dan rekayasa perangkat lunak modern.",
+      "Mewujudkan kelas JS1SI-26-REG-05 sebagai komunitas akademik yang solid, inovatif, dan berdaya saing tinggi melalui penguasaan Sistem Informasi, teknologi digital, dan rekayasa perangkat lunak modern.",
     aboutMission:
       initialSettings.aboutMission ||
-      "Membangun atmosfer belajar yang kolaboratif, memperkuat keterampilan teknis dan soft skill, serta aktif berpartisipasi dalam kompetisi akademik dan inovasi digital.",
+      "Membangun budaya belajar yang kolaboratif dan suportif, meningkatkan kompetensi teknis serta soft skill, memperluas pengalaman melalui proyek dan kegiatan akademik, serta mendorong partisipasi aktif dalam kompetisi dan inovasi digital.",
     aboutAspiration:
       initialSettings.aboutAspiration ||
-      "Selama menjadi mahasiswa Telkom University, saya berharap dapat terus mengembangkan kemampuan di bidang teknologi dan programming, khususnya dalam membangun sistem perangkat lunak yang efisien untuk memecahkan masalah nyata. Saya ingin mendapatkan pengalaman baru melalui berbagai proyek kampus, memperluas relasi, serta belajar berkolaborasi dengan individu dari berbagai latar belakang untuk mengasah kemampuan komunikasi dan problem-solving. Lebih dari sekadar fokus pada akademik, saya ingin menghasilkan karya teknologi yang bermanfaat dan mengaplikasikan nilai-nilai Harmony, Excellence, dan Integrity (HEI), guna mempersiapkan diri menjadi seorang profesional yang tangguh, adaptif, dan kompeten di industri teknologi masa depan.",
+      "Sebagai mahasiswa Telkom University dari kelas JS1SI-26-REG-05, kami beraspirasi untuk tumbuh menjadi komunitas akademik yang solid, kolaboratif, dan inovatif di bidang Sistem Informasi. Kami berkomitmen untuk terus mengembangkan kemampuan teknologi, pemrograman, serta pemecahan masalah melalui berbagai proyek, kegiatan akademik, dan pengalaman kolaboratif. Kami ingin membangun lingkungan kelas yang saling mendukung, terbuka terhadap ide dan perspektif baru, serta mendorong setiap anggota untuk berani berkarya dan berprestasi. Dengan menjunjung tinggi nilai Harmony, Excellence, dan Integrity (HEI), kami berupaya menghasilkan karya teknologi yang bermanfaat sekaligus mempersiapkan diri menjadi generasi profesional yang kompeten, adaptif, dan berintegritas.",
     aboutWaliDosenMessage:
       initialSettings.aboutWaliDosenMessage ||
       "Selamat datang di ruang digital kelas JS1SI-26-REG-05. Mari bersama kita bangun atmosfer perkuliahan yang saling mendukung, penuh integritas, dan siap menjadi talenta sistem informasi unggul untuk masa depan bangsa.",
@@ -176,21 +176,29 @@ export function AboutEditor({ initialSettings, students }: AboutEditorProps) {
   }
 
   function handleResetHEI() {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "Apakah Anda yakin ingin mengatur ulang nilai HEI ke standar awal? Perubahan nilai yang belum disimpan akan digantikan."
+      )
+    ) {
+      return;
+    }
     setValuesList([
       {
         title: "Harmony",
         description:
-          "Build harmonious relationships, respect differences, and collaborate with people from diverse backgrounds.",
+          "Membangun kebersamaan, menjaga rasa saling menghormati, dan menciptakan lingkungan kelas yang inklusif serta kolaboratif dalam belajar maupun berkegiatan.",
       },
       {
         title: "Excellence",
         description:
-          "Continuously improve skills, produce high-quality work, and pursue excellence in learning and technology development.",
+          "Mendorong seluruh anggota kelas untuk terus belajar, meningkatkan kompetensi, berani berinovasi, dan memberikan hasil terbaik dalam akademik maupun pengembangan diri.",
       },
       {
         title: "Integrity",
         description:
-          "Uphold honesty, responsibility, and ethical behavior in learning, collaboration, and technology development.",
+          "Menjunjung tinggi kejujuran, tanggung jawab, etika akademik, dan orisinalitas dalam setiap tugas, proyek, serta interaksi antaranggota kelas.",
       },
     ]);
   }

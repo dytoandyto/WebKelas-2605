@@ -105,7 +105,7 @@ export function LearningResourceCard({ resource, className }: LearningResourceCa
       {/* Action Footers */}
       <div className="pt-4 mt-4 border-t border-cyan-500/15 light:border-slate-100 flex items-center justify-between text-xs">
         <span className="text-slate-400 truncate max-w-[130px] font-mono text-[11px]">
-          {resource.creator?.name ? `Oleh ${resource.creator.name}` : "Materi Terverifikasi"}
+          {resource.creator?.name ? `Oleh ${resource.creator.name}` : "Tim Akademik"}
         </span>
 
         <div className="flex items-center gap-2">

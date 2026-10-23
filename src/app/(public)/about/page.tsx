@@ -14,6 +14,8 @@ import {
   Quote,
   CheckCircle2,
   Code,
+  Target,
+  Compass,
 } from "lucide-react";
 import { InstagramIcon } from "@/components/icons";
 import { getSettings, getClassEventsData, getStudentsData, getAchievementsData } from "@/lib/data";
@@ -39,24 +41,30 @@ interface LeaderItem {
   color?: string;
 }
 
+const DEFAULT_VISION =
+  "Mewujudkan kelas JS1SI-26-REG-05 sebagai komunitas akademik yang solid, inovatif, dan berdaya saing tinggi melalui penguasaan Sistem Informasi, teknologi digital, dan rekayasa perangkat lunak modern.";
+
+const DEFAULT_MISSION =
+  "Membangun budaya belajar yang kolaboratif dan suportif, meningkatkan kompetensi teknis serta soft skill, memperluas pengalaman melalui proyek dan kegiatan akademik, serta mendorong partisipasi aktif dalam kompetisi dan inovasi digital.";
+
 const DEFAULT_ASPIRATION =
-  "Selama menjadi mahasiswa Telkom University, saya berharap dapat terus mengembangkan kemampuan di bidang teknologi dan programming, khususnya dalam membangun sistem perangkat lunak yang efisien untuk memecahkan masalah nyata. Saya ingin mendapatkan pengalaman baru melalui berbagai proyek kampus, memperluas relasi, serta belajar berkolaborasi dengan individu dari berbagai latar belakang untuk mengasah kemampuan komunikasi dan problem-solving. Lebih dari sekadar fokus pada akademik, saya ingin menghasilkan karya teknologi yang bermanfaat dan mengaplikasikan nilai-nilai Harmony, Excellence, dan Integrity (HEI), guna mempersiapkan diri menjadi seorang profesional yang tangguh, adaptif, dan kompeten di industri teknologi masa depan.";
+  "Sebagai mahasiswa Telkom University dari kelas JS1SI-26-REG-05, kami beraspirasi untuk tumbuh menjadi komunitas akademik yang solid, kolaboratif, dan inovatif di bidang Sistem Informasi. Kami berkomitmen untuk terus mengembangkan kemampuan teknologi, pemrograman, serta pemecahan masalah melalui berbagai proyek, kegiatan akademik, dan pengalaman kolaboratif. Kami ingin membangun lingkungan kelas yang saling mendukung, terbuka terhadap ide dan perspektif baru, serta mendorong setiap anggota untuk berani berkarya dan berprestasi. Dengan menjunjung tinggi nilai Harmony, Excellence, dan Integrity (HEI), kami berupaya menghasilkan karya teknologi yang bermanfaat sekaligus mempersiapkan diri menjadi generasi profesional yang kompeten, adaptif, dan berintegritas.";
 
 const DEFAULT_HEI_VALUES: ValueItem[] = [
   {
     title: "Harmony",
     description:
-      "Build harmonious relationships, respect differences, and collaborate with people from diverse backgrounds.",
+      "Membangun kebersamaan, menjaga rasa saling menghormati, dan menciptakan lingkungan kelas yang inklusif serta kolaboratif dalam belajar maupun berkegiatan.",
   },
   {
     title: "Excellence",
     description:
-      "Continuously improve skills, produce high-quality work, and pursue excellence in learning and technology development.",
+      "Mendorong seluruh anggota kelas untuk terus belajar, meningkatkan kompetensi, berani berinovasi, dan memberikan hasil terbaik dalam akademik maupun pengembangan diri.",
   },
   {
     title: "Integrity",
     description:
-      "Uphold honesty, responsibility, and ethical behavior in learning, collaboration, and technology development.",
+      "Menjunjung tinggi kejujuran, tanggung jawab, etika akademik, dan orisinalitas dalam setiap tugas, proyek, serta interaksi antaranggota kelas.",
   },
 ];
 
@@ -73,6 +81,8 @@ export default async function AboutPage() {
   const institutionName = settings.institutionName || "Telkom University Jakarta";
   const waliDosen = settings.waliDosen || "Muhammad Ardiansyah";
   const academicYear = settings.academicYear || "Semester Ganjil 2026/2027";
+  const vision = settings.aboutVision || DEFAULT_VISION;
+  const mission = settings.aboutMission || DEFAULT_MISSION;
   const aspiration = settings.aboutAspiration || DEFAULT_ASPIRATION;
   const waliDosenMessage = settings.aboutWaliDosenMessage || "";
 
@@ -244,7 +254,56 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* ── 2. OUR ASPIRATION (ASPIRASI KAMI) ──────────────────────────── */}
+      {/* ── 2. VISION & MISSION (VISI & MISI KELAS) ──────────────────────── */}
+      <section className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Card Visi */}
+          <div className="card p-8 bg-[#08152e]/85 light:bg-white border-cyan-500/25 light:border-slate-200 shadow-[0_0_20px_rgba(6,182,212,0.1)] space-y-4 relative overflow-hidden flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold uppercase tracking-wider bg-cyan-500/15 light:bg-blue-100 text-cyan-300 light:text-blue-700 border border-cyan-500/30 light:border-blue-200">
+                  <Target size={12} className="text-cyan-400 light:text-blue-600" />
+                  Visi Kelas
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white light:text-slate-900 font-display">
+                Arah &amp; Cita-Cita Bersama
+              </h3>
+              <p className="text-slate-200 light:text-slate-700 text-sm sm:text-base leading-relaxed">
+                {vision}
+              </p>
+            </div>
+            <div className="pt-3 border-t border-cyan-500/15 light:border-slate-100 flex items-center gap-1.5 text-xs font-mono text-cyan-400 light:text-blue-600 font-semibold">
+              <CheckCircle2 size={13} />
+              <span>Solid &bull; Inovatif &bull; Berdaya Saing</span>
+            </div>
+          </div>
+
+          {/* Card Misi */}
+          <div className="card p-8 bg-[#08152e]/85 light:bg-white border-cyan-500/25 light:border-slate-200 shadow-[0_0_20px_rgba(6,182,212,0.1)] space-y-4 relative overflow-hidden flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold uppercase tracking-wider bg-blue-500/15 light:bg-blue-100 text-blue-300 light:text-blue-700 border border-blue-500/30 light:border-blue-200">
+                  <Compass size={12} className="text-blue-400 light:text-blue-600" />
+                  Misi Kelas
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white light:text-slate-900 font-display">
+                Langkah Nyata Pengembangan
+              </h3>
+              <p className="text-slate-200 light:text-slate-700 text-sm sm:text-base leading-relaxed">
+                {mission}
+              </p>
+            </div>
+            <div className="pt-3 border-t border-cyan-500/15 light:border-slate-100 flex items-center gap-1.5 text-xs font-mono text-blue-400 light:text-blue-600 font-semibold">
+              <CheckCircle2 size={13} />
+              <span>Kolaboratif &bull; Kompetitif &bull; Berprestasi</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3. OUR ASPIRATION (ASPIRASI KAMI) ──────────────────────────── */}
       <section className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 mb-12">
         <div className="card p-8 sm:p-10 bg-gradient-to-br from-[#0c234a]/85 to-[#08152e]/95 light:from-blue-50/70 light:to-white border-cyan-500/30 light:border-blue-200 shadow-[0_0_25px_rgba(6,182,212,0.12)] relative overflow-hidden space-y-4">
           <Quote className="absolute -top-3 -right-3 w-32 h-32 text-cyan-400/10 light:text-blue-300/20 pointer-events-none" />
