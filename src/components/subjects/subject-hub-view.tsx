@@ -192,12 +192,9 @@ export function SubjectHubView({ subject }: SubjectHubViewProps) {
                       >
                         <div className="flex items-center justify-between font-bold text-white light:text-slate-900 mb-1">
                           <span className="truncate">{a.title}</span>
-                          <span className="text-[10px] font-mono text-purple-300 light:text-purple-700 uppercase">
-                            {a.readingTime ? `[${a.readingTime} MENIT]` : "[ARTIKEL]"}
+                          <span className="text-[11px] text-slate-400 light:text-slate-500 font-mono font-normal shrink-0 ml-2">
+                            {formatDate(a.publishedAt || a.createdAt)}
                           </span>
-                        </div>
-                        <div className="text-[11px] text-slate-400 light:text-slate-500 font-mono">
-                          {formatDate(a.publishedAt || a.createdAt)}
                         </div>
                       </Link>
                     ))}
@@ -301,10 +298,7 @@ export function SubjectHubView({ subject }: SubjectHubViewProps) {
                     key={a.id}
                     className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-2.5"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-purple-500/15 light:bg-purple-50 text-purple-300 light:text-purple-700">
-                        {a.readingTime ? `${a.readingTime} Menit Baca` : "Artikel"}
-                      </span>
+                    <div className="flex items-center justify-end">
                       <span className="text-[11px] font-mono text-slate-400 light:text-slate-500">
                         {formatDate(a.publishedAt || a.createdAt)}
                       </span>

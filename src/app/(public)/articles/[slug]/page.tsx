@@ -170,11 +170,6 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
               <Calendar size={12} className="text-blue-600 dark:text-blue-400" />
               <span>{formatDate(article.updatedAt || article.publishedAt || article.createdAt)}</span>
             </span>
-
-            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 flex items-center gap-1.5">
-              <Clock size={12} className="text-blue-600 dark:text-blue-400" />
-              <span>{readingTime} menit baca</span>
-            </span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white font-display tracking-tight leading-[1.18]">

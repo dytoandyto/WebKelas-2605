@@ -84,11 +84,6 @@ export function ArticleCard({ article, featuredVariant = false, className }: Art
                     {article.subject.code} • {article.subject.name}
                   </span>
                 )}
-                <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-mono">
-                  <Clock size={12} className="text-blue-600 dark:text-blue-400" />
-                  {article.readingTime || 3} min baca
-                </span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
                 <span className="text-slate-500 dark:text-slate-400 font-mono">
                   {formatDate(publishedDate)}
                 </span>
@@ -179,11 +174,6 @@ export function ArticleCard({ article, featuredVariant = false, className }: Art
                 {article.subject.code}
               </span>
             )}
-            <span className="flex items-center gap-1 font-mono">
-              <Clock size={11} className="text-blue-600 dark:text-blue-400" />
-              {article.readingTime || 3} min
-            </span>
-            <span>•</span>
             <span className="font-mono">{formatDate(publishedDate)}</span>
           </div>
 

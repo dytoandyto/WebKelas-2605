@@ -168,47 +168,33 @@ export function PublicNavbar({
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="inline-flex items-center">
-                      <Link
-                        href={link.href}
-                        className={cn(
-                          "pl-3.5 pr-1.5 py-1.5 rounded-l-full text-xs font-medium transition-colors relative inline-flex items-center",
-                          isActive
-                            ? "bg-blue-600 text-white font-semibold shadow-xs"
-                            : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
-                        )}
-                      >
-                        <span>{link.label}</span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={(e) => {
+                    <Link
+                      href={link.href}
+                      onClick={(e) => {
+                        if (!subjectsOpen) {
                           e.preventDefault();
-                          e.stopPropagation();
-                          if (timeoutRef.current) {
-                            clearTimeout(timeoutRef.current);
-                            timeoutRef.current = null;
-                          }
-                          setSubjectsOpen((prev) => !prev);
-                        }}
+                          setSubjectsOpen(true);
+                        }
+                      }}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors relative inline-flex items-center gap-1.5 cursor-pointer",
+                        isActive
+                          ? "bg-blue-600 text-white font-semibold shadow-xs"
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60",
+                        subjectsOpen && !isActive && "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                      )}
+                      aria-expanded={subjectsOpen}
+                      aria-haspopup="true"
+                    >
+                      <span>{link.label}</span>
+                      <ChevronDown
+                        size={12}
                         className={cn(
-                          "pr-2.5 pl-1 py-1.5 rounded-r-full text-xs font-medium transition-colors relative inline-flex items-center cursor-pointer",
-                          isActive
-                            ? "bg-blue-600 text-white"
-                            : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
+                          "transition-transform duration-200 opacity-70 shrink-0",
+                          subjectsOpen && "rotate-180"
                         )}
-                        aria-label="Toggle menu mata kuliah"
-                        aria-expanded={subjectsOpen}
-                      >
-                        <ChevronDown
-                          size={12}
-                          className={cn(
-                            "transition-transform duration-200 opacity-70",
-                            subjectsOpen && "rotate-180"
-                          )}
-                        />
-                      </button>
-                    </div>
+                      />
+                    </Link>
 
                     {/* Subjects Dropdown Menu with bridge padding */}
                     {subjectsOpen && (
