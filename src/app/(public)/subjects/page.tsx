@@ -25,7 +25,7 @@ export default async function SubjectsPage() {
         <PageHeader
           badge={`MATA KULIAH • ${classCode}`}
           title="Mata Kuliah"
-          description={`Daftar mata kuliah semester ini untuk kelas ${classCode}. Pilih mata kuliah untuk melihat detail, silabus, dan materi terkait.`}
+          description={`Daftar mata kuliah semester ini untuk kelas ${classCode}. Pilih mata kuliah untuk melihat detail, silabus, dan artikel pembelajaran terkait.`}
           breadcrumbs={[{ label: "Mata Kuliah" }]}
         />
 
@@ -78,7 +78,7 @@ export default async function SubjectsPage() {
                   <span>&bull;</span>
                   <span>{sub._count?.tasks || 0} Tugas</span>
                   <span>&bull;</span>
-                  <span>{sub._count?.materials || 0} Materi</span>
+                  <span>{(sub._count?.articles ?? sub.articles?.length) || sub._count?.materials || 0} Artikel</span>
                 </div>
 
                 <Link

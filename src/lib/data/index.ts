@@ -910,7 +910,7 @@ export async function getSubjectsData() {
       orderBy: { code: "asc" },
       include: {
         _count: {
-          select: { schedules: true, tasks: true, materials: true, dailyNotes: true },
+          select: { schedules: true, tasks: true, materials: true, dailyNotes: true, articles: true },
         },
         schedules: { orderBy: { dayOfWeek: "asc" } },
         tasks: {
@@ -918,6 +918,7 @@ export async function getSubjectsData() {
           orderBy: { deadline: "asc" },
         },
         materials: { orderBy: { createdAt: "desc" } },
+        articles: { where: { status: ArticleStatus.PUBLISHED }, orderBy: { publishedAt: "desc" } },
         dailyNotes: { orderBy: { date: "desc" } },
       },
     });
@@ -931,10 +932,16 @@ export async function getSubjectsData() {
           tasks: initialTasks.filter((t) => t.subjectId === sub.id).length,
           materials: initialMaterials.filter((m) => m.subjectId === sub.id).length,
           dailyNotes: initialDailyNotes.filter((n) => n.subjectId === sub.id).length,
+          articles: (initialArticles as any[]).filter(
+            (a) => a.subjectId === sub.id && a.status === ArticleStatus.PUBLISHED
+          ).length,
         },
         schedules: initialSchedules.filter((s) => s.subjectId === sub.id),
         tasks: initialTasks.filter((t) => t.subjectId === sub.id),
         materials: initialMaterials.filter((m) => m.subjectId === sub.id),
+        articles: (initialArticles as any[]).filter(
+          (a) => a.subjectId === sub.id && a.status === ArticleStatus.PUBLISHED
+        ),
         dailyNotes: initialDailyNotes.filter((n) => n.subjectId === sub.id),
       })),
     };
@@ -1253,7 +1260,20 @@ export async function getSubjectByCode(code: string) {
       },
     });
 
-    if (subject) return subject;
+    if (subject) {
+      if (!subject.articles || subject.articles.length === 0) {
+        const fallbackArticles = (initialArticles as any[]).filter(
+          (a) =>
+            (a.subjectId === subject.id ||
+              (a.subject && a.subject.code?.toLowerCase() === subject.code?.toLowerCase())) &&
+            a.status === ArticleStatus.PUBLISHED
+        );
+        if (fallbackArticles.length > 0) {
+          return { ...subject, articles: fallbackArticles };
+        }
+      }
+      return subject;
+    }
 
     const initial = initialSubjects.find(
       (s) => s.code.toLowerCase() === code.toLowerCase()

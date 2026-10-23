@@ -23,18 +23,18 @@ interface SubjectHubViewProps {
 }
 
 export function SubjectHubView({ subject }: SubjectHubViewProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "schedule" | "tasks" | "materials" | "notes">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "schedule" | "tasks" | "articles" | "notes">("overview");
 
   const schedules = subject.schedules || [];
   const tasks = subject.tasks || [];
-  const materials = subject.materials || [];
+  const articles = subject.articles || [];
   const dailyNotes = subject.dailyNotes || [];
 
   const tabs = [
     { key: "overview", label: "Overview", count: null },
     { key: "schedule", label: "Jadwal", count: schedules.length },
     { key: "tasks", label: "Tugas", count: tasks.length },
-    { key: "materials", label: "Materi", count: materials.length },
+    { key: "articles", label: "Artikel", count: articles.length },
     { key: "notes", label: "Catatan Harian", count: dailyNotes.length },
   ] as const;
 
@@ -126,8 +126,8 @@ export function SubjectHubView({ subject }: SubjectHubViewProps) {
                 <div className="text-2xl font-black text-white light:text-slate-900">{tasks.length} Tugas</div>
               </div>
               <div className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-1">
-                <span className="text-[10px] font-mono uppercase text-slate-400 light:text-slate-500">Materi Terunggah</span>
-                <div className="text-2xl font-black text-white light:text-slate-900">{materials.length} Berkas</div>
+                <span className="text-[10px] font-mono uppercase text-slate-400 light:text-slate-500">Artikel Pembelajaran</span>
+                <div className="text-2xl font-black text-white light:text-slate-900">{articles.length} Artikel</div>
               </div>
               <div className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-1">
                 <span className="text-[10px] font-mono uppercase text-slate-400 light:text-slate-500">Catatan Jurnal</span>
@@ -171,37 +171,39 @@ export function SubjectHubView({ subject }: SubjectHubViewProps) {
                 )}
               </div>
 
-              {/* Latest Materials preview */}
+              {/* Latest Articles preview */}
               <div className="card p-6 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white light:text-slate-900 flex items-center gap-2">
-                    <BookMarked size={16} className="text-purple-400" />
-                    <span>Materi Terbaru</span>
+                    <BookOpen size={16} className="text-purple-400" />
+                    <span>Artikel Terbaru</span>
                   </h3>
-                  <button onClick={() => setActiveTab("materials")} className="text-xs text-cyan-400 light:text-blue-600 hover:underline">
+                  <button onClick={() => setActiveTab("articles")} className="text-xs text-cyan-400 light:text-blue-600 hover:underline">
                     Lihat Semua &rarr;
                   </button>
                 </div>
-                {materials.length > 0 ? (
+                {articles.length > 0 ? (
                   <div className="space-y-2">
-                    {materials.slice(0, 3).map((m: any) => (
+                    {articles.slice(0, 3).map((a: any) => (
                       <Link
-                        key={m.id}
-                        href={`/materials/${m.id}`}
+                        key={a.id}
+                        href={`/articles/${a.slug}`}
                         className="block p-3 rounded-xl bg-[#040813]/60 light:bg-slate-50 border border-cyan-500/15 light:border-slate-200 hover:border-cyan-400/40 text-xs"
                       >
                         <div className="flex items-center justify-between font-bold text-white light:text-slate-900 mb-1">
-                          <span className="truncate">{m.title}</span>
-                          <span className="text-[10px] font-mono text-purple-300 light:text-purple-700 uppercase">[{m.type}]</span>
+                          <span className="truncate">{a.title}</span>
+                          <span className="text-[10px] font-mono text-purple-300 light:text-purple-700 uppercase">
+                            {a.readingTime ? `[${a.readingTime} MENIT]` : "[ARTIKEL]"}
+                          </span>
                         </div>
                         <div className="text-[11px] text-slate-400 light:text-slate-500 font-mono">
-                          {formatDate(m.createdAt)}
+                          {formatDate(a.publishedAt || a.createdAt)}
                         </div>
                       </Link>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 light:text-slate-500">Belum ada materi perkuliahan terunggah.</p>
+                  <p className="text-xs text-slate-400 light:text-slate-500">Belum ada artikel pembelajaran untuk mata kuliah ini.</p>
                 )}
               </div>
             </div>
@@ -289,32 +291,41 @@ export function SubjectHubView({ subject }: SubjectHubViewProps) {
           </div>
         )}
 
-        {/* 4. MATERIALS TAB */}
-        {activeTab === "materials" && (
+        {/* 4. ARTICLES TAB */}
+        {activeTab === "articles" && (
           <div className="space-y-4">
-            {materials.length > 0 ? (
+            {articles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {materials.map((m: any) => (
+                {articles.map((a: any) => (
                   <div
-                    key={m.id}
+                    key={a.id}
                     className="card p-5 bg-[#08152e]/80 light:bg-white border-cyan-500/20 light:border-slate-200 space-y-2.5"
                   >
                     <div className="flex items-center justify-between">
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-purple-500/15 light:bg-purple-50 text-purple-300 light:text-purple-700">
-                        {m.type}
+                        {a.readingTime ? `${a.readingTime} Menit Baca` : "Artikel"}
                       </span>
-                      <span className="text-[11px] font-mono text-slate-400 light:text-slate-500">{formatDate(m.createdAt)}</span>
+                      <span className="text-[11px] font-mono text-slate-400 light:text-slate-500">
+                        {formatDate(a.publishedAt || a.createdAt)}
+                      </span>
                     </div>
-                    <h4 className="font-bold text-white light:text-slate-900 text-sm leading-snug">{m.title}</h4>
-                    {m.description && (
-                      <p className="text-xs text-slate-300 light:text-slate-600 line-clamp-2">{m.description}</p>
+                    <h4 className="font-bold text-white light:text-slate-900 text-sm leading-snug">
+                      {a.title}
+                    </h4>
+                    {a.excerpt && (
+                      <p className="text-xs text-slate-300 light:text-slate-600 line-clamp-2">
+                        {a.excerpt}
+                      </p>
                     )}
-                    <div className="pt-2 border-t border-cyan-500/15 light:border-slate-100 flex justify-end">
+                    <div className="pt-2 border-t border-cyan-500/15 light:border-slate-100 flex items-center justify-between">
+                      <span className="text-[11px] text-slate-400 light:text-slate-500 font-mono">
+                        Oleh: {a.author?.name || "Admin"}
+                      </span>
                       <Link
-                        href={`/materials/${m.id}`}
+                        href={`/articles/${a.slug}`}
                         className="text-xs text-cyan-400 light:text-blue-600 font-bold hover:underline"
                       >
-                        Buka Halaman Studi &rarr;
+                        Baca Artikel &rarr;
                       </Link>
                     </div>
                   </div>
@@ -322,7 +333,7 @@ export function SubjectHubView({ subject }: SubjectHubViewProps) {
               </div>
             ) : (
               <div className="card p-8 text-center border-dashed border-cyan-500/20 light:border-slate-200 bg-[#08152e]/40 light:bg-slate-50 text-xs text-slate-400 light:text-slate-600">
-                Belum ada materi yang diunggah untuk mata kuliah ini.
+                Belum ada artikel yang dipublikasikan untuk mata kuliah ini.
               </div>
             )}
           </div>

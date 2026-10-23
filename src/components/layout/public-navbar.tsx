@@ -58,16 +58,51 @@ export function PublicNavbar({
   const [subjectsOpen, setSubjectsOpen] = React.useState(false);
   const [mobileSubjectsOpen, setMobileSubjectsOpen] = React.useState(false);
 
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const subjectsDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setSubjectsOpen(true);
+  }, []);
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setSubjectsOpen(false);
+    }, 250);
+  }, []);
+
   React.useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        subjectsDropdownRef.current &&
+        !subjectsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setSubjectsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const [prevPathname, setPrevPathname] = React.useState(pathname);
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     setMobileOpen(false);
+    setSubjectsOpen(false);
   }
 
   const handleOpenSearch = () => {
@@ -128,61 +163,91 @@ export function PublicNavbar({
                 return (
                   <div
                     key={link.href}
+                    ref={subjectsDropdownRef}
                     className="relative"
-                    onMouseEnter={() => setSubjectsOpen(true)}
-                    onMouseLeave={() => setSubjectsOpen(false)}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    <Link
-                      href={link.href}
-                      className={cn(
-                        "px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors relative inline-flex items-center gap-1",
-                        isActive
-                          ? "bg-blue-600 text-white font-semibold shadow-xs"
-                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
-                      )}
-                    >
-                      <span>{link.label}</span>
-                      <ChevronDown
-                        size={12}
+                    <div className="inline-flex items-center">
+                      <Link
+                        href={link.href}
                         className={cn(
-                          "transition-transform duration-200 opacity-70",
-                          subjectsOpen && "rotate-180"
+                          "pl-3.5 pr-1.5 py-1.5 rounded-l-full text-xs font-medium transition-colors relative inline-flex items-center",
+                          isActive
+                            ? "bg-blue-600 text-white font-semibold shadow-xs"
+                            : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
                         )}
-                      />
-                    </Link>
+                      >
+                        <span>{link.label}</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (timeoutRef.current) {
+                            clearTimeout(timeoutRef.current);
+                            timeoutRef.current = null;
+                          }
+                          setSubjectsOpen((prev) => !prev);
+                        }}
+                        className={cn(
+                          "pr-2.5 pl-1 py-1.5 rounded-r-full text-xs font-medium transition-colors relative inline-flex items-center cursor-pointer",
+                          isActive
+                            ? "bg-blue-600 text-white"
+                            : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700/60"
+                        )}
+                        aria-label="Toggle menu mata kuliah"
+                        aria-expanded={subjectsOpen}
+                      >
+                        <ChevronDown
+                          size={12}
+                          className={cn(
+                            "transition-transform duration-200 opacity-70",
+                            subjectsOpen && "rotate-180"
+                          )}
+                        />
+                      </button>
+                    </div>
 
-                    {/* Subjects Dropdown Menu */}
+                    {/* Subjects Dropdown Menu with bridge padding */}
                     {subjectsOpen && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 shadow-lg z-50 animate-in fade-in-0 zoom-in-95 duration-150">
-                        <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
-                          <span>Mata Kuliah Kurikulum</span>
-                          <span>{subjects.length} Matkul</span>
-                        </div>
-                        <div className="max-h-72 overflow-y-auto space-y-1 py-1">
-                          {subjects.map((s) => (
+                      <div
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-80 z-50"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150">
+                          <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
+                            <span>Mata Kuliah Kurikulum</span>
+                            <span>{subjects.length} Matkul</span>
+                          </div>
+                          <div className="max-h-72 overflow-y-auto space-y-1 py-1">
+                            {subjects.map((s) => (
+                              <Link
+                                key={s.id}
+                                href={`/subjects/${s.code}`}
+                                onClick={() => setSubjectsOpen(false)}
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                              >
+                                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0">
+                                  {s.code}
+                                </span>
+                                <span className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                                  {s.name}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                          <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
                             <Link
-                              key={s.id}
-                              href={`/subjects/${s.code}`}
+                              href="/subjects"
                               onClick={() => setSubjectsOpen(false)}
-                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                              className="block text-center py-1.5 px-3 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
                             >
-                              <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0">
-                                {s.code}
-                              </span>
-                              <span className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
-                                {s.name}
-                              </span>
+                              Lihat Semua Mata Kuliah &rarr;
                             </Link>
-                          ))}
-                        </div>
-                        <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
-                          <Link
-                            href="/subjects"
-                            onClick={() => setSubjectsOpen(false)}
-                            className="block text-center py-1.5 px-3 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
-                          >
-                            Lihat Semua Mata Kuliah &rarr;
-                          </Link>
+                          </div>
                         </div>
                       </div>
                     )}
