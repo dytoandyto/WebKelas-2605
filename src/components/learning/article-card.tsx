@@ -43,6 +43,7 @@ export function ArticleCard({ article, featuredVariant = false, className }: Art
         .map((t) => t.trim())
         .filter(Boolean)
     : [];
+  const [imgError, setImgError] = React.useState(false);
 
   // Hero Featured Variant
   if (featuredVariant) {
@@ -56,10 +57,11 @@ export function ArticleCard({ article, featuredVariant = false, className }: Art
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
           {/* Cover Image Container */}
           <div className="relative lg:col-span-5 h-64 sm:h-72 lg:h-full min-h-[260px] overflow-hidden bg-slate-100 dark:bg-slate-950">
-            {article.coverImage ? (
+            {article.coverImage && !imgError ? (
               <img
                 src={article.coverImage}
                 alt={article.title}
+                onError={() => setImgError(true)}
                 className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-300"
               />
             ) : (
@@ -148,10 +150,11 @@ export function ArticleCard({ article, featuredVariant = false, className }: Art
           href={`/articles/${article.slug}`}
           className="block relative h-44 sm:h-48 overflow-hidden bg-slate-100 dark:bg-slate-950"
         >
-          {article.coverImage ? (
+          {article.coverImage && !imgError ? (
             <img
               src={article.coverImage}
               alt={article.title}
+              onError={() => setImgError(true)}
               className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
             />
           ) : (
