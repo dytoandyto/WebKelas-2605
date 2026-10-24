@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Check, Copy, Info, AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { isHtmlContent, extractHeadings, generateHeadingId } from "@/lib/editor/content-converter";
+import { isHtmlContent, extractHeadings, generateHeadingId, sanitizeArticleHtml } from "@/lib/editor/content-converter";
 import Prism from "prismjs";
 import "prismjs/components/prism-csharp";
 import "prismjs/components/prism-javascript";
@@ -114,7 +114,6 @@ export function ArticleContentRenderer({
 
   // Parse markdown into blocks
   const renderBlocks = () => {
-    const rawBlocks = content.split(/\n\s*\n/);
     const elements: React.ReactNode[] = [];
 
     let inCodeBlock = false;
@@ -562,6 +561,8 @@ export function ArticleContentRenderer({
       '<div class="table-responsive-wrapper my-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d19]/60 shadow-2xs">$1</div>'
     );
 
+    const sanitizedHtml = sanitizeArticleHtml(processed);
+
     return (
       <article
         ref={containerRef}
@@ -569,7 +570,7 @@ export function ArticleContentRenderer({
           "article-rich-content prose-custom max-w-none text-slate-800 dark:text-slate-200",
           className
         )}
-        dangerouslySetInnerHTML={{ __html: processed }}
+        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
     );
   }

@@ -5,6 +5,7 @@ import { articleSchema, ArticleInput } from "@/lib/validations";
 import { assertPermission, logActivity } from "./common";
 import { ActionResult } from "./auth";
 import { calculateReadingTime, generateSlug } from "@/lib/utils";
+import { isHtmlContent, sanitizeArticleHtml } from "@/lib/editor/content-converter";
 import prisma from "@/lib/db";
 import { ArticleStatus } from "@prisma/client";
 
@@ -28,7 +29,8 @@ export async function createArticleAction(input: ArticleInput): Promise<ActionRe
       counter++;
     }
 
-    const readingTime = calculateReadingTime(data.content);
+    const cleanContent = isHtmlContent(data.content) ? sanitizeArticleHtml(data.content) : data.content;
+    const readingTime = calculateReadingTime(cleanContent);
     const publishedAt = data.status === ArticleStatus.PUBLISHED ? new Date() : null;
 
     const article = await prisma.learningArticle.create({
@@ -36,7 +38,7 @@ export async function createArticleAction(input: ArticleInput): Promise<ActionRe
         title: data.title,
         slug: finalSlug,
         excerpt: data.excerpt || null,
-        content: data.content,
+        content: cleanContent,
         coverImage: data.coverImage || null,
         status: data.status,
         isFeatured: Boolean(data.isFeatured),
@@ -106,7 +108,8 @@ export async function updateArticleAction(id: string, input: ArticleInput): Prom
       finalSlug = slugCandidate;
     }
 
-    const readingTime = calculateReadingTime(data.content);
+    const cleanContent = isHtmlContent(data.content) ? sanitizeArticleHtml(data.content) : data.content;
+    const readingTime = calculateReadingTime(cleanContent);
     let publishedAt = existing.publishedAt;
     if (data.status === ArticleStatus.PUBLISHED && !publishedAt) {
       publishedAt = new Date();
@@ -121,7 +124,7 @@ export async function updateArticleAction(id: string, input: ArticleInput): Prom
         title: data.title,
         slug: finalSlug,
         excerpt: data.excerpt || null,
-        content: data.content,
+        content: cleanContent,
         coverImage: data.coverImage || null,
         status: data.status,
         isFeatured: Boolean(data.isFeatured),

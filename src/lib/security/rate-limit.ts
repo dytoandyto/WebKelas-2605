@@ -80,11 +80,22 @@ export function resetRateLimit(key: string): void {
 
 /**
  * Extracts client IP safely from incoming request headers.
+ * Prioritizes platform-verified provider headers (e.g., Vercel, Cloudflare) before fallback headers.
  */
 export function getClientIp(headersObj: Headers | { get: (name: string) => string | null }): string {
+  const vercelIp = headersObj.get("x-vercel-ip-client");
+  if (vercelIp && vercelIp.trim()) return vercelIp.trim();
+
+  const cfIp = headersObj.get("cf-connecting-ip");
+  if (cfIp && cfIp.trim()) return cfIp.trim();
+
+  const realIp = headersObj.get("x-real-ip");
+  if (realIp && realIp.trim()) return realIp.trim();
+
   const forwarded = headersObj.get("x-forwarded-for");
   if (forwarded) {
     return forwarded.split(",")[0].trim();
   }
-  return headersObj.get("x-real-ip") || "127.0.0.1";
+
+  return "127.0.0.1";
 }

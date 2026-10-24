@@ -51,5 +51,17 @@ describe("Rate Limiter Security Module", () => {
 
     const emptyHeaders = new Headers();
     expect(getClientIp(emptyHeaders)).toBe("127.0.0.1");
+
+    const vercelHeaders = new Headers({
+      "x-vercel-ip-client": "198.51.100.50",
+      "x-forwarded-for": "10.0.0.1",
+    });
+    expect(getClientIp(vercelHeaders)).toBe("198.51.100.50");
+
+    const cfHeaders = new Headers({
+      "cf-connecting-ip": "198.51.100.75",
+      "x-forwarded-for": "10.0.0.1",
+    });
+    expect(getClientIp(cfHeaders)).toBe("198.51.100.75");
   });
 });

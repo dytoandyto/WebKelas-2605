@@ -1,29 +1,50 @@
 "use server";
 
-import { getCurrentUser, getSession, SessionUser } from "@/lib/auth/session";
+import { getSession, SessionUser } from "@/lib/auth/session";
 import { hasPermission, Permission } from "@/lib/permissions";
+import { UserRole } from "@prisma/client";
 import prisma from "@/lib/db";
 
 export async function assertPermission(permission: Permission): Promise<SessionUser> {
-  const user = await getCurrentUser();
-  if (!user) {
-    // If database is offline but session cookie is present, check session directly
-    const session = await getSession();
-    if (session && hasPermission(session.role, permission)) {
-      return session;
-    }
+  const session = await getSession();
+  if (!session) {
     throw new Error("Unauthorized. Please log in with appropriate credentials.");
   }
 
+  let user: { id: string; email: string; name: string; role: UserRole; isActive: boolean } | null = null;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+      },
+    });
+  } catch {
+    throw new Error("Service temporarily unavailable. Unable to verify user account status.");
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized. User account no longer exists.");
+  }
+
   if (!user.isActive) {
-    throw new Error("Your account has been deactivated.");
+    throw new Error("Forbidden. Your account has been deactivated.");
   }
 
   if (!hasPermission(user.role, permission)) {
     throw new Error("Forbidden. You do not have permission to perform this action.");
   }
 
-  return user;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 }
 
 export async function logActivity(

@@ -4,6 +4,7 @@ import {
   markdownToHtml,
   extractHeadings,
   generateHeadingId,
+  sanitizeArticleHtml,
 } from "./content-converter";
 
 describe("Content Converter Tests", () => {
@@ -59,5 +60,36 @@ describe("Content Converter Tests", () => {
     expect(html).toContain('<img src="https://example.com/arch.png" alt="Arsitektur Sistem" />');
     expect(html).toContain("<p>Berikut adalah diagram arsitektur:</p>");
     expect(html).toContain("<p>Penjelasan lebih lanjut.</p>");
+  });
+
+  describe("sanitizeArticleHtml XSS Prevention", () => {
+    it("strips malicious script tags completely", () => {
+      const dirty = "<p>Materi Kuliah</p><script>alert('xss')</script>";
+      const clean = sanitizeArticleHtml(dirty);
+      expect(clean).toBe("<p>Materi Kuliah</p>");
+      expect(clean).not.toContain("<script>");
+      expect(clean).not.toContain("alert");
+    });
+
+    it("strips inline event handler attributes like onerror, onload, onclick", () => {
+      const dirty = '<img src="invalid" onerror="alert(document.cookie)" alt="Test" />';
+      const clean = sanitizeArticleHtml(dirty);
+      expect(clean).toBe('<img src="invalid" alt="Test">');
+      expect(clean).not.toContain("onerror");
+      expect(clean).not.toContain("alert");
+    });
+
+    it("strips javascript: pseudoprotocol URLs in anchor tags", () => {
+      const dirty = '<a href="javascript:alert(1)">Klik Di Sini</a>';
+      const clean = sanitizeArticleHtml(dirty);
+      expect(clean).not.toContain("javascript:");
+      expect(clean).toContain("Klik Di Sini");
+    });
+
+    it("preserves legitimate rich text elements and formatting", () => {
+      const richHtml = '<h2>Judul</h2><p>Paragraf <strong>tebal</strong> dan <em>miring</em>.</p><table><thead><tr><th>Kolom</th></tr></thead><tbody><tr><td>Data</td></tr></tbody></table>';
+      const clean = sanitizeArticleHtml(richHtml);
+      expect(clean).toBe(richHtml);
+    });
   });
 });

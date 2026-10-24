@@ -3,6 +3,8 @@
  * Supports bidirectional handling for legacy Markdown and modern rich HTML.
  */
 
+import DOMPurify from "isomorphic-dompurify";
+
 export interface TocHeadingItem {
   id: string;
   text: string;
@@ -281,4 +283,27 @@ export function extractHeadings(content: string): TocHeadingItem[] {
   }
 
   return headings;
+}
+
+/**
+ * Strict HTML sanitizer for rich text articles using DOMPurify.
+ * Removes all dangerous script elements, objects, iframes, and onerror/onload event handlers.
+ */
+export function sanitizeArticleHtml(html: string): string {
+  if (!html) return "";
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "p", "span", "div", "pre", "code", "blockquote", "hr", "br",
+      "strong", "b", "em", "i", "u", "s", "mark", "small", "sub", "sup",
+      "ul", "ol", "li",
+      "table", "thead", "tbody", "tr", "th", "td",
+      "a", "img"
+    ],
+    ALLOWED_ATTR: [
+      "href", "src", "alt", "title", "class", "id", "target", "rel",
+      "width", "height", "align", "style", "colspan", "rowspan"
+    ],
+    ALLOW_DATA_ATTR: false,
+  });
 }
