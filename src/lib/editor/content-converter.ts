@@ -3,7 +3,6 @@
  * Supports bidirectional handling for legacy Markdown and modern rich HTML.
  */
 
-import DOMPurify from "isomorphic-dompurify";
 
 export interface TocHeadingItem {
   id: string;
@@ -285,25 +284,153 @@ export function extractHeadings(content: string): TocHeadingItem[] {
   return headings;
 }
 
+const ALLOWED_ARTICLE_TAGS = new Set([
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "p", "span", "div", "pre", "code", "blockquote", "hr", "br",
+  "strong", "b", "em", "i", "u", "s", "mark", "small", "sub", "sup",
+  "ul", "ol", "li",
+  "table", "thead", "tbody", "tr", "th", "td",
+  "a", "img", "figure", "figcaption"
+]);
+
+const ALLOWED_ARTICLE_ATTRS = new Set([
+  "href", "src", "alt", "title", "class", "id", "target", "rel",
+  "width", "height", "align", "style", "colspan", "rowspan"
+]);
+
+const DANGEROUS_BLOCKS_REGEX = /<(?:script|style|iframe|object|embed|applet|template|noscript|noembed|canvas|form|button|textarea|select)\b[^>]*>[\s\S]*?<\/(?:script|style|iframe|object|embed|applet|template|noscript|noembed|canvas|form|button|textarea|select)>|<(?:iframe|meta|link|base|form|input|embed|object|applet)\b[^>]*\/?>/gi;
+
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&#x([0-9a-fA-F]+);?/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#([0-9]+);?/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&colon;?/gi, ":")
+    .replace(/&tab;?/gi, "")
+    .replace(/&newline;?/gi, "");
+}
+
 /**
- * Strict HTML sanitizer for rich text articles using DOMPurify.
- * Removes all dangerous script elements, objects, iframes, and onerror/onload event handlers.
+ * Strict, zero-dependency, isomorphic HTML sanitizer for rich text articles.
+ * Compatible with Next.js Server Components, Server Actions, Node.js, and browser environments.
+ * Protects against XSS attacks while preserving legitimate educational and mathematical content.
  */
 export function sanitizeArticleHtml(html: string): string {
-  if (!html) return "";
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "h1", "h2", "h3", "h4", "h5", "h6",
-      "p", "span", "div", "pre", "code", "blockquote", "hr", "br",
-      "strong", "b", "em", "i", "u", "s", "mark", "small", "sub", "sup",
-      "ul", "ol", "li",
-      "table", "thead", "tbody", "tr", "th", "td",
-      "a", "img"
-    ],
-    ALLOWED_ATTR: [
-      "href", "src", "alt", "title", "class", "id", "target", "rel",
-      "width", "height", "align", "style", "colspan", "rowspan"
-    ],
-    ALLOW_DATA_ATTR: false,
+  if (!html || typeof html !== "string") return "";
+
+  // 1. Remove dangerous blocks completely (including content)
+  let sanitized = html.replace(DANGEROUS_BLOCKS_REGEX, "");
+
+  // Repeat in case of nested constructs like <scr<script>ipt>
+  while (DANGEROUS_BLOCKS_REGEX.test(sanitized)) {
+    sanitized = sanitized.replace(DANGEROUS_BLOCKS_REGEX, "");
+  }
+
+  // 2. Remove HTML comments
+  sanitized = sanitized.replace(/<!--[\s\S]*?-->/g, "");
+
+  // 3. Process tags and attributes safely
+  sanitized = sanitized.replace(/<\/?([a-zA-Z0-9\-]+)([^>]*)>/gi, (fullTag, rawTagName, rawAttrs) => {
+    const tagName = rawTagName.toLowerCase();
+
+    // If tag is not allowed, strip the tag completely
+    if (!ALLOWED_ARTICLE_TAGS.has(tagName)) {
+      return "";
+    }
+
+    // Closing tag
+    if (fullTag.startsWith("</")) {
+      return `</${tagName}>`;
+    }
+
+    // Parse attributes for opening tag
+    const attrRegex = /([a-zA-Z0-9\-:]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g;
+    const cleanAttrs: string[] = [];
+    let match: RegExpExecArray | null;
+
+    let hasTargetBlank = false;
+    let existingRel = "";
+
+    while ((match = attrRegex.exec(rawAttrs)) !== null) {
+      const attrName = match[1].toLowerCase();
+      const rawValue = match[2] ?? match[3] ?? match[4] ?? "";
+
+      // Reject all inline event handlers (onerror, onload, onclick, etc.)
+      if (attrName.startsWith("on")) {
+        continue;
+      }
+
+      // Only allow predefined safe attributes
+      if (!ALLOWED_ARTICLE_ATTRS.has(attrName)) {
+        continue;
+      }
+
+      // Check dangerous URLs in href/src
+      if (attrName === "href" || attrName === "src") {
+        let decoded = decodeHtmlEntities(rawValue);
+        try {
+          decoded = decodeURIComponent(decoded);
+        } catch {}
+        decoded = decoded.replace(/[\x00-\x20\s]/g, "").toLowerCase();
+
+        if (
+          decoded.startsWith("javascript:") ||
+          decoded.startsWith("vbscript:") ||
+          decoded.startsWith("data:text/html")
+        ) {
+          continue;
+        }
+
+        // For href, disallow data: URIs
+        if (attrName === "href" && decoded.startsWith("data:")) {
+          continue;
+        }
+
+        // For src, only allow safe image data URIs if data: is used
+        if (attrName === "src" && decoded.startsWith("data:")) {
+          if (!/^data:image\/(?:png|jpeg|jpg|gif|webp|svg\+xml);base64,/i.test(rawValue.trim())) {
+            continue;
+          }
+        }
+      }
+
+      // Check style attribute for CSS injection
+      if (attrName === "style") {
+        const lowerStyle = decodeHtmlEntities(rawValue).toLowerCase();
+        if (
+          lowerStyle.includes("expression(") ||
+          lowerStyle.includes("javascript:") ||
+          lowerStyle.includes("url(") ||
+          lowerStyle.includes("behavior:") ||
+          lowerStyle.includes("@import")
+        ) {
+          continue;
+        }
+      }
+
+      if (attrName === "target" && rawValue.toLowerCase() === "_blank") {
+        hasTargetBlank = true;
+      }
+
+      if (attrName === "rel") {
+        existingRel = rawValue;
+        continue;
+      }
+
+      cleanAttrs.push(`${attrName}="${rawValue.replace(/"/g, "&quot;")}"`);
+    }
+
+    if (hasTargetBlank) {
+      const relParts = new Set(existingRel ? existingRel.split(/\s+/) : []);
+      relParts.add("noopener");
+      relParts.add("noreferrer");
+      cleanAttrs.push(`rel="${Array.from(relParts).join(" ")}"`);
+    } else if (existingRel) {
+      cleanAttrs.push(`rel="${existingRel.replace(/"/g, "&quot;")}"`);
+    }
+
+    const attrsString = cleanAttrs.length > 0 ? " " + cleanAttrs.join(" ") : "";
+    return `<${tagName}${attrsString}>`;
   });
+
+  return sanitized;
 }
