@@ -69,15 +69,25 @@ export async function createArticleAction(input: ArticleInput): Promise<ActionRe
 
     await logActivity("CREATE_ARTICLE", "ARTICLE", article.id, `Created educational article: ${article.title}`);
 
-    revalidatePath("/learning");
-    revalidatePath("/learning/articles");
-    revalidatePath(`/learning/articles/${article.slug}`);
-    revalidatePath("/admin/articles");
-    revalidatePath("/");
+    safeRevalidateArticlePaths(article.slug);
 
     return { success: true, data: article };
   } catch (err: any) {
     return { success: false, error: err.message || "Gagal membuat artikel pembelajaran." };
+  }
+}
+
+function safeRevalidateArticlePaths(slug: string, oldSlug?: string) {
+  try {
+    revalidatePath("/articles");
+    revalidatePath(`/articles/${slug}`);
+    if (oldSlug && oldSlug !== slug) {
+      revalidatePath(`/articles/${oldSlug}`);
+    }
+    revalidatePath("/admin/articles");
+    revalidatePath("/");
+  } catch (err) {
+    console.warn("Non-critical path revalidation notice:", err);
   }
 }
 
@@ -162,14 +172,7 @@ export async function updateArticleAction(id: string, input: ArticleInput): Prom
 
     await logActivity("UPDATE_ARTICLE", "ARTICLE", article.id, `Updated educational article: ${article.title}`);
 
-    revalidatePath("/learning");
-    revalidatePath("/learning/articles");
-    revalidatePath(`/learning/articles/${article.slug}`);
-    if (existing.slug !== article.slug) {
-      revalidatePath(`/learning/articles/${existing.slug}`);
-    }
-    revalidatePath("/admin/articles");
-    revalidatePath("/");
+    safeRevalidateArticlePaths(article.slug, existing.slug);
 
     return { success: true, data: article };
   } catch (err: any) {
@@ -204,11 +207,7 @@ export async function togglePublishArticleAction(id: string): Promise<ActionResu
       `Changed article publication status to ${nextStatus}: ${updated.title}`
     );
 
-    revalidatePath("/learning");
-    revalidatePath("/learning/articles");
-    revalidatePath(`/learning/articles/${updated.slug}`);
-    revalidatePath("/admin/articles");
-    revalidatePath("/");
+    safeRevalidateArticlePaths(updated.slug);
 
     return { success: true, data: updated };
   } catch (err: any) {
@@ -226,11 +225,7 @@ export async function archiveArticleAction(id: string): Promise<ActionResult> {
 
     await logActivity("ARCHIVE_ARTICLE", "ARTICLE", id, `Archived article: ${updated.title}`);
 
-    revalidatePath("/learning");
-    revalidatePath("/learning/articles");
-    revalidatePath(`/learning/articles/${updated.slug}`);
-    revalidatePath("/admin/articles");
-    revalidatePath("/");
+    safeRevalidateArticlePaths(updated.slug);
 
     return { success: true, data: updated };
   } catch (err: any) {
@@ -259,11 +254,7 @@ export async function deleteArticleAction(id: string): Promise<ActionResult> {
 
     await logActivity("DELETE_ARTICLE", "ARTICLE", id, `Deleted educational article: ${article.title}`);
 
-    revalidatePath("/learning");
-    revalidatePath("/learning/articles");
-    revalidatePath(`/learning/articles/${article.slug}`);
-    revalidatePath("/admin/articles");
-    revalidatePath("/");
+    safeRevalidateArticlePaths(article.slug);
 
     return { success: true };
   } catch (err: any) {

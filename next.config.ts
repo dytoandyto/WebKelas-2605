@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["isomorphic-dompurify"],
   experimental: {
     serverActions: {
       bodySizeLimit: "50mb",
