@@ -28,13 +28,22 @@ interface ArticleDetailPageProps {
 
 export async function generateMetadata({ params }: ArticleDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getArticleBySlug(slug, { allowDraft: true });
+  const [data, user] = await Promise.all([
+    getArticleBySlug(slug, { allowDraft: true }),
+    getCurrentUser(),
+  ]);
 
   if (!data || !data.article) {
     return { title: "Artikel Tidak Ditemukan | JS1SI-26-REG-05" };
   }
 
   const article = data.article;
+  const isPrivileged =
+    user && ["ADMIN", "CLASS_ADMIN", "LECTURER", "ASSISTANT"].includes(user.role);
+
+  if (article.status !== "PUBLISHED" && !isPrivileged) {
+    return { title: "Artikel Tidak Ditemukan | JS1SI-26-REG-05" };
+  }
 
   return {
     title: `${article.title} | Artikel JS1SI-26-REG-05`,
